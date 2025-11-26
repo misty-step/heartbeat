@@ -13,12 +13,12 @@ Strategic implementation following Ousterhout's deep module principles. Each tas
   - Select options: App Router, TypeScript, Tailwind CSS, no src/ directory
   - Success criteria: `pnpm dev` starts development server on port 3000
 
-- [ ] **Configure package.json with project metadata**
+- [x] **Configure package.json with project metadata**
   - Set name: `"heartbeat"`, version: `"0.1.0"`, description: `"Set and forget uptime monitoring"`
   - Add scripts: `"dev"`, `"build"`, `"start"`, `"lint"`, `"type-check"`
   - Success criteria: All scripts execute without errors
 
-- [ ] **Install core dependencies**
+- [~] **Install core dependencies**
   - Run `pnpm add convex@latest @clerk/nextjs@latest geist lucide-react recharts framer-motion resend`
   - Run `pnpm add -D @types/node typescript @convex-dev/cli`
   - Success criteria: All packages install without peer dependency warnings
