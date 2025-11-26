@@ -1,6 +1,10 @@
 import { notFound } from "next/navigation";
 import { fetchQuery } from "convex/nextjs";
 import { api } from "../../../convex/_generated/api";
+import { StatusHeader } from "../../../components/StatusHeader";
+import { MonitorCard } from "../../../components/MonitorCard";
+import { UptimeChart } from "../../../components/UptimeChart";
+import { IncidentTimeline } from "../../../components/IncidentTimeline";
 
 // ISR Configuration
 export const revalidate = 60; // Revalidate every 60 seconds
@@ -10,19 +14,13 @@ interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
-type MonitorStatus = "up" | "degraded" | "down";
-type OverallStatus = "operational" | "degraded" | "down";
+type MonitorStatus = "up" | "degraded" | "down" | "unknown";
+type OverallStatus = "up" | "degraded" | "down" | "unknown";
 
 const getMonitorStatus = (consecutiveFailures: number): MonitorStatus => {
   if (consecutiveFailures === 0) return "up";
   if (consecutiveFailures < 3) return "degraded";
   return "down";
-};
-
-const STATUS_COLORS: Record<MonitorStatus, string> = {
-  up: "text-success",
-  degraded: "text-warning",
-  down: "text-error",
 };
 
 // Pre-render common project slugs at build time
@@ -55,45 +53,109 @@ export default async function StatusPage({ params }: PageProps) {
       ? "down"
       : monitorsWithStatus.some((m) => m.status === "degraded")
       ? "degraded"
-      : "operational";
+      : "up";
+
+  // Get the most recent check time across all monitors
+  const lastUpdated = monitors.reduce((latest, monitor) => {
+    if (!monitor.lastCheckAt) return latest;
+    return !latest || monitor.lastCheckAt > latest
+      ? monitor.lastCheckAt
+      : latest;
+  }, null as number | null);
+
+  // Fetch uptime data for the first monitor (for now, showing single monitor stats)
+  // TODO: In future, aggregate across all monitors or show per-monitor charts
+  const primaryMonitor = monitors[0];
+  const uptimeStats = await fetchQuery(api.checks.getUptimeStats, {
+    monitorId: primaryMonitor._id,
+    days: 30,
+  });
+
+  // Fetch recent checks for chart visualization
+  const recentChecks = await fetchQuery(api.checks.getRecentForMonitor, {
+    monitorId: primaryMonitor._id,
+    limit: 90, // ~3 days at 1min intervals, good for visualization
+  });
+
+  // Transform checks into chart data format
+  const chartData = recentChecks.reverse().map((check) => ({
+    timestamp: check.checkedAt,
+    responseTime: check.responseTime,
+    status: check.status === "up" ? ("up" as const) : ("down" as const),
+  }));
+
+  // Fetch incidents for all monitors in this project
+  const allIncidents = await Promise.all(
+    monitors.map((monitor) =>
+      fetchQuery(api.incidents.getForMonitor, {
+        monitorId: monitor._id,
+        limit: 10,
+      })
+    )
+  );
+
+  // Flatten and sort incidents by start time (most recent first)
+  const incidents = allIncidents
+    .flat()
+    .sort((a, b) => b.startedAt - a.startedAt)
+    .slice(0, 20) // Show max 20 incidents
+    .map((incident) => ({
+      id: incident._id,
+      title: incident.title,
+      status: incident.status as
+        | "investigating"
+        | "identified"
+        | "monitoring"
+        | "resolved",
+      startedAt: new Date(incident.startedAt),
+      resolvedAt: incident.resolvedAt ? new Date(incident.resolvedAt) : undefined,
+      updates: [], // TODO: Add incident updates when schema supports them
+    }));
 
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto px-6 py-12">
-        {/* Temporary placeholder - will be replaced with actual components */}
-        <div className="space-y-8">
-          <div>
-            <h1 className="text-3xl font-semibold text-text-primary mb-4">
-              {slug} Status
-            </h1>
-            <div className="text-lg text-text-secondary">
-              Status: <span className="font-medium">{overallStatus}</span>
-            </div>
-          </div>
+        <StatusHeader
+          overallStatus={overallStatus}
+          projectName={slug}
+          lastUpdated={lastUpdated ? new Date(lastUpdated) : undefined}
+        />
 
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold text-text-primary">
-              Monitors ({monitors.length})
+        <main className="space-y-16 mt-16">
+          {/* Monitor Status Section */}
+          <section className="space-y-4">
+            <h2 className="text-lg font-semibold text-text-primary">
+              Monitors
             </h2>
-            <div className="space-y-2">
+            <div className="bg-surface rounded-lg border border-border divide-y divide-border">
               {monitorsWithStatus.map((monitor) => (
-                <div
+                <MonitorCard
                   key={monitor._id}
-                  className="p-4 rounded-lg border border-border bg-surface"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium text-text-primary">
-                      {monitor.name}
-                    </span>
-                    <span className={`text-sm ${STATUS_COLORS[monitor.status]}`}>
-                      {monitor.status}
-                    </span>
-                  </div>
-                </div>
+                  monitor={{
+                    name: monitor.name,
+                    currentStatus: monitor.status,
+                    lastResponseTime: monitor.lastResponseTime,
+                  }}
+                />
               ))}
             </div>
-          </div>
-        </div>
+          </section>
+
+          {/* Uptime Chart Section */}
+          {chartData.length > 0 && (
+            <section className="space-y-4">
+              <UptimeChart
+                data={chartData}
+                uptimePercentage={uptimeStats.uptimePercentage}
+              />
+            </section>
+          )}
+
+          {/* Incident Timeline Section */}
+          <section>
+            <IncidentTimeline incidents={incidents} />
+          </section>
+        </main>
       </div>
     </div>
   );
