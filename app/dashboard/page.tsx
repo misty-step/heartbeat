@@ -1,10 +1,17 @@
 "use client";
 
+import { useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
+import { DashboardMonitorCard } from "../../components/DashboardMonitorCard";
+import { MonitorSettingsModal } from "../../components/MonitorSettingsModal";
+import { Id } from "../../convex/_generated/dataModel";
 
 export default function DashboardPage() {
   const monitors = useQuery(api.monitors.list);
+  const [editingMonitorId, setEditingMonitorId] = useState<Id<"monitors"> | null>(null);
+
+  const editingMonitor = monitors?.find((m) => m._id === editingMonitorId);
 
   // Loading state
   if (monitors === undefined) {
@@ -81,64 +88,21 @@ export default function DashboardPage() {
           {/* Monitor grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {monitors.map((monitor) => (
-              <div
+              <DashboardMonitorCard
                 key={monitor._id}
-                className="p-6 bg-surface rounded-lg border border-border hover:border-border-strong transition-colors"
-              >
-                <div className="space-y-4">
-                  {/* Monitor header */}
-                  <div className="space-y-1">
-                    <h3 className="text-base font-semibold text-text-primary truncate">
-                      {monitor.name}
-                    </h3>
-                    <p className="text-xs text-text-tertiary truncate">
-                      {monitor.projectSlug}
-                    </p>
-                  </div>
-
-                  {/* Status */}
-                  <div className="flex items-center gap-2">
-                    <div
-                      className={`h-2 w-2 rounded-full ${
-                        monitor.consecutiveFailures === 0
-                          ? "bg-success"
-                          : monitor.consecutiveFailures < 3
-                          ? "bg-warning"
-                          : "bg-error"
-                      }`}
-                    />
-                    <span className="text-sm text-text-secondary">
-                      {monitor.consecutiveFailures === 0
-                        ? "Operational"
-                        : monitor.consecutiveFailures < 3
-                        ? "Degraded"
-                        : "Down"}
-                    </span>
-                  </div>
-
-                  {/* Stats */}
-                  <div className="pt-4 border-t border-border space-y-2">
-                    {monitor.lastResponseTime !== undefined && (
-                      <div className="flex justify-between text-sm">
-                        <span className="text-text-tertiary">Response time</span>
-                        <span className="font-mono text-text-primary tabular-nums">
-                          {monitor.lastResponseTime}ms
-                        </span>
-                      </div>
-                    )}
-                    {monitor.lastCheckAt && (
-                      <div className="flex justify-between text-sm">
-                        <span className="text-text-tertiary">Last check</span>
-                        <span className="text-text-secondary">
-                          {new Date(monitor.lastCheckAt).toLocaleTimeString()}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
+                monitor={monitor}
+                onEdit={() => setEditingMonitorId(monitor._id)}
+              />
             ))}
           </div>
+
+          {/* Settings modal */}
+          {editingMonitor && (
+            <MonitorSettingsModal
+              monitor={editingMonitor}
+              onClose={() => setEditingMonitorId(null)}
+            />
+          )}
         </div>
       </div>
     </div>
