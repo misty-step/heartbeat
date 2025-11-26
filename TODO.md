@@ -209,11 +209,12 @@ Strategic implementation following Ousterhout's deep module principles. Each tas
   - Simplifications: single source of truth, O(n) computation, STATUS_COLORS lookup
   - Success criteria: ✅ Server component renders, 404 handled, status logic clean
 
-- [ ] **Implement ISR configuration for status pages**
-  - Add `export const revalidate = 60` to page.tsx (revalidate every 60 seconds)
-  - Add `generateStaticParams` to pre-render common project slugs
-  - Configure fallback: `export const dynamicParams = true` (allow new slugs)
-  - Success criteria: Status page cached at edge, updates within 60s of status change, works for all project slugs
+- [x] **Implement ISR configuration for status pages**
+  - Added ISR exports to `app/s/[slug]/page.tsx` (commit: 6369c59)
+  - revalidate = 60: Edge caching with 60s revalidation
+  - dynamicParams = true: Supports any project slug
+  - generateStaticParams(): Empty array (on-demand ISR), TODO for analytics-driven pre-rendering
+  - Success criteria: ✅ Pages cached at edge, 60s revalidation, all slugs work
 
 - [ ] **Add status page layout with StatusHeader, MonitorCards, UptimeChart, IncidentTimeline**
   - Compose components: `<StatusHeader /> <main><section>MonitorCards</section> <section>UptimeChart</section> <section>IncidentTimeline</section></main>`
