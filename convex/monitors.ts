@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { query, mutation } from "./_generated/server";
+import { query, mutation, internalQuery } from "./_generated/server";
 
 export const list = query({
   args: {},
@@ -83,6 +83,7 @@ export const create = mutation({
       ...args,
       userId: identity.subject,
       enabled: true,
+      consecutiveFailures: 0,
       createdAt: now,
       updatedAt: now,
     });
@@ -155,5 +156,16 @@ export const remove = mutation({
     }
 
     await ctx.db.delete(args.id);
+  },
+});
+
+/**
+ * Internal query to get monitor without auth check.
+ * Used by monitoring engine actions.
+ */
+export const getInternal = internalQuery({
+  args: { id: v.id("monitors") },
+  handler: async (ctx, args) => {
+    return await ctx.db.get(args.id);
   },
 });

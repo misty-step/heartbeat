@@ -29,6 +29,9 @@ export default defineSchema({
     enabled: v.boolean(),
     projectSlug: v.string(),
     userId: v.string(),
+    consecutiveFailures: v.number(),
+    lastCheckAt: v.optional(v.number()),
+    lastResponseTime: v.optional(v.number()),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
