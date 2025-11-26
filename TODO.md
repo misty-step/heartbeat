@@ -238,7 +238,7 @@ Strategic implementation following Ousterhout's deep module principles. Each tas
   - Grid layout: 3 columns on desktop, 2 on tablet, 1 on mobile
   - Success criteria: Dashboard updates in real-time when monitor status changes, no loading flicker
 
-- [ ] **Create DashboardMonitorCard component**
+- [x] **Create DashboardMonitorCard component**
   - File: `components/DashboardMonitorCard.tsx`
   - Props: `monitor: Monitor`
   - Display: StatusIndicator, name, projectName, uptime % (calculate from checks), current status
