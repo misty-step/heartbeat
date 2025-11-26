@@ -2,6 +2,10 @@ import { notFound } from "next/navigation";
 import { fetchQuery } from "convex/nextjs";
 import { api } from "../../../convex/_generated/api";
 
+// ISR Configuration
+export const revalidate = 60; // Revalidate every 60 seconds
+export const dynamicParams = true; // Allow new slugs not in generateStaticParams
+
 interface PageProps {
   params: Promise<{ slug: string }>;
 }
@@ -20,6 +24,13 @@ const STATUS_COLORS: Record<MonitorStatus, string> = {
   degraded: "text-warning",
   down: "text-error",
 };
+
+// Pre-render common project slugs at build time
+export async function generateStaticParams() {
+  // TODO: Fetch most accessed project slugs from analytics/database
+  // For now, return empty array - all pages generated on-demand with ISR
+  return [];
+}
 
 export default async function StatusPage({ params }: PageProps) {
   const { slug } = await params;
