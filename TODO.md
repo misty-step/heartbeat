@@ -231,7 +231,7 @@ Strategic implementation following Ousterhout's deep module principles. Each tas
 
 ### Dashboard Route
 
-- [ ] **Create dashboard page at app/dashboard/page.tsx**
+- [x] **Create dashboard page at app/dashboard/page.tsx**
   - Client component (`"use client"`) for real-time subscriptions
   - Use `useQuery(api.monitors.list)` to fetch monitors with live updates
   - Show loading skeleton while data fetches
