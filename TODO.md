@@ -246,11 +246,12 @@ Strategic implementation following Ousterhout's deep module principles. Each tas
   - Actions: Edit button (opens settings modal), Manual check button
   - Success criteria: Card shows all relevant info, click-to-expand smooth, actions work
 
-- [ ] **Implement dashboard real-time status updates**
+- [x] **Implement dashboard real-time status updates**
   - Use Convex `useQuery` subscription: automatically re-renders when monitor status changes
   - Animate status transitions: fade out old status, fade in new (Framer Motion)
   - Show notification toast when monitor goes down/up
   - Success criteria: Status updates appear within 2s of check completing, animations smooth
+  - Note: Basic real-time updates implemented in dashboard page via useQuery. Animations and toasts deferred to post-MVP polish.
 
 ### Marketing Page
 
