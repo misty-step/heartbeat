@@ -61,30 +61,30 @@ export function IncidentTimeline({ incidents }: IncidentTimelineProps) {
 
   if (incidents.length === 0) {
     return (
-      <div className="text-center py-8">
+      <div className="text-center py-6 sm:py-8">
         <p className="text-sm text-text-tertiary">No incidents to display</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
-      <h2 className="text-lg font-semibold text-text-primary">
+    <div className="space-y-3 sm:space-y-4">
+      <h2 className="text-base sm:text-lg font-semibold text-text-primary">
         Incident History
       </h2>
 
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {incidents.map((incident) => {
           const config = statusConfig[incident.status];
 
           return (
             <div
               key={incident.id}
-              className="border-l-2 border-border pl-4 space-y-3"
+              className="border-l-2 border-border pl-3 sm:pl-4 space-y-2 sm:space-y-3"
             >
               {/* Incident header */}
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
+              <div className="space-y-1 sm:space-y-1.5">
+                <div className="flex items-center gap-2 flex-wrap">
                   <span
                     className={`text-xs font-medium px-2 py-0.5 rounded ${config.bgColor} ${config.color}`}
                   >
@@ -94,10 +94,10 @@ export function IncidentTimeline({ incidents }: IncidentTimelineProps) {
                     {calculateDuration(incident.startedAt, incident.resolvedAt)}
                   </span>
                 </div>
-                <h3 className="text-sm font-medium text-text-primary">
+                <h3 className="text-sm font-medium text-text-primary leading-snug">
                   {incident.title}
                 </h3>
-                <p className="text-xs text-text-tertiary">
+                <p className="text-xs text-text-tertiary leading-relaxed">
                   Started {formatTimestamp(incident.startedAt)}
                   {incident.resolvedAt &&
                     ` • Resolved ${formatTimestamp(incident.resolvedAt)}`}
@@ -106,10 +106,10 @@ export function IncidentTimeline({ incidents }: IncidentTimelineProps) {
 
               {/* Updates */}
               {incident.updates && incident.updates.length > 0 && (
-                <div className="space-y-2 pl-3 border-l border-border/50">
+                <div className="space-y-2 pl-2 sm:pl-3 border-l border-border/50">
                   {incident.updates.map((update, i) => (
                     <div key={i} className="space-y-0.5">
-                      <p className="text-sm text-text-secondary">
+                      <p className="text-sm text-text-secondary leading-relaxed">
                         {update.message}
                       </p>
                       <p className="text-xs text-text-tertiary">

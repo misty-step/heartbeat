@@ -114,14 +114,14 @@ export default async function StatusPage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-4xl mx-auto px-6 py-12">
+      <div className="max-w-4xl mx-auto px-4 py-8 sm:px-6 sm:py-12">
         <StatusHeader
           overallStatus={overallStatus}
           projectName={slug}
           lastUpdated={lastUpdated ? new Date(lastUpdated) : undefined}
         />
 
-        <main className="space-y-16 mt-16">
+        <main className="space-y-12 mt-12 sm:space-y-16 sm:mt-16">
           {/* Monitor Status Section */}
           <section className="space-y-4">
             <h2 className="text-lg font-semibold text-text-primary">

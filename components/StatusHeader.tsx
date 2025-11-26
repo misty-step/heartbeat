@@ -40,19 +40,19 @@ export function StatusHeader({
   };
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-semibold text-text-primary">
+    <div className="space-y-3 sm:space-y-4">
+      <h1 className="text-xl sm:text-2xl font-semibold text-text-primary">
         {projectName}
       </h1>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 min-h-[44px]">
         <StatusIndicator status={overallStatus} />
         <div>
-          <p className="text-base font-medium text-text-primary">
+          <p className="text-sm sm:text-base font-medium text-text-primary">
             {statusMessages[overallStatus]}
           </p>
           {lastUpdated && (
-            <p className="text-sm text-text-tertiary">
+            <p className="text-xs sm:text-sm text-text-tertiary">
               Last checked {formatLastUpdated(lastUpdated)}
             </p>
           )}
