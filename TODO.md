@@ -18,14 +18,14 @@ Strategic implementation following Ousterhout's deep module principles. Each tas
   - Add scripts: `"dev"`, `"build"`, `"start"`, `"lint"`, `"type-check"`
   - Success criteria: All scripts execute without errors
 
-- [~] **Install core dependencies**
+- [x] **Install core dependencies**
   - Run `pnpm add convex@latest @clerk/nextjs@latest geist lucide-react recharts framer-motion resend`
   - Run `pnpm add -D @types/node typescript @convex-dev/cli`
   - Success criteria: All packages install without peer dependency warnings
 
 ### Design System Configuration
 
-- [ ] **Configure Tailwind CSS 4 with custom @theme tokens**
+- [~] **Configure Tailwind CSS 4 with custom @theme tokens**
   - Create `app/globals.css` with @theme directive defining color palette, typography, spacing, animations
   - Define CSS variables: `--color-background`, `--color-surface`, `--color-success`, `--color-warning`, `--color-error`, `--color-text-*`
   - Add dark mode support with `@media (prefers-color-scheme: dark)` block
