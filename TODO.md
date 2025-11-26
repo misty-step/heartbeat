@@ -200,12 +200,14 @@ Strategic implementation following Ousterhout's deep module principles. Each tas
 
 ### Status Page Route
 
-- [ ] **Create status page route at app/s/[slug]/page.tsx**
-  - Dynamic route with params: `{ slug: string }`
-  - Server component: fetch monitors via `await fetchQuery(api.monitors.getByProjectSlug, { projectSlug: params.slug })`
-  - If no monitors found, show 404 page
-  - Calculate overall status: "operational" (all up), "degraded" (any degraded), "down" (any down)
-  - Success criteria: Page renders as static HTML with ISR, loads in <1s, SEO-friendly
+- [x] **Create status page route at app/s/[slug]/page.tsx**
+  - Created `app/s/[slug]/page.tsx` (commit: 6e706d2)
+  - Dynamic route fetches monitors via fetchQuery(api.monitors.getByProjectSlug)
+  - Returns 404 with notFound() if no monitors found
+  - Status derivation: getMonitorStatus() converts consecutiveFailures → status
+  - Overall status: priority-based aggregation (down > degraded > operational)
+  - Simplifications: single source of truth, O(n) computation, STATUS_COLORS lookup
+  - Success criteria: ✅ Server component renders, 404 handled, status logic clean
 
 - [ ] **Implement ISR configuration for status pages**
   - Add `export const revalidate = 60` to page.tsx (revalidate every 60 seconds)
