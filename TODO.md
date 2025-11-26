@@ -216,7 +216,7 @@ Strategic implementation following Ousterhout's deep module principles. Each tas
   - generateStaticParams(): Empty array (on-demand ISR), TODO for analytics-driven pre-rendering
   - Success criteria: ✅ Pages cached at edge, 60s revalidation, all slugs work
 
-- [ ] **Add status page layout with StatusHeader, MonitorCards, UptimeChart, IncidentTimeline**
+- [x] **Add status page layout with StatusHeader, MonitorCards, UptimeChart, IncidentTimeline**
   - Compose components: `<StatusHeader /> <main><section>MonitorCards</section> <section>UptimeChart</section> <section>IncidentTimeline</section></main>`
   - Container: `max-w-4xl mx-auto px-6 py-12`
   - Spacing: `mt-16` between sections (generous whitespace)
