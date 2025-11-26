@@ -185,13 +185,14 @@ Strategic implementation following Ousterhout's deep module principles. Each tas
   - Simplifications: INITIAL_FORM_DATA DRY, updateField helper, useEffect cleanup
   - Success criteria: ✅ Form validates, inline errors clear, mutation succeeds, UX simplified
 
-- [ ] **Create MonitorSettingsModal component**
-  - File: `components/MonitorSettingsModal.tsx`
-  - Props: `monitor: Monitor`, `onClose: () => void`
-  - Editable fields: name, url, checkInterval, timeoutMs, expectedStatus (comma-separated)
-  - Use Convex mutation: `useMutation(api.monitors.update)`
-  - Delete button with confirmation dialog
-  - Success criteria: Changes save immediately, modal dismisses, confirmation prevents accidental deletes
+- [x] **Create MonitorSettingsModal component**
+  - Created `components/MonitorSettingsModal.tsx` (commit: 36ff9bb)
+  - Editable fields: name, URL, interval, timeout (seconds), expected status code
+  - Update and delete mutations with validation
+  - Native browser confirm() for delete (simpler than custom overlay)
+  - Backdrop click to close, general error banner
+  - Simplifications: timeout stored in seconds, consistent field updates, HTML5 validation
+  - Success criteria: ✅ Saves immediately, modal dismisses, confirmation prevents accidental deletes
 
 ---
 
