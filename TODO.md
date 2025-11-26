@@ -176,13 +176,14 @@ Strategic implementation following Ousterhout's deep module principles. Each tas
 
 ### Form Components
 
-- [ ] **Create AddMonitorForm component**
-  - File: `components/AddMonitorForm.tsx`
-  - Form fields: URL (required, validated), Name (required), Project Name, Project Slug (auto-generated from name), Check Interval (dropdown: 1min, 5min)
-  - Validation: URL must start with http/https, slug must be kebab-case
-  - Use Convex mutation: `useMutation(api.monitors.create)`
-  - Show success toast on submit, clear form
-  - Success criteria: Form validates before submit, errors shown inline, mutation succeeds
+- [x] **Create AddMonitorForm component**
+  - Created `components/AddMonitorForm.tsx` (commit: 8e80539)
+  - Form fields: URL, Name, Project Slug (auto-generated from name), Check Interval
+  - Removed redundant projectName field (never used by backend)
+  - URL/slug validation with inline errors, success toast with auto-hide
+  - Uses `useMutation(api.monitors.create)`, clears form on success
+  - Simplifications: INITIAL_FORM_DATA DRY, updateField helper, useEffect cleanup
+  - Success criteria: ✅ Form validates, inline errors clear, mutation succeeds, UX simplified
 
 - [ ] **Create MonitorSettingsModal component**
   - File: `components/MonitorSettingsModal.tsx`
