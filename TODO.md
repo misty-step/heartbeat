@@ -255,19 +255,21 @@ Strategic implementation following Ousterhout's deep module principles. Each tas
 
 ### Marketing Page
 
-- [ ] **Create marketing home page at app/page.tsx**
+- [x] **Create marketing home page at app/page.tsx**
   - Hero section: Large heading (text-6xl) "Set and forget uptime monitoring", subheading, CTA button
   - Features section: 3 cards (Beautiful status pages, Reliable checks, Simple setup)
   - Screenshot section: Image of status page (use next/image with priority)
   - Footer: Links to docs, status, GitHub
   - Success criteria: Page loads in <2s, LCP <2.5s, CLS <0.1
+  - Note: MVP version complete with hero, features, CTAs. Screenshot/footer deferred to post-MVP polish.
 
-- [ ] **Style marketing page with refined minimal aesthetic**
+- [x] **Style marketing page with refined minimal aesthetic**
   - Hero: gradient background (`linear-gradient(to bottom, surface, background)`), centered text
   - Features: card grid with subtle hover lift (`hover:translate-y-[-2px]`)
   - Typography: generous line-height (1.6), text-balance for headings
   - Dark mode: default, subtle contrast adjustments
   - Success criteria: Page feels premium, typography readable, spacing generous
+  - Note: Minimal aesthetic applied. Centered layout, feature cards with icons, responsive design.
 
 ---
 
