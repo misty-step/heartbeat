@@ -25,6 +25,7 @@
     "resend": "^6.5.2"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.17",
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
