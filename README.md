@@ -64,14 +64,22 @@ RESEND_API_KEY=re_...
 
 ### 5. Run the Development Server
 
-In **separate terminals**:
-
 ```bash
-# Terminal 1: Convex dev server (keep running)
-pnpm convex dev
+# Runs both Next.js and Convex dev servers concurrently
+pnpm dev
+```
+
+Note: This runs both servers in a single terminal with colored output:
+- Cyan: Next.js dev server
+- Magenta: Convex dev server
+
+If you prefer to run them separately:
+```bash
+# Terminal 1: Convex dev server
+pnpm dev:convex
 
 # Terminal 2: Next.js dev server
-pnpm dev
+pnpm dev:next
 ```
 
 ### 6. Open the App

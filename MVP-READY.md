@@ -64,15 +64,12 @@ CLERK_JWT_ISSUER_DOMAIN=your-app.clerk.accounts.dev
 ```
 
 ### 5. Run Dev Servers
-**Terminal 1** (keep running):
 ```bash
-pnpm convex dev
-```
-
-**Terminal 2**:
-```bash
+# Single command runs both Next.js and Convex
 pnpm dev
 ```
+
+This will start both servers with colored output for easy distinction.
 
 ### 6. Open App
 Navigate to [http://localhost:3000](http://localhost:3000)
