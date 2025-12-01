@@ -57,22 +57,24 @@ jobs:
               const coverage = total.lines.pct;
               const color = coverage > 80 ? 'green' : coverage > 50 ? 'orange' : 'red';
               
-              const body = `## 🛡️ Test Coverage
-
-| Category | % | Covered / Total |
-|----------|---|-----------------|
-| **Lines** | ${total.lines.pct}% | ${total.lines.covered} / ${total.lines.total} |
-| **Statements** | ${total.statements.pct}% | ${total.statements.covered} / ${total.statements.total} |
-| **Functions** | ${total.functions.pct}% | ${total.functions.covered} / ${total.functions.total} |
-| **Branches** | ${total.branches.pct}% | ${total.branches.covered} / ${total.branches.total} |
-
-![Coverage](https://img.shields.io/badge/coverage-${coverage}%25-${color})`;
+              const table = [
+                '## 🛡️ Test Coverage',
+                '',
+                '| Category | % | Covered / Total |',
+                '|----------|---|-----------------|',
+                `| **Lines** | ${total.lines.pct}% | ${total.lines.covered} / ${total.lines.total} |`,
+                `| **Statements** | ${total.statements.pct}% | ${total.statements.covered} / ${total.statements.total} |`,
+                `| **Functions** | ${total.functions.pct}% | ${total.functions.covered} / ${total.functions.total} |`,
+                `| **Branches** | ${total.branches.pct}% | ${total.branches.covered} / ${total.branches.total} |`,
+                '',
+                `![Coverage](https://img.shields.io/badge/coverage-${coverage}%25-${color})`
+              ].join('\n');
               
               await github.rest.issues.createComment({
                 issue_number: context.issue.number,
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                body: body
+                body: table
               });
             } catch (error) {
               console.log('Coverage comment failed:', error.message);
