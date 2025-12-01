@@ -26,18 +26,35 @@ export const getForProject = query({
   handler: async (ctx, args) => {
     const limit = args.limit || 50;
 
-    let incidentsQuery = ctx.db
-      .query("incidents")
-      .withIndex("by_monitor", (q) => q.eq("monitorId", args.monitorId))
-      .order("desc");
+    // Get all monitors for this project slug first
+    const monitors = await ctx.db
+      .query("monitors")
+      .withIndex("by_project_slug", (q) => q.eq("projectSlug", args.projectSlug))
+      .collect();
 
-    if (args.statusFilter) {
-      incidentsQuery = incidentsQuery.filter((q) =>
-        q.eq(q.field("status"), args.statusFilter)
-      );
+    if (monitors.length === 0) {
+      return [];
     }
 
-    return await incidentsQuery.take(limit);
+    // Get incidents for all monitors in this project
+    const allIncidents = await Promise.all(
+      monitors.map((monitor) =>
+        ctx.db
+          .query("incidents")
+          .withIndex("by_monitor", (q) => q.eq("monitorId", monitor._id))
+          .order("desc")
+          .collect()
+      )
+    );
+
+    // Flatten, filter, and sort
+    let incidents = allIncidents.flat().sort((a, b) => b.startedAt - a.startedAt);
+
+    if (args.statusFilter) {
+      incidents = incidents.filter((i) => i.status === args.statusFilter);
+    }
+
+    return incidents.slice(0, limit);
   },
 });
 

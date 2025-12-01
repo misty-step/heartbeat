@@ -22,6 +22,8 @@ interface MonitorSettingsModalProps {
 
 type FormErrors = Partial<Record<string, string>>;
 
+type IntervalValue = 60 | 120 | 300 | 600 | 1800 | 3600;
+
 export function MonitorSettingsModal({
   monitor,
   onClose,
@@ -35,7 +37,7 @@ export function MonitorSettingsModal({
   const [formData, setFormData] = useState({
     name: monitor.name,
     url: monitor.url,
-    interval: monitor.interval,
+    interval: monitor.interval as IntervalValue,
     timeout: Math.floor(monitor.timeout / 1000), // Store in seconds
     expectedStatusCode: monitor.expectedStatusCode?.toString() || "",
   });
@@ -123,26 +125,26 @@ export function MonitorSettingsModal({
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
       onClick={handleBackdropClick}
     >
-      <div className="relative w-full max-w-lg mx-4 bg-surface rounded-lg shadow-xl border border-border">
+      <div className="relative w-full max-w-lg mx-4 bg-background shadow-xl border border-foreground/10">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-          <h2 className="text-lg font-semibold text-text-primary">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-foreground/10">
+          <h2 className="font-serif text-xl text-foreground">
             Monitor Settings
           </h2>
           <button
             onClick={onClose}
-            className="p-1 rounded-lg hover:bg-surface-hover transition-colors"
+            className="p-2 text-foreground/40 hover:text-foreground hover:bg-foreground/5 transition-colors"
             aria-label="Close"
           >
-            <X className="w-5 h-5 text-text-tertiary" />
+            <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="px-6 py-4 space-y-4">
+        <form onSubmit={handleSubmit} className="px-6 py-6 space-y-5">
           {/* General error message */}
           {errors.submit && (
-            <div className="px-4 py-3 rounded-lg bg-error/10 text-error text-sm font-medium">
+            <div className="px-4 py-3 bg-red-500/10 text-red-600 dark:text-red-400 text-sm">
               {errors.submit}
             </div>
           )}
@@ -151,7 +153,7 @@ export function MonitorSettingsModal({
           <div className="space-y-2">
             <label
               htmlFor="name"
-              className="block text-sm font-medium text-text-primary"
+              className="block text-sm font-medium text-foreground/70"
             >
               Monitor Name *
             </label>
@@ -162,18 +164,18 @@ export function MonitorSettingsModal({
               onChange={(e) =>
                 setFormData({ ...formData, name: e.target.value })
               }
-              className={`w-full px-3 py-2 rounded-lg bg-background border ${
-                errors.name ? "border-error" : "border-border"
-              } text-text-primary focus:outline-none focus:ring-2 focus:ring-success/50`}
+              className={`w-full px-4 py-3 bg-transparent border ${
+                errors.name ? "border-red-500" : "border-foreground/20"
+              } text-foreground focus:outline-none focus:border-foreground/50 transition-colors`}
             />
-            {errors.name && <p className="text-sm text-error">{errors.name}</p>}
+            {errors.name && <p className="text-sm text-red-600 dark:text-red-400">{errors.name}</p>}
           </div>
 
           {/* URL field */}
           <div className="space-y-2">
             <label
               htmlFor="url"
-              className="block text-sm font-medium text-text-primary"
+              className="block text-sm font-medium text-foreground/70"
             >
               URL *
             </label>
@@ -184,18 +186,18 @@ export function MonitorSettingsModal({
               onChange={(e) =>
                 setFormData({ ...formData, url: e.target.value })
               }
-              className={`w-full px-3 py-2 rounded-lg bg-background border ${
-                errors.url ? "border-error" : "border-border"
-              } text-text-primary focus:outline-none focus:ring-2 focus:ring-success/50`}
+              className={`w-full px-4 py-3 bg-transparent border ${
+                errors.url ? "border-red-500" : "border-foreground/20"
+              } text-foreground focus:outline-none focus:border-foreground/50 transition-colors`}
             />
-            {errors.url && <p className="text-sm text-error">{errors.url}</p>}
+            {errors.url && <p className="text-sm text-red-600 dark:text-red-400">{errors.url}</p>}
           </div>
 
           {/* Check Interval field */}
           <div className="space-y-2">
             <label
               htmlFor="interval"
-              className="block text-sm font-medium text-text-primary"
+              className="block text-sm font-medium text-foreground/70"
             >
               Check Interval
             </label>
@@ -203,9 +205,9 @@ export function MonitorSettingsModal({
               id="interval"
               value={formData.interval}
               onChange={(e) =>
-                setFormData({ ...formData, interval: Number(e.target.value) })
+                setFormData({ ...formData, interval: Number(e.target.value) as IntervalValue })
               }
-              className="w-full px-3 py-2 rounded-lg bg-background border border-border text-text-primary focus:outline-none focus:ring-2 focus:ring-success/50"
+              className="w-full px-4 py-3 bg-transparent border border-foreground/20 text-foreground focus:outline-none focus:border-foreground/50 transition-colors"
             >
               <option value={60}>Every 1 minute</option>
               <option value={300}>Every 5 minutes</option>
@@ -219,7 +221,7 @@ export function MonitorSettingsModal({
           <div className="space-y-2">
             <label
               htmlFor="timeout"
-              className="block text-sm font-medium text-text-primary"
+              className="block text-sm font-medium text-foreground/70"
             >
               Timeout (seconds)
             </label>
@@ -232,9 +234,9 @@ export function MonitorSettingsModal({
               onChange={(e) =>
                 setFormData({ ...formData, timeout: Number(e.target.value) })
               }
-              className="w-full px-3 py-2 rounded-lg bg-background border border-border text-text-primary focus:outline-none focus:ring-2 focus:ring-success/50"
+              className="w-full px-4 py-3 bg-transparent border border-foreground/20 text-foreground focus:outline-none focus:border-foreground/50 transition-colors"
             />
-            <p className="text-xs text-text-tertiary">
+            <p className="text-xs text-foreground/40">
               How long to wait for a response (5-60 seconds)
             </p>
           </div>
@@ -243,10 +245,10 @@ export function MonitorSettingsModal({
           <div className="space-y-2">
             <label
               htmlFor="expectedStatusCode"
-              className="block text-sm font-medium text-text-primary"
+              className="block text-sm font-medium text-foreground/70"
             >
               Expected Status Code
-              <span className="ml-2 text-xs text-text-tertiary font-normal">
+              <span className="ml-2 text-foreground/40 font-normal">
                 (optional)
               </span>
             </label>
@@ -260,25 +262,25 @@ export function MonitorSettingsModal({
                 setFormData({ ...formData, expectedStatusCode: e.target.value })
               }
               placeholder="200"
-              className={`w-full px-3 py-2 rounded-lg bg-background border ${
-                errors.expectedStatusCode ? "border-error" : "border-border"
-              } text-text-primary focus:outline-none focus:ring-2 focus:ring-success/50`}
+              className={`w-full px-4 py-3 bg-transparent border ${
+                errors.expectedStatusCode ? "border-red-500" : "border-foreground/20"
+              } text-foreground placeholder:text-foreground/30 focus:outline-none focus:border-foreground/50 transition-colors`}
             />
             {errors.expectedStatusCode && (
-              <p className="text-sm text-error">{errors.expectedStatusCode}</p>
+              <p className="text-sm text-red-600 dark:text-red-400">{errors.expectedStatusCode}</p>
             )}
-            <p className="text-xs text-text-tertiary">
+            <p className="text-xs text-foreground/40">
               Leave empty to accept any 2xx or 3xx status
             </p>
           </div>
 
           {/* Action buttons */}
-          <div className="flex items-center justify-between pt-4">
+          <div className="flex items-center justify-between pt-4 border-t border-foreground/10">
             <button
               type="button"
               onClick={handleDeleteClick}
               disabled={isDeleting}
-              className="px-4 py-2 rounded-lg text-error hover:bg-error/10 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 text-red-600 dark:text-red-400 hover:bg-red-500/10 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isDeleting ? "Deleting..." : "Delete Monitor"}
             </button>
@@ -287,14 +289,14 @@ export function MonitorSettingsModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 rounded-lg border border-border text-text-secondary hover:bg-surface-hover font-medium transition-colors"
+                className="px-4 py-2 border border-foreground/20 text-foreground/70 hover:bg-foreground/5 font-medium transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="px-4 py-2 rounded-lg bg-success text-white font-medium hover:bg-success/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="px-6 py-2 bg-foreground text-background font-medium hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
               >
                 {isSubmitting ? "Saving..." : "Save Changes"}
               </button>

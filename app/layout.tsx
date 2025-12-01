@@ -1,12 +1,35 @@
 import type { Metadata } from "next";
-import { GeistSans } from "geist/font/sans";
-import { GeistMono } from "geist/font/mono";
+import { Manrope, Newsreader, IBM_Plex_Mono } from "next/font/google";
 import { Providers } from "./providers";
 import "./globals.css";
 
+// Editorial serif for display headlines
+const newsreader = Newsreader({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  style: ["normal", "italic"],
+  variable: "--font-serif",
+  display: "swap",
+});
+
+// Clean sans-serif for body text
+const manrope = Manrope({
+  subsets: ["latin"],
+  variable: "--font-sans",
+  display: "swap",
+});
+
+// Technical monospace (code, data, timestamps)
+const ibmPlexMono = IBM_Plex_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  variable: "--font-mono",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
-  title: "Heartbeat - Set and forget uptime monitoring",
-  description: "Beautiful status pages and reliable uptime monitoring for indie hackers",
+  title: "Heartbeat — Uptime monitoring that simply works",
+  description: "Beautiful status pages and real-time alerts for developers who ship.",
 };
 
 export default function RootLayout({
@@ -15,8 +38,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}>
-      <body className="antialiased">
+    <html lang="en" suppressHydrationWarning className={`${newsreader.variable} ${manrope.variable} ${ibmPlexMono.variable}`}>
+      <body className="antialiased bg-background text-foreground">
         <Providers>{children}</Providers>
       </body>
     </html>

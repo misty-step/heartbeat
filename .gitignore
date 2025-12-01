@@ -36,3 +36,7 @@ next-env.d.ts
 # convex
 convex/_generated/
 .convex/
+
+# claude code / mcp
+.playwright-mcp/
+.polish-sessions/

@@ -5,12 +5,14 @@ import { useQuery } from "convex/react";
 import { api } from "../convex/_generated/api";
 import { Id } from "../convex/_generated/dataModel";
 import { StatusIndicator } from "./StatusIndicator";
-import { Settings, Play, ChevronDown, ChevronUp } from "lucide-react";
+import { UptimeBar } from "./UptimeBar";
+import { Settings, ChevronDown, ChevronUp } from "lucide-react";
 
 interface DashboardMonitorCardProps {
   monitor: {
     _id: Id<"monitors">;
     name: string;
+    url: string;
     projectSlug: string;
     consecutiveFailures: number;
     lastResponseTime?: number;
@@ -21,12 +23,6 @@ interface DashboardMonitorCardProps {
 
 export function DashboardMonitorCard({ monitor, onEdit }: DashboardMonitorCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
-
-  // Fetch uptime stats when expanded
-  const uptimeStats = useQuery(
-    api.checks.getUptimeStats,
-    isExpanded ? { monitorId: monitor._id, days: 30 } : "skip"
-  );
 
   // Fetch recent checks when expanded
   const recentChecks = useQuery(
@@ -49,130 +45,105 @@ export function DashboardMonitorCard({ monitor, onEdit }: DashboardMonitorCardPr
   const status = getStatus();
 
   return (
-    <div className="bg-surface rounded-lg border border-border hover:border-border-strong transition-colors">
-      {/* Card header - always visible */}
-      <div className="p-6">
-        <div className="space-y-4">
-          {/* Monitor info */}
-          <div className="space-y-1">
-            <div className="flex items-start justify-between gap-3">
-              <h3 className="text-base font-semibold text-text-primary truncate">
+    <div className="group bg-background border border-foreground/10 hover:border-foreground/20 hover:shadow-sm transition-all duration-200">
+      {/* Card header */}
+      <div className="p-5">
+        <div className="space-y-5">
+          {/* Top row: Status + Name + Settings */}
+          <div className="flex items-center gap-3">
+            {/* Status indicator - xl with cinematic animation */}
+            <div className="flex-shrink-0">
+              <StatusIndicator status={status} size="xl" cinematic />
+            </div>
+
+            {/* Name and URL */}
+            <div className="flex-1 min-w-0">
+              <h3 className="font-serif text-lg text-foreground truncate leading-tight">
                 {monitor.name}
               </h3>
-              <div className="flex items-center gap-1 flex-shrink-0">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onEdit();
-                  }}
-                  className="p-1.5 text-text-tertiary hover:text-text-primary hover:bg-surface-hover rounded transition-colors"
-                  title="Edit monitor"
-                >
-                  <Settings className="h-4 w-4" />
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    // TODO: Implement manual check trigger
-                  }}
-                  className="p-1.5 text-text-tertiary hover:text-text-primary hover:bg-surface-hover rounded transition-colors"
-                  title="Run check now"
-                >
-                  <Play className="h-4 w-4" />
-                </button>
-              </div>
+              <p className="text-[11px] text-foreground/40 truncate font-mono mt-1">
+                {monitor.url}
+              </p>
             </div>
-            <p className="text-xs text-text-tertiary truncate">
-              {monitor.projectSlug}
-            </p>
+
+            {/* Settings button - hover reveal */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit();
+              }}
+              className="p-2 text-foreground/20 opacity-0 group-hover:opacity-100 hover:text-foreground hover:bg-foreground/5 transition-all duration-150"
+              title="Settings"
+            >
+              <Settings className="h-4 w-4" />
+            </button>
           </div>
 
-          {/* Status */}
-          <div className="flex items-center gap-2">
-            <StatusIndicator status={status} />
-            <span className="text-sm text-text-secondary">
-              {getStatusText()}
-            </span>
-          </div>
+          {/* Uptime visualization */}
+          <UptimeBar monitorId={monitor._id} days={30} />
 
-          {/* Stats */}
-          <div className="pt-4 border-t border-border space-y-2">
+          {/* Status + Response time */}
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-foreground/60">{getStatusText()}</span>
             {monitor.lastResponseTime !== undefined && (
-              <div className="flex justify-between text-sm">
-                <span className="text-text-tertiary">Response time</span>
-                <span className="font-mono text-text-primary tabular-nums">
-                  {monitor.lastResponseTime}ms
-                </span>
-              </div>
-            )}
-            {monitor.lastCheckAt && (
-              <div className="flex justify-between text-sm">
-                <span className="text-text-tertiary">Last check</span>
-                <span className="text-text-secondary">
-                  {new Date(monitor.lastCheckAt).toLocaleTimeString()}
-                </span>
-              </div>
-            )}
-            {uptimeStats && (
-              <div className="flex justify-between text-sm">
-                <span className="text-text-tertiary">Uptime (30d)</span>
-                <span className="font-mono text-text-primary tabular-nums">
-                  {uptimeStats.uptimePercentage.toFixed(2)}%
-                </span>
-              </div>
+              <span className="font-mono text-foreground/40 tabular-nums">
+                {monitor.lastResponseTime}ms
+              </span>
             )}
           </div>
-
-          {/* Expand/collapse button */}
-          <button
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="w-full flex items-center justify-center gap-2 pt-4 text-sm text-text-tertiary hover:text-text-primary transition-colors"
-          >
-            {isExpanded ? (
-              <>
-                <span>Show less</span>
-                <ChevronUp className="h-4 w-4" />
-              </>
-            ) : (
-              <>
-                <span>Show details</span>
-                <ChevronDown className="h-4 w-4" />
-              </>
-            )}
-          </button>
         </div>
+      </div>
+
+      {/* Expandable details */}
+      <div className="border-t border-foreground/5">
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="w-full px-6 py-3 flex items-center justify-center gap-2 text-xs text-foreground/40 hover:text-foreground/60 hover:bg-foreground/[0.02] transition-colors"
+        >
+          {isExpanded ? (
+            <>
+              <ChevronUp className="h-3 w-3" />
+              <span>Less</span>
+            </>
+          ) : (
+            <>
+              <ChevronDown className="h-3 w-3" />
+              <span>Details</span>
+            </>
+          )}
+        </button>
       </div>
 
       {/* Expanded content */}
       {isExpanded && (
-        <div className="border-t border-border p-6 space-y-4">
+        <div className="border-t border-foreground/5 p-6 space-y-4">
           {/* Recent checks */}
-          <div className="space-y-2">
-            <h4 className="text-sm font-medium text-text-primary">
+          <div className="space-y-3">
+            <h4 className="text-xs font-medium text-foreground/50 uppercase tracking-wider">
               Recent Checks
             </h4>
             {recentChecks === undefined ? (
-              <div className="text-sm text-text-tertiary">Loading...</div>
+              <div className="text-sm text-foreground/40">Loading...</div>
             ) : recentChecks.length === 0 ? (
-              <div className="text-sm text-text-tertiary">No checks yet</div>
+              <div className="text-sm text-foreground/40">No checks yet</div>
             ) : (
               <div className="space-y-1">
                 {recentChecks.map((check) => (
                   <div
                     key={check._id}
-                    className="flex items-center justify-between text-sm py-1"
+                    className="flex items-center justify-between text-sm py-1.5 border-b border-foreground/5 last:border-0"
                   >
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-3">
                       <div
                         className={`h-1.5 w-1.5 rounded-full ${
                           check.status === "up"
-                            ? "bg-success"
+                            ? "bg-foreground"
                             : check.status === "degraded"
-                            ? "bg-warning"
-                            : "bg-error"
+                            ? "bg-degraded"
+                            : "bg-down"
                         }`}
                       />
-                      <span className="text-text-secondary">
+                      <span className="text-foreground/60 text-xs">
                         {new Date(check.checkedAt).toLocaleString("en-US", {
                           month: "short",
                           day: "numeric",
@@ -181,13 +152,13 @@ export function DashboardMonitorCard({ monitor, onEdit }: DashboardMonitorCardPr
                         })}
                       </span>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-4">
                       {check.statusCode !== undefined && (
-                        <span className="text-text-tertiary text-xs">
+                        <span className="text-foreground/40 text-xs font-mono">
                           {check.statusCode}
                         </span>
                       )}
-                      <span className="font-mono text-text-primary tabular-nums text-xs">
+                      <span className="font-mono text-foreground/60 tabular-nums text-xs">
                         {check.responseTime}ms
                       </span>
                     </div>
@@ -197,21 +168,10 @@ export function DashboardMonitorCard({ monitor, onEdit }: DashboardMonitorCardPr
             )}
           </div>
 
-          {/* Response time trend summary */}
-          {uptimeStats && uptimeStats.avgResponseTime && (
-            <div className="pt-4 border-t border-border">
-              <div className="text-sm">
-                <span className="text-text-tertiary">Average response: </span>
-                <span className="font-mono text-text-primary tabular-nums">
-                  {uptimeStats.avgResponseTime}ms
-                </span>
-              </div>
-              <div className="text-sm mt-1">
-                <span className="text-text-tertiary">
-                  {uptimeStats.successfulChecks} successful checks,{" "}
-                  {uptimeStats.failedChecks} failures
-                </span>
-              </div>
+          {/* Last check time */}
+          {monitor.lastCheckAt && (
+            <div className="pt-4 border-t border-foreground/5 text-xs text-foreground/40">
+              Last checked {new Date(monitor.lastCheckAt).toLocaleTimeString()}
             </div>
           )}
         </div>

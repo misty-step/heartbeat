@@ -1,15 +1,19 @@
+"use client";
+
 import { StatusIndicator } from "./StatusIndicator";
 
 interface StatusHeaderProps {
   overallStatus: "up" | "down" | "degraded" | "unknown";
   projectName: string;
   lastUpdated?: Date;
+  sticky?: boolean;
 }
 
 export function StatusHeader({
   overallStatus,
   projectName,
   lastUpdated,
+  sticky = false,
 }: StatusHeaderProps) {
   const statusMessages = {
     up: "All systems operational",
@@ -39,23 +43,32 @@ export function StatusHeader({
     });
   };
 
-  return (
-    <div className="space-y-3 sm:space-y-4">
-      <h1 className="text-xl sm:text-2xl font-semibold text-text-primary">
-        {projectName}
-      </h1>
+  const baseClasses = "py-6 sm:py-8";
+  const stickyClasses = sticky
+    ? "sticky top-0 z-50 glass-adaptive border-b-2 border-border-strong"
+    : "";
 
-      <div className="flex items-center gap-3 min-h-[44px]">
-        <StatusIndicator status={overallStatus} />
-        <div>
-          <p className="text-sm sm:text-base font-medium text-text-primary">
-            {statusMessages[overallStatus]}
-          </p>
-          {lastUpdated && (
-            <p className="text-xs sm:text-sm text-text-tertiary">
-              Last checked {formatLastUpdated(lastUpdated)}
+  return (
+    <div className={`${baseClasses} ${stickyClasses}`}>
+      <div className="space-y-4 sm:space-y-6 animate-in-1">
+        {/* Project Name - Display Font */}
+        <h1 className="text-3xl sm:text-4xl lg:text-5xl text-display font-bold text-text-primary leading-tight">
+          {projectName}
+        </h1>
+
+        {/* Status - Dramatically Larger */}
+        <div className="flex items-center gap-4 min-h-[44px]">
+          <StatusIndicator status={overallStatus} size="lg" />
+          <div>
+            <p className="text-xl sm:text-2xl lg:text-3xl font-semibold text-text-primary">
+              {statusMessages[overallStatus]}
             </p>
-          )}
+            {lastUpdated && (
+              <p className="text-sm sm:text-base text-text-secondary mt-1 text-mono">
+                Last checked {formatLastUpdated(lastUpdated)}
+              </p>
+            )}
+          </div>
         </div>
       </div>
     </div>
