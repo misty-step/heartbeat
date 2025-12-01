@@ -1,93 +1,218 @@
-import { test, expect } from 'vitest';
+import { test, expect, describe } from 'vitest';
 import { api } from '../_generated/api';
 import { setupBackend } from '../../tests/convex';
 
-test('create monitor success', async () => {
-  const t = setupBackend();
-  
-  await t.withIdentity({ name: "Me", subject: "user_123", issuer: "clerk" }).mutation(api.monitors.create, {
+const user = { name: "Test", subject: "user_123", issuer: "clerk" };
+const otherUser = { name: "Other", subject: "user_456", issuer: "clerk" };
+
+// Helper to create a monitor
+async function createMonitor(
+  t: ReturnType<typeof setupBackend>,
+  identity = user,
+  overrides = {}
+) {
+  return await t.withIdentity(identity).mutation(api.monitors.create, {
     name: 'Test Monitor',
     url: 'https://example.com',
     method: 'GET',
     interval: 60,
-    timeout: 10,
+    timeout: 10000,
     projectSlug: 'test-project',
+    ...overrides,
+  });
+}
+
+describe('create', () => {
+  test('creates monitor successfully', async () => {
+    const t = setupBackend();
+    
+    await t.withIdentity(user).mutation(api.monitors.create, {
+      name: 'Test Monitor',
+      url: 'https://example.com',
+      method: 'GET',
+      interval: 60,
+      timeout: 10,
+      projectSlug: 'test-project',
+    });
+
+    const monitors = await t.withIdentity(user).query(api.monitors.list);
+    expect(monitors).toHaveLength(1);
+    expect(monitors[0]).toMatchObject({
+      name: 'Test Monitor',
+      url: 'https://example.com',
+      interval: 60,
+      projectSlug: 'test-project',
+    });
   });
 
-  const monitors = await t.withIdentity({ name: "Me", subject: "user_123", issuer: "clerk" }).query(api.monitors.list);
-  expect(monitors).toHaveLength(1);
-  expect(monitors[0]).toMatchObject({
-    name: 'Test Monitor',
-    url: 'https://example.com',
-    interval: 60,
-    projectSlug: 'test-project',
+  test('requires auth', async () => {
+    const t = setupBackend();
+    
+    await expect(t.mutation(api.monitors.create, {
+      name: 'Test Monitor',
+      url: 'https://example.com',
+      method: 'GET',
+      interval: 60,
+      timeout: 10,
+      projectSlug: 'test-project',
+    })).rejects.toThrow("Unauthorized");
+  });
+
+  test('sets default fields correctly', async () => {
+    const t = setupBackend();
+    await createMonitor(t);
+
+    const monitors = await t.withIdentity(user).query(api.monitors.list);
+    expect(monitors[0].enabled).toBe(true);
+    expect(monitors[0].consecutiveFailures).toBe(0);
+    expect(monitors[0].createdAt).toBeDefined();
+    expect(monitors[0].updatedAt).toBeDefined();
   });
 });
 
-test('create monitor requires auth', async () => {
-  const t = setupBackend();
-  
-  // Attempt without identity
-  await expect(t.mutation(api.monitors.create, {
-    name: 'Test Monitor',
-    url: 'https://example.com',
-    method: 'GET',
-    interval: 60,
-    timeout: 10,
-    projectSlug: 'test-project',
-  })).rejects.toThrow("Unauthorized");
+describe('get', () => {
+  test('returns monitor for owner', async () => {
+    const t = setupBackend();
+    const monitorId = await createMonitor(t);
+
+    const monitor = await t.withIdentity(user).query(api.monitors.get, { id: monitorId });
+    expect(monitor.name).toBe('Test Monitor');
+    expect(monitor.url).toBe('https://example.com');
+  });
+
+  test('requires auth', async () => {
+    const t = setupBackend();
+    const monitorId = await createMonitor(t);
+
+    await expect(
+      t.query(api.monitors.get, { id: monitorId })
+    ).rejects.toThrow("Unauthorized");
+  });
+
+  test('throws for non-owner', async () => {
+    const t = setupBackend();
+    const monitorId = await createMonitor(t);
+
+    await expect(
+      t.withIdentity(otherUser).query(api.monitors.get, { id: monitorId })
+    ).rejects.toThrow("Monitor not found");
+  });
 });
 
-test('create monitor input validation', async () => {
-  const t = setupBackend();
-  const user = { name: "Me", subject: "user_123", issuer: "clerk" };
+describe('update', () => {
+  test('updates monitor fields', async () => {
+    const t = setupBackend();
+    const monitorId = await createMonitor(t);
 
-  // Convex schema validation happens before handler, so t.mutation throws if arguments are invalid.
-  // However, business logic validation (e.g. URL format if manually checked) happens in handler.
-  // Currently schema enforces types.
-  
-  // If we had manual validation:
-  // await expect(t.withIdentity(user).mutation(api.monitors.create, { ...invalid... })).rejects.toThrow();
-  
-  // Let's test valid minimal fields
-  await t.withIdentity(user).mutation(api.monitors.create, {
-    name: 'Valid Monitor',
-    url: 'https://valid.com',
-    method: 'POST',
-    interval: 3600,
-    timeout: 30,
-    projectSlug: 'valid-project',
-    // Optional fields omitted
+    await t.withIdentity(user).mutation(api.monitors.update, {
+      id: monitorId,
+      name: 'Updated Name',
+      interval: 300,
+    });
+
+    const monitor = await t.withIdentity(user).query(api.monitors.get, { id: monitorId });
+    expect(monitor.name).toBe('Updated Name');
+    expect(monitor.interval).toBe(300);
+    expect(monitor.url).toBe('https://example.com'); // unchanged
   });
-  
-  const monitors = await t.withIdentity(user).query(api.monitors.list);
-  expect(monitors).toHaveLength(1);
+
+  test('requires auth', async () => {
+    const t = setupBackend();
+    const monitorId = await createMonitor(t);
+
+    await expect(
+      t.mutation(api.monitors.update, { id: monitorId, name: 'New Name' })
+    ).rejects.toThrow("Unauthorized");
+  });
+
+  test('throws for non-owner', async () => {
+    const t = setupBackend();
+    const monitorId = await createMonitor(t);
+
+    await expect(
+      t.withIdentity(otherUser).mutation(api.monitors.update, { id: monitorId, name: 'New' })
+    ).rejects.toThrow("Monitor not found");
+  });
+
+  test('can disable monitor', async () => {
+    const t = setupBackend();
+    const monitorId = await createMonitor(t);
+
+    await t.withIdentity(user).mutation(api.monitors.update, {
+      id: monitorId,
+      enabled: false,
+    });
+
+    const monitor = await t.withIdentity(user).query(api.monitors.get, { id: monitorId });
+    expect(monitor.enabled).toBe(false);
+  });
 });
 
-test('list monitors only returns user monitors', async () => {
-  const t = setupBackend();
-  
-  // User A
-  await t.withIdentity({ name: "A", subject: "user_A", issuer: "clerk" }).mutation(api.monitors.create, {
-    name: 'My Monitor',
-    url: 'https://my.com',
-    method: 'GET',
-    interval: 60,
-    timeout: 10,
-    projectSlug: 'my-project',
+describe('remove', () => {
+  test('deletes monitor', async () => {
+    const t = setupBackend();
+    const monitorId = await createMonitor(t);
+
+    await t.withIdentity(user).mutation(api.monitors.remove, { id: monitorId });
+
+    const monitors = await t.withIdentity(user).query(api.monitors.list);
+    expect(monitors).toHaveLength(0);
   });
 
-  // User B
-  await t.withIdentity({ name: "B", subject: "user_B", issuer: "clerk" }).mutation(api.monitors.create, {
-    name: 'Not My Monitor',
-    url: 'https://not-my.com',
-    method: 'GET',
-    interval: 60,
-    timeout: 10,
-    projectSlug: 'other-project',
+  test('requires auth', async () => {
+    const t = setupBackend();
+    const monitorId = await createMonitor(t);
+
+    await expect(
+      t.mutation(api.monitors.remove, { id: monitorId })
+    ).rejects.toThrow("Unauthorized");
   });
-  
-  const monitors = await t.withIdentity({ name: "A", subject: "user_A", issuer: "clerk" }).query(api.monitors.list);
-  expect(monitors).toHaveLength(1);
-  expect(monitors[0].name).toBe('My Monitor');
+
+  test('throws for non-owner', async () => {
+    const t = setupBackend();
+    const monitorId = await createMonitor(t);
+
+    await expect(
+      t.withIdentity(otherUser).mutation(api.monitors.remove, { id: monitorId })
+    ).rejects.toThrow("Monitor not found");
+  });
+});
+
+describe('getByProjectSlug', () => {
+  test('returns monitors for project (public)', async () => {
+    const t = setupBackend();
+    await createMonitor(t, user, { projectSlug: 'my-project' });
+    await createMonitor(t, user, { projectSlug: 'my-project', name: 'Second' });
+    await createMonitor(t, user, { projectSlug: 'other-project' });
+
+    // No auth required - public query
+    const monitors = await t.query(api.monitors.getByProjectSlug, { projectSlug: 'my-project' });
+    expect(monitors).toHaveLength(2);
+  });
+
+  test('returns empty array for non-existent project', async () => {
+    const t = setupBackend();
+
+    const monitors = await t.query(api.monitors.getByProjectSlug, { projectSlug: 'nonexistent' });
+    expect(monitors).toHaveLength(0);
+  });
+});
+
+describe('list', () => {
+  test('only returns user monitors', async () => {
+    const t = setupBackend();
+    
+    await createMonitor(t, user, { name: 'My Monitor' });
+    await createMonitor(t, otherUser, { name: 'Not My Monitor' });
+    
+    const monitors = await t.withIdentity(user).query(api.monitors.list);
+    expect(monitors).toHaveLength(1);
+    expect(monitors[0].name).toBe('My Monitor');
+  });
+
+  test('requires auth', async () => {
+    const t = setupBackend();
+
+    await expect(t.query(api.monitors.list)).rejects.toThrow("Unauthorized");
+  });
 });

@@ -43,10 +43,10 @@ export default defineConfig({
         'middleware.ts', // Edge middleware is not typically unit tested in JSDOM
       ],
       thresholds: {
-        lines: 0,
-        functions: 0,
-        branches: 0,
-        statements: 0,
+        lines: 35,
+        functions: 34,
+        branches: 29,
+        statements: 33,
       },
     },
   },
