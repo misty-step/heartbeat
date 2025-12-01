@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [master, main]
 
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   test:
     name: Test Suite
@@ -42,6 +46,7 @@ jobs:
 
       - name: Coverage Comment
         if: github.event_name == 'pull_request'
+        continue-on-error: true
         uses: actions/github-script@v7
         with:
           script: |
@@ -52,27 +57,25 @@ jobs:
               const coverage = total.lines.pct;
               const color = coverage > 80 ? 'green' : coverage > 50 ? 'orange' : 'red';
               
-              const body = `
-              ## 🛡️ Test Coverage
+              const body = `## 🛡️ Test Coverage
+
+| Category | % | Covered / Total |
+|----------|---|-----------------|
+| **Lines** | ${total.lines.pct}% | ${total.lines.covered} / ${total.lines.total} |
+| **Statements** | ${total.statements.pct}% | ${total.statements.covered} / ${total.statements.total} |
+| **Functions** | ${total.functions.pct}% | ${total.functions.covered} / ${total.functions.total} |
+| **Branches** | ${total.branches.pct}% | ${total.branches.covered} / ${total.branches.total} |
+
+![Coverage](https://img.shields.io/badge/coverage-${coverage}%25-${color})`;
               
-              | Category | % | Covered / Total |
-              |----------|---|-----------------|
-              | **Lines** | ${total.lines.pct}% | ${total.lines.covered} / ${total.lines.total} |
-              | **Statements** | ${total.statements.pct}% | ${total.statements.covered} / ${total.statements.total} |
-              | **Functions** | ${total.functions.pct}% | ${total.functions.covered} / ${total.functions.total} |
-              | **Branches** | ${total.branches.pct}% | ${total.branches.covered} / ${total.branches.total} |
-              
-              Status: ![Coverage](https://img.shields.io/badge/coverage-${coverage}%25-${color})
-              `;
-              
-              github.rest.issues.createComment({
+              await github.rest.issues.createComment({
                 issue_number: context.issue.number,
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 body: body
               });
             } catch (error) {
-              console.log('No coverage summary found, skipping comment.');
+              console.log('Coverage comment failed:', error.message);
             }
 
       - name: Install Playwright Browsers
