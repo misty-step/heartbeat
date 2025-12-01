@@ -34,7 +34,7 @@ yarn-error.log*
 next-env.d.ts
 
 # convex
-convex/_generated/
+# convex/_generated/
 .convex/
 
 # claude code / mcp
