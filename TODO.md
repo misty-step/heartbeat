@@ -62,7 +62,7 @@
   - Success criteria: README shows "Coverage: XX%".
 
 ## Phase 4: Documentation
-- [ ] **Update Contributing Guide** <!-- est: 30m, deps: all -->
+- [x] **Update Contributing Guide** <!-- est: 30m, deps: all -->
   - Add `TESTING.md` or update `README.md`.
   - Document commands: `pnpm test`, `pnpm test:e2e`.
   - Success criteria: New dev knows how to run tests.

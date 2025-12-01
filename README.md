@@ -197,6 +197,8 @@ pnpm convex dashboard # Open Convex dashboard
 
 ## Testing the App
 
+For detailed development testing instructions, see [TESTING.md](TESTING.md).
+
 ### 1. Create Your First Monitor
 
 1. Sign in at `/dashboard` (Clerk will handle registration)
