@@ -40,3 +40,11 @@ convex/_generated/
 # claude code / mcp
 .playwright-mcp/
 .polish-sessions/
+
+# Playwright
+node_modules/
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/

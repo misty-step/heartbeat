@@ -26,16 +26,23 @@
     "resend": "^6.5.2"
   },
   "devDependencies": {
+    "@playwright/test": "^1.57.0",
     "@tailwindcss/postcss": "^4.1.17",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/react": "^16.3.0",
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^5.1.1",
     "concurrently": "^9.2.1",
+    "convex-test": "^0.0.41",
     "eslint": "^9",
     "eslint-config-next": "^16.0.0",
+    "jsdom": "^27.2.0",
     "postcss": "^8",
     "tailwindcss": "^4.1.17",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.0.14"
   },
   "engines": {
     "node": ">=18.17.0"
