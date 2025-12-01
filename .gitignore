@@ -34,9 +34,17 @@ yarn-error.log*
 next-env.d.ts
 
 # convex
-convex/_generated/
+# convex/_generated/
 .convex/
 
 # claude code / mcp
 .playwright-mcp/
 .polish-sessions/
+
+# Playwright
+node_modules/
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/

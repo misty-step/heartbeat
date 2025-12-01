@@ -2,6 +2,8 @@
 
 > Set and forget uptime monitoring
 
+![Coverage](https://img.shields.io/badge/coverage-unknown-lightgrey)
+
 Beautiful status pages and real-time monitoring for your services. Built with Next.js, Convex, and Clerk.
 
 ## Quick Start
@@ -194,6 +196,8 @@ pnpm convex dashboard # Open Convex dashboard
 ```
 
 ## Testing the App
+
+For detailed development testing instructions, see [TESTING.md](TESTING.md).
 
 ### 1. Create Your First Monitor
 
