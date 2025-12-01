@@ -8,6 +8,18 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./tests/setup.ts'],
+    include: [
+        'components/**/*.test.{ts,tsx}',
+        'convex/**/*.test.{ts,tsx}',
+        'hooks/**/*.test.{ts,tsx}',
+        'lib/**/*.test.{ts,tsx}',
+    ],
+    exclude: [
+        '**/node_modules/**',
+        '**/dist/**',
+        '**/e2e/**',
+        '**/.{idea,git,cache,output,temp}/**',
+    ],
     // Coverage configuration
     coverage: {
       provider: 'v8', // Use v8 coverage provider (built-in)
@@ -22,6 +34,7 @@ export default defineConfig({
         '**/_generated/**', // Exclude Convex generated code
         '**/*.test.ts', // Exclude test files themselves
         '**/*.test.tsx', // Exclude test files themselves
+        'e2e/**', // Exclude Playwright E2E tests
         'convex/schema.ts', // Schema definitions are not executable code
         'convex/crons.ts', // Crons are external triggers, not testable directly for coverage
         'convex/auth.config.ts', // Auth config is external setup
