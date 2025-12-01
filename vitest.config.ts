@@ -11,7 +11,7 @@ export default defineConfig({
     // Coverage configuration
     coverage: {
       provider: 'v8', // Use v8 coverage provider (built-in)
-      reporter: ['text', 'lcov'], // Report as text summary and lcov file
+      reporter: ['text', 'lcov', 'json-summary'], // Report as text summary, lcov file, and json summary
       include: [
         'components/**/*.tsx',
         'app/**/*.tsx',

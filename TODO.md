@@ -46,17 +46,17 @@
   - Success criteria: High coverage on `convex/monitors.ts`.
 
 ## Phase 3: CI/CD & Enforcement
-- [ ] **GitHub Actions Workflow** <!-- est: 1h, deps: Phase 1, Phase 2 -->
+- [x] **GitHub Actions Workflow** <!-- est: 1h, deps: Phase 1, Phase 2 -->
   - Create `.github/workflows/test.yml`.
   - Steps: Checkout -> Install -> Lint -> Typecheck -> Vitest (with coverage) -> Playwright.
   - Success criteria: Push to branch triggers green build.
 
-- [ ] **Coverage Reporting Script** <!-- est: 2h, deps: Phase 3.1 -->
+- [x] **Coverage Reporting Script** <!-- est: 2h, deps: Phase 3.1 -->
   - Add step to `test.yml` to parse `coverage/lcov.info`.
   - Use `actions/github-script` to post PR comment with coverage summary.
   - Success criteria: PR gets a comment with a markdown table.
 
-- [ ] **README Badge Integration** <!-- est: 1h, deps: Phase 3.1 -->
+- [x] **README Badge Integration** <!-- est: 1h, deps: Phase 3.1 -->
   - Add step to update `README.md` regex match with new coverage %.
   - Commit back to repo (if on master) or use gist badge.
   - Success criteria: README shows "Coverage: XX%".

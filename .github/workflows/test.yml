@@ -1,0 +1,114 @@
+name: Test
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+
+jobs:
+  test:
+    name: Test Suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 10.22.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Lint
+        run: pnpm lint
+        continue-on-error: true # Don't block for now, strict enforcement later
+
+      - name: Type Check
+        run: pnpm type-check
+
+      - name: Unit & Integration Tests
+        run: pnpm vitest run --coverage
+
+      - name: Coverage Comment
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            try {
+              const summary = JSON.parse(fs.readFileSync('./coverage/coverage-summary.json', 'utf8'));
+              const total = summary.total;
+              const coverage = total.lines.pct;
+              const color = coverage > 80 ? 'green' : coverage > 50 ? 'orange' : 'red';
+              
+              const body = `
+              ## 🛡️ Test Coverage
+              
+              | Category | % | Covered / Total |
+              |----------|---|-----------------|
+              | **Lines** | ${total.lines.pct}% | ${total.lines.covered} / ${total.lines.total} |
+              | **Statements** | ${total.statements.pct}% | ${total.statements.covered} / ${total.statements.total} |
+              | **Functions** | ${total.functions.pct}% | ${total.functions.covered} / ${total.functions.total} |
+              | **Branches** | ${total.branches.pct}% | ${total.branches.covered} / ${total.branches.total} |
+              
+              Status: ![Coverage](https://img.shields.io/badge/coverage-${coverage}%25-${color})
+              `;
+              
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: body
+              });
+            } catch (error) {
+              console.log('No coverage summary found, skipping comment.');
+            }
+
+      - name: Install Playwright Browsers
+        run: pnpm exec playwright install --with-deps
+
+      - name: E2E Tests
+        run: pnpm playwright test
+        env:
+          CI: true
+
+      - name: Upload Coverage Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+
+      - name: Update Coverage Badge
+        if: github.ref == 'refs/heads/master'
+        run: |
+          SUMMARY=$(cat coverage/coverage-summary.json)
+          COVERAGE=$(echo $SUMMARY | jq '.total.lines.pct')
+          COLOR=$(echo $COVERAGE | awk '{if ($1 > 80) print "green"; else if ($1 > 50) print "orange"; else print "red"}')
+          sed -i "s/coverage-[0-9.]*%25-[a-z]*/coverage-${COVERAGE}%25-${COLOR}/" README.md || sed -i "s/coverage-unknown-lightgrey/coverage-${COVERAGE}%25-${COLOR}/" README.md
+          
+      - name: Commit Coverage Badge
+        if: github.ref == 'refs/heads/master'
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: update coverage badge"
+          file_pattern: README.md
+
+      - name: Upload Playwright Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
