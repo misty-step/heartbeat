@@ -33,13 +33,13 @@
   - Success criteria: `pnpm vitest` passes with component tests.
 
 ## Phase 2: Critical Path Coverage
-- [ ] **E2E Smoke Test** <!-- est: 2h, deps: Phase 0 -->
+- [x] **E2E Smoke Test** <!-- est: 2h, deps: Phase 0 -->
   - Create `e2e/smoke.spec.ts`.
   - Test: Load Homepage -> Check for "Heartbeat" text.
   - Test: Navigate to /terms -> Check content.
   - Success criteria: `pnpm playwright test` passes against local dev server.
 
-- [ ] **Critical Flow: Monitor Creation (Backend)** <!-- est: 2h, deps: Phase 1.2 -->
+- [x] **Critical Flow: Monitor Creation (Backend)** <!-- est: 2h, deps: Phase 1.2 -->
   - Expand `convex/__tests__/monitors.test.ts`.
   - Test validation logic (invalid URL, missing fields).
   - Test auth protection (ensure unauthorized users can't create).
