@@ -16,18 +16,18 @@
   - Success criteria: `e2e/example.spec.ts` exists.
 
 ## Phase 1: Testing Infrastructure
-- [ ] **Backend Test Factory** <!-- est: 45m, deps: Phase 0 -->
+- [x] **Backend Test Factory** <!-- est: 45m, deps: Phase 0 -->
   - Create `tests/convex.ts`.
   - Implement `setupBackend()` wrapper around `convex-test`.
   - Success criteria: Can import `setupBackend` in a test file.
 
-- [ ] **First Backend Test (Monitors)** <!-- est: 1h, deps: Phase 1.1 -->
+- [x] **First Backend Test (Monitors)** <!-- est: 1h, deps: Phase 1.1 -->
   - Create `convex/__tests__/monitors.test.ts`.
   - Test `monitors.create` mutation (happy path).
   - Test `monitors.list` query (data retrieval).
   - Success criteria: `pnpm vitest` passes with 1 test suite.
 
-- [ ] **First Unit Test (Components)** <!-- est: 1h, deps: Phase 0 -->
+- [x] **First Unit Test (Components)** <!-- est: 1h, deps: Phase 0 -->
   - Create `components/__tests__/StatusIndicator.test.tsx`.
   - Test rendering with different status props (up, down, degraded).
   - Success criteria: `pnpm vitest` passes with component tests.

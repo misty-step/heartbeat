@@ -1,5 +1,6 @@
 // tests/setup.ts
 import '@testing-library/jest-dom';
+import { vi } from 'vitest';
 
 // Mock ResizeObserver which is used by Recharts and not available in JSDOM
 global.ResizeObserver = class ResizeObserver {
@@ -10,23 +11,23 @@ global.ResizeObserver = class ResizeObserver {
 
 // Mock Next.js useRouter and other router utilities if needed by components
 // This is a minimal example, more comprehensive mocks might be needed depending on components
-jest.mock('next/navigation', () => ({
+vi.mock('next/navigation', () => ({
   useRouter: () => ({
-    push: jest.fn(),
-    replace: jest.fn(),
-    prefetch: jest.fn(),
+    push: vi.fn(),
+    replace: vi.fn(),
+    prefetch: vi.fn(),
     asPath: '/',
     pathname: '/',
     query: {},
   }),
   usePathname: () => '/',
   useSearchParams: () => ({
-    get: jest.fn(),
+    get: vi.fn(),
   }),
 }));
 
 // Mock Clerk's useUser and useAuth for components that rely on it
-jest.mock('@clerk/nextjs', () => ({
+vi.mock('@clerk/nextjs', () => ({
   useUser: () => ({
     isSignedIn: true,
     user: {
@@ -39,7 +40,7 @@ jest.mock('@clerk/nextjs', () => ({
     isSignedIn: true,
     userId: 'user_test_id',
     sessionId: 'session_test_id',
-    getToken: jest.fn(() => Promise.resolve('mock_token')),
+    getToken: vi.fn(() => Promise.resolve('mock_token')),
   }),
   ClerkProvider: ({ children }: { children: React.ReactNode }) => children,
   SignedIn: ({ children }: { children: React.ReactNode }) => children,
@@ -51,16 +52,16 @@ jest.mock('@clerk/nextjs', () => ({
 }));
 
 // Mock Convex hooks if needed by components
-jest.mock('convex/react', () => ({
-  useQuery: jest.fn(() => ({ data: [], isLoading: false })),
-  useMutation: jest.fn(() => jest.fn()),
-  useConvexAuth: jest.fn(() => ({ isAuthenticated: true, isLoading: false })),
+vi.mock('convex/react', () => ({
+  useQuery: vi.fn(() => ({ data: [], isLoading: false })),
+  useMutation: vi.fn(() => vi.fn()),
+  useConvexAuth: vi.fn(() => ({ isAuthenticated: true, isLoading: false })),
 }));
 
 // Mock next-themes for theme toggle component
-jest.mock('next-themes', () => ({
+vi.mock('next-themes', () => ({
   useTheme: () => ({
     theme: 'light',
-    setTheme: jest.fn(),
+    setTheme: vi.fn(),
   }),
 }));
