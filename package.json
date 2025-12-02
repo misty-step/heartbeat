@@ -13,7 +13,8 @@
     "type-check": "tsc --noEmit",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "deploy:check": "npx convex deploy --dry-run --env-file .env.production"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.35.5",
