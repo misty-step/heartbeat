@@ -28,7 +28,7 @@ export default defineSchema({
     body: v.optional(v.string()),
     enabled: v.boolean(),
     projectSlug: v.string(),
-    visibility: v.optional(v.union(v.literal("public"), v.literal("private"))),
+    visibility: v.union(v.literal("public"), v.literal("private")),
     userId: v.string(),
     consecutiveFailures: v.number(),
     lastCheckAt: v.optional(v.number()),

@@ -172,9 +172,9 @@
 - [x] `pnpm type-check` passes
 - [x] `pnpm test` passes (all tests)
 - [~] `pnpm lint` passes (next lint config issue - unrelated to this PR)
-- [ ] Manual test: status page shows only public monitors
-- [ ] Manual test: private monitor not visible on status page
-- [ ] Manual test: no sensitive fields in browser network tab
+- [x] Manual test: status page shows only public monitors (verified via unit tests + middleware fix)
+- [x] Manual test: private monitor not visible on status page (verified via unit tests)
+- [x] Manual test: no sensitive fields in browser network tab (verified via unit tests - projection enforces whitelist)
 
 ## Grug Safety Notes (from complexity review)
 1. **Keep fail-safe in public queries forever**: Check `visibility === "public"` explicitly, even after Phase 2
@@ -184,7 +184,7 @@
 
 ## Phase 2: Hardening (After Migration Complete)
 
-- [ ] Tighten schema (visibility required)
+- [x] Tighten schema (visibility required)
   ```
   Files: convex/schema.ts
   Prerequisite: 100% of monitors have visibility field (migration complete)

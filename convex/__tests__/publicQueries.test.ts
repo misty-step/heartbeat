@@ -44,30 +44,7 @@ const recordCheck = async (
   });
 };
 
-const insertMonitorWithoutVisibility = async (t: ReturnType<typeof setupBackend>) => {
-  return await t.run(async (ctx) => {
-    return await ctx.db.insert("monitors", {
-      name: "Legacy Monitor",
-      url: "https://legacy.example.com",
-      method: "GET",
-      interval: 60,
-      timeout: 5000,
-      expectedStatusCode: undefined,
-      expectedBodyContains: undefined,
-      headers: undefined,
-      body: undefined,
-      enabled: true,
-      projectSlug: "public-project",
-      userId: user.subject,
-      visibility: undefined,
-      consecutiveFailures: 0,
-      lastCheckAt: undefined,
-      lastResponseTime: undefined,
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-    });
-  });
-};
+// Note: insertMonitorWithoutVisibility removed - visibility is now required in schema (Phase 2)
 
 describe("getPublicMonitorsForProject", () => {
   test("returns only safe fields for public monitors", async () => {
@@ -97,11 +74,10 @@ describe("getPublicMonitorsForProject", () => {
     expect(monitor).not.toHaveProperty("expectedBodyContains");
   });
 
-  test("excludes private and undefined-visibility monitors", async () => {
+  test("excludes private monitors", async () => {
     const t = setupBackend();
     const publicMonitor = await createMonitor(t, { name: "Public", visibility: "public" });
     await createMonitor(t, { name: "Private", visibility: "private" });
-    const legacyMonitor = await insertMonitorWithoutVisibility(t);
 
     const monitors = await t.query(api.monitors.getPublicMonitorsForProject, {
       projectSlug: baseMonitorArgs.projectSlug,
@@ -109,7 +85,6 @@ describe("getPublicMonitorsForProject", () => {
 
     const ids = monitors.map((m) => m._id);
     expect(ids).toContain(publicMonitor);
-    expect(ids).not.toContain(legacyMonitor);
     expect(monitors).toHaveLength(1);
   });
 });
