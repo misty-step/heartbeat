@@ -36,7 +36,7 @@
 
 ### Backend - Public Queries (Parallel)
 
-- [ ] Add `getPublicMonitorsForProject` query to `monitors.ts`
+- [x] Add `getPublicMonitorsForProject` query to `monitors.ts`
   ```
   Files: convex/monitors.ts
   Architecture: Query by projectSlug, filter visibility="public", project via toPublicMonitor()
@@ -51,7 +51,7 @@
   Time: 30min
   ```
 
-- [ ] Add `getPublicChecksForMonitor` + `getPublicUptimeStats` queries to `checks.ts`
+- [x] Add `getPublicChecksForMonitor` + `getPublicUptimeStats` queries to `checks.ts`
   ```
   Files: convex/checks.ts
   Architecture: Verify monitor is public before returning checks/stats
@@ -65,7 +65,7 @@
   Time: 30min
   ```
 
-- [ ] Add `getPublicIncidentsForProject` query + DELETE `getOpenIncidents` from `incidents.ts`
+- [x] Add `getPublicIncidentsForProject` query + DELETE `getOpenIncidents` from `incidents.ts`
   ```
   Files: convex/incidents.ts
   Architecture: Query incidents for public monitors only, project via toPublicIncident()

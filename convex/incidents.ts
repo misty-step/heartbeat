@@ -1,5 +1,14 @@
 import { v } from "convex/values";
 import { query } from "./_generated/server";
+import { toPublicIncident } from "./publicTypes";
+
+const publicIncidentValidator = v.object({
+  _id: v.id("incidents"),
+  title: v.string(),
+  status: v.union(v.literal("investigating"), v.literal("identified"), v.literal("resolved")),
+  startedAt: v.number(),
+  resolvedAt: v.optional(v.number()),
+});
 
 export const getForMonitor = query({
   args: {
@@ -58,27 +67,47 @@ export const getForProject = query({
   },
 });
 
-export const getOpenIncidents = query({
+export const getPublicIncidentsForProject = query({
   args: {
-    projectSlug: v.optional(v.string()),
+    projectSlug: v.string(),
+    limit: v.optional(v.number()),
+    statusFilter: v.optional(
+      v.union(v.literal("investigating"), v.literal("identified"), v.literal("resolved"))
+    ),
   },
+  returns: v.array(publicIncidentValidator),
   handler: async (ctx, args) => {
-    let query = ctx.db
-      .query("incidents")
-      .withIndex("by_status", (q) => q.eq("status", "investigating"))
-      .order("desc");
+    const limit = args.limit ?? 50;
 
-    const incidents = await query.collect();
+    const publicMonitors = await ctx.db
+      .query("monitors")
+      .withIndex("by_project_slug_and_visibility", (q) =>
+        q.eq("projectSlug", args.projectSlug).eq("visibility", "public")
+      )
+      .collect();
 
-    if (args.projectSlug) {
-      // Client-side filter since we can't compound filter on two indexes
-      return incidents.filter((i) => {
-        // We'll need to enrich this with monitor data to filter by projectSlug
-        // For now, return all investigating incidents
-        return true;
-      });
+    if (publicMonitors.length === 0) {
+      return [];
     }
 
-    return incidents;
+    const incidentsByMonitor = await Promise.all(
+      publicMonitors.map((monitor) =>
+        ctx.db
+          .query("incidents")
+          .withIndex("by_monitor", (q) => q.eq("monitorId", monitor._id))
+          .order("desc")
+          .collect()
+      )
+    );
+
+    let incidents = incidentsByMonitor.flat();
+
+    if (args.statusFilter) {
+      incidents = incidents.filter((incident) => incident.status === args.statusFilter);
+    }
+
+    incidents.sort((a, b) => b.startedAt - a.startedAt);
+
+    return incidents.slice(0, limit).map(toPublicIncident);
   },
 });

@@ -1,5 +1,14 @@
 import { v } from "convex/values";
 import { query, mutation, internalQuery } from "./_generated/server";
+import { toPublicMonitor } from "./publicTypes";
+
+const publicMonitorValidator = v.object({
+  _id: v.id("monitors"),
+  name: v.string(),
+  status: v.union(v.literal("up"), v.literal("degraded"), v.literal("down")),
+  lastCheckAt: v.optional(v.number()),
+  lastResponseTime: v.optional(v.number()),
+});
 
 export const list = query({
   args: {},
@@ -41,6 +50,21 @@ export const getByProjectSlug = query({
       .query("monitors")
       .withIndex("by_project_slug", (q) => q.eq("projectSlug", args.projectSlug))
       .collect();
+  },
+});
+
+export const getPublicMonitorsForProject = query({
+  args: { projectSlug: v.string() },
+  returns: v.array(publicMonitorValidator),
+  handler: async (ctx, args) => {
+    const monitors = await ctx.db
+      .query("monitors")
+      .withIndex("by_project_slug_and_visibility", (q) =>
+        q.eq("projectSlug", args.projectSlug).eq("visibility", "public")
+      )
+      .collect();
+
+    return monitors.map(toPublicMonitor);
   },
 });
 
