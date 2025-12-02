@@ -8,11 +8,6 @@ This backlog is curated for **dogfooding success** and **security**. We deleted 
 
 ## 🚨 Critical Security & Stability (P0)
 
-### Fix Data Leak in Public Status Pages
-- **Vulnerability**: `api.monitors.getByProjectSlug` returns the full monitor object.
-- **Risk**: Authentication headers (`Authorization: Bearer ...`) and request bodies used for monitoring private APIs are exposed to anyone viewing the public status page.
-- **Fix**: Project the query result to return only public fields: `id`, `name`, `projectSlug`, `interval`, `status` (computed), `updatedAt`. **Do not return `url`, `headers`, `body`.**
-
 ### False Positive Mitigation (Retry Logic)
 - **Problem**: A single network blip triggers "Down" status and incidents.
 - **Solution**:
