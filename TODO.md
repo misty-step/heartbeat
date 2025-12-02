@@ -21,7 +21,7 @@
   Time: 30min
   ```
 
-- [ ] Add `visibility` field to schema (optional) + compound index
+- [x] Add `visibility` field to schema (optional) + compound index
   ```
   Files: convex/schema.ts
   Architecture: Add optional visibility field to monitors table, add compound index
