@@ -121,7 +121,7 @@
 
 ### Testing
 
-- [ ] Add security tests in `convex/__tests__/publicQueries.test.ts`
+- [x] Add security tests in `convex/__tests__/publicQueries.test.ts`
   ```
   Files: convex/__tests__/publicQueries.test.ts (new)
   Architecture: Verify no sensitive fields leak through public queries
@@ -138,7 +138,7 @@
   Time: 45min
   ```
 
-- [ ] Update existing tests for visibility field
+- [x] Update existing tests for visibility field
   ```
   Files: convex/__tests__/monitors.test.ts, convex/__tests__/incidents.test.ts
   Changes:
@@ -151,7 +151,7 @@
 
 ### Migration
 
-- [ ] Create `convex/migrations.ts` with visibility backfill
+- [x] Create `convex/migrations.ts` with visibility backfill
   ```
   Files: convex/migrations.ts (new)
   Architecture: Backfill existing monitors with visibility="private" (fail-safe)
@@ -169,9 +169,9 @@
   ```
 
 ## Phase 1 Completion Checklist
-- [ ] `pnpm type-check` passes
-- [ ] `pnpm test` passes (all tests)
-- [ ] `pnpm lint` passes
+- [x] `pnpm type-check` passes
+- [x] `pnpm test` passes (all tests)
+- [~] `pnpm lint` passes (next lint config issue - unrelated to this PR)
 - [ ] Manual test: status page shows only public monitors
 - [ ] Manual test: private monitor not visible on status page
 - [ ] Manual test: no sensitive fields in browser network tab
