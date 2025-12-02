@@ -102,7 +102,7 @@
 
 ### Frontend
 
-- [ ] Update `app/s/[slug]/page.tsx` to use public query variants
+- [x] Update `app/s/[slug]/page.tsx` to use public query variants
   ```
   Files: app/s/[slug]/page.tsx
   Architecture: Replace all queries with public variants, simplify status computation
