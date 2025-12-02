@@ -94,6 +94,7 @@ export const create = mutation({
     expectedBodyContains: v.optional(v.string()),
     headers: v.optional(v.array(v.object({ key: v.string(), value: v.string() }))),
     body: v.optional(v.string()),
+    visibility: v.optional(v.union(v.literal("public"), v.literal("private"))),
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
@@ -105,6 +106,7 @@ export const create = mutation({
 
     return await ctx.db.insert("monitors", {
       ...args,
+      visibility: args.visibility ?? "public",
       userId: identity.subject,
       enabled: true,
       consecutiveFailures: 0,
@@ -145,6 +147,7 @@ export const update = mutation({
     headers: v.optional(v.array(v.object({ key: v.string(), value: v.string() }))),
     body: v.optional(v.string()),
     enabled: v.optional(v.boolean()),
+    visibility: v.optional(v.union(v.literal("public"), v.literal("private"))),
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();

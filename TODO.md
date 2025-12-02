@@ -84,7 +84,7 @@
 
 ### Backend - Visibility Support
 
-- [ ] Add `visibility` arg to `create` and `update` mutations in `monitors.ts`
+- [x] Add `visibility` arg to `create` and `update` mutations in `monitors.ts`
   ```
   Files: convex/monitors.ts
   Architecture: New monitors default to visibility="public", can be set explicitly
