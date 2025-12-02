@@ -7,7 +7,7 @@
     "dev": "concurrently --kill-others-on-fail -n \"Next,Convex\" -c \"cyan,magenta\" \"pnpm dev:next\" \"pnpm dev:convex\"",
     "dev:next": "next dev --turbopack",
     "dev:convex": "convex dev",
-    "build": "next build",
+    "build": "npx convex deploy --cmd 'next build'",
     "start": "next start",
     "lint": "next lint",
     "type-check": "tsc --noEmit",
