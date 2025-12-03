@@ -4,6 +4,7 @@
   "description": "Set and forget uptime monitoring",
   "private": true,
   "scripts": {
+    "prepare": "lefthook install",
     "dev": "concurrently --kill-others-on-fail -n \"Next,Convex\" -c \"cyan,magenta\" \"pnpm dev:next\" \"pnpm dev:convex\"",
     "dev:next": "next dev --turbopack",
     "dev:convex": "convex dev",
@@ -30,6 +31,8 @@
     "resend": "^6.5.2"
   },
   "devDependencies": {
+    "@commitlint/cli": "^20.1.0",
+    "@commitlint/config-conventional": "^20.0.0",
     "@playwright/test": "^1.57.0",
     "@tailwindcss/oxide-darwin-arm64": "4.1.17",
     "@tailwindcss/postcss": "^4.1.17",
@@ -46,9 +49,11 @@
     "eslint": "^9",
     "eslint-config-next": "^16.0.0",
     "jsdom": "^27.2.0",
+    "lefthook": "^2.0.7",
     "lightningcss": "^1.30.2",
     "lightningcss-darwin-arm64": "1.30.2",
     "postcss": "^8",
+    "prettier": "^3.7.4",
     "tailwindcss": "^4.1.17",
     "typescript": "^5",
     "vitest": "^4.0.14"
