@@ -201,7 +201,7 @@
   Time: 10min
   ```
 
-- [ ] Add visibility toggle to dashboard UI
+- [x] Add visibility toggle to dashboard UI
   ```
   Files: components/MonitorSettingsModal.tsx (or similar)
   Architecture: Checkbox to toggle public/private visibility

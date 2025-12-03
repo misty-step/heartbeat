@@ -13,6 +13,7 @@ interface Monitor {
   interval: number;
   timeout: number;
   expectedStatusCode?: number;
+  visibility: "public" | "private";
 }
 
 interface MonitorSettingsModalProps {
@@ -40,6 +41,7 @@ export function MonitorSettingsModal({
     interval: monitor.interval as IntervalValue,
     timeout: Math.floor(monitor.timeout / 1000), // Store in seconds
     expectedStatusCode: monitor.expectedStatusCode?.toString() || "",
+    visibility: monitor.visibility,
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
@@ -81,6 +83,7 @@ export function MonitorSettingsModal({
         expectedStatusCode: formData.expectedStatusCode
           ? parseInt(formData.expectedStatusCode)
           : undefined,
+        visibility: formData.visibility,
       });
 
       onClose();
@@ -271,6 +274,34 @@ export function MonitorSettingsModal({
             )}
             <p className="text-xs text-foreground/40">
               Leave empty to accept any 2xx or 3xx status
+            </p>
+          </div>
+
+          {/* Visibility toggle */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-foreground/70">
+              Status Page Visibility
+            </label>
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={formData.visibility === "public"}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    visibility: e.target.checked ? "public" : "private",
+                  })
+                }
+                className="w-4 h-4 accent-foreground"
+              />
+              <span className="text-sm text-foreground">
+                Show on public status page
+              </span>
+            </label>
+            <p className="text-xs text-foreground/40">
+              {formData.visibility === "public"
+                ? "This monitor is visible on your public status page"
+                : "This monitor is hidden from your public status page"}
             </p>
           </div>
 
