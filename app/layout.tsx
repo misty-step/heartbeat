@@ -30,6 +30,12 @@ const ibmPlexMono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   title: "Heartbeat — Uptime monitoring that simply works",
   description: "Beautiful status pages and real-time alerts for developers who ship.",
+  manifest: "/site.webmanifest",
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
+  },
 };
 
 export default function RootLayout({

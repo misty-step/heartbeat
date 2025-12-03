@@ -1,5 +1,14 @@
 import { v } from "convex/values";
 import { query, mutation, internalQuery } from "./_generated/server";
+import { toPublicMonitor } from "./publicTypes";
+
+const publicMonitorValidator = v.object({
+  _id: v.id("monitors"),
+  name: v.string(),
+  status: v.union(v.literal("up"), v.literal("degraded"), v.literal("down")),
+  lastCheckAt: v.optional(v.number()),
+  lastResponseTime: v.optional(v.number()),
+});
 
 export const list = query({
   args: {},
@@ -34,13 +43,41 @@ export const get = query({
   },
 });
 
+/**
+ * @deprecated Use getPublicMonitorsForProject for public status pages.
+ * This query returns ALL monitors including sensitive fields.
+ * Will be removed in next major version.
+ */
 export const getByProjectSlug = query({
   args: { projectSlug: v.string() },
+  returns: v.array(publicMonitorValidator),
   handler: async (ctx, args) => {
-    return await ctx.db
+    console.warn(
+      "[DEPRECATED] getByProjectSlug exposes sensitive fields. Use getPublicMonitorsForProject instead."
+    );
+    const monitors = await ctx.db
       .query("monitors")
-      .withIndex("by_project_slug", (q) => q.eq("projectSlug", args.projectSlug))
+      .withIndex("by_project_slug_and_visibility", (q) =>
+        q.eq("projectSlug", args.projectSlug).eq("visibility", "public")
+      )
       .collect();
+
+    return monitors.map(toPublicMonitor);
+  },
+});
+
+export const getPublicMonitorsForProject = query({
+  args: { projectSlug: v.string() },
+  returns: v.array(publicMonitorValidator),
+  handler: async (ctx, args) => {
+    const monitors = await ctx.db
+      .query("monitors")
+      .withIndex("by_project_slug_and_visibility", (q) =>
+        q.eq("projectSlug", args.projectSlug).eq("visibility", "public")
+      )
+      .collect();
+
+    return monitors.map(toPublicMonitor);
   },
 });
 
@@ -70,6 +107,7 @@ export const create = mutation({
     expectedBodyContains: v.optional(v.string()),
     headers: v.optional(v.array(v.object({ key: v.string(), value: v.string() }))),
     body: v.optional(v.string()),
+    visibility: v.optional(v.union(v.literal("public"), v.literal("private"))),
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
@@ -81,6 +119,7 @@ export const create = mutation({
 
     return await ctx.db.insert("monitors", {
       ...args,
+      visibility: args.visibility ?? "public",
       userId: identity.subject,
       enabled: true,
       consecutiveFailures: 0,
@@ -121,6 +160,7 @@ export const update = mutation({
     headers: v.optional(v.array(v.object({ key: v.string(), value: v.string() }))),
     body: v.optional(v.string()),
     enabled: v.optional(v.boolean()),
+    visibility: v.optional(v.union(v.literal("public"), v.literal("private"))),
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();

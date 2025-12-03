@@ -14,14 +14,7 @@ interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
-type MonitorStatus = "up" | "degraded" | "down" | "unknown";
 type OverallStatus = "up" | "degraded" | "down" | "unknown";
-
-const getMonitorStatus = (consecutiveFailures: number): MonitorStatus => {
-  if (consecutiveFailures === 0) return "up";
-  if (consecutiveFailures < 3) return "degraded";
-  return "down";
-};
 
 // Pre-render common project slugs at build time
 export async function generateStaticParams() {
@@ -33,7 +26,7 @@ export async function generateStaticParams() {
 export default async function StatusPage({ params }: PageProps) {
   const { slug } = await params;
 
-  const monitors = await fetchQuery(api.monitors.getByProjectSlug, {
+  const monitors = await fetchQuery(api.monitors.getPublicMonitorsForProject, {
     projectSlug: slug,
   });
 
@@ -41,17 +34,11 @@ export default async function StatusPage({ params }: PageProps) {
     notFound();
   }
 
-  // Compute statuses once
-  const monitorsWithStatus = monitors.map((monitor) => ({
-    ...monitor,
-    status: getMonitorStatus(monitor.consecutiveFailures),
-  }));
-
   // Simple priority-based aggregation
   const overallStatus: OverallStatus =
-    monitorsWithStatus.some((m) => m.status === "down")
+    monitors.some((m) => m.status === "down")
       ? "down"
-      : monitorsWithStatus.some((m) => m.status === "degraded")
+      : monitors.some((m) => m.status === "degraded")
       ? "degraded"
       : "up";
 
@@ -66,13 +53,13 @@ export default async function StatusPage({ params }: PageProps) {
   // Fetch uptime data for the first monitor (for now, showing single monitor stats)
   // TODO: In future, aggregate across all monitors or show per-monitor charts
   const primaryMonitor = monitors[0];
-  const uptimeStats = await fetchQuery(api.checks.getUptimeStats, {
+  const uptimeStats = await fetchQuery(api.checks.getPublicUptimeStats, {
     monitorId: primaryMonitor._id,
     days: 30,
   });
 
   // Fetch recent checks for chart visualization
-  const recentChecks = await fetchQuery(api.checks.getRecentForMonitor, {
+  const recentChecks = await fetchQuery(api.checks.getPublicChecksForMonitor, {
     monitorId: primaryMonitor._id,
     limit: 90, // ~3 days at 1min intervals, good for visualization
   });
@@ -85,32 +72,19 @@ export default async function StatusPage({ params }: PageProps) {
   }));
 
   // Fetch incidents for all monitors in this project
-  const allIncidents = await Promise.all(
-    monitors.map((monitor) =>
-      fetchQuery(api.incidents.getForMonitor, {
-        monitorId: monitor._id,
-        limit: 10,
-      })
-    )
-  );
+  const incidentsResponse = await fetchQuery(api.incidents.getPublicIncidentsForProject, {
+    projectSlug: slug,
+    limit: 20,
+  });
 
-  // Flatten and sort incidents by start time (most recent first)
-  const incidents = allIncidents
-    .flat()
-    .sort((a, b) => b.startedAt - a.startedAt)
-    .slice(0, 20) // Show max 20 incidents
-    .map((incident) => ({
-      id: incident._id,
-      title: incident.title,
-      status: incident.status as
-        | "investigating"
-        | "identified"
-        | "monitoring"
-        | "resolved",
-      startedAt: new Date(incident.startedAt),
-      resolvedAt: incident.resolvedAt ? new Date(incident.resolvedAt) : undefined,
-      updates: [], // TODO: Add incident updates when schema supports them
-    }));
+  const incidents = incidentsResponse.map((incident) => ({
+    id: incident._id,
+    title: incident.title,
+    status: incident.status as "investigating" | "identified" | "resolved",
+    startedAt: new Date(incident.startedAt),
+    resolvedAt: incident.resolvedAt ? new Date(incident.resolvedAt) : undefined,
+    updates: [], // TODO: Add incident updates when schema supports them
+  }));
 
   return (
     <div className="min-h-screen bg-background">
@@ -128,7 +102,7 @@ export default async function StatusPage({ params }: PageProps) {
               Monitors
             </h2>
             <div className="bg-surface rounded-lg border border-border divide-y divide-border">
-              {monitorsWithStatus.map((monitor) => (
+              {monitors.map((monitor) => (
                 <MonitorCard
                   key={monitor._id}
                   monitor={{

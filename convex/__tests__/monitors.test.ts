@@ -68,6 +68,22 @@ describe('create', () => {
     expect(monitors[0].createdAt).toBeDefined();
     expect(monitors[0].updatedAt).toBeDefined();
   });
+
+  test('defaults visibility to public', async () => {
+    const t = setupBackend();
+    const monitorId = await createMonitor(t);
+
+    const monitor = await t.withIdentity(user).query(api.monitors.get, { id: monitorId });
+    expect(monitor.visibility).toBe("public");
+  });
+
+  test('can set visibility to private on create', async () => {
+    const t = setupBackend();
+    const monitorId = await createMonitor(t, user, { visibility: "private" });
+
+    const monitor = await t.withIdentity(user).query(api.monitors.get, { id: monitorId });
+    expect(monitor.visibility).toBe("private");
+  });
 });
 
 describe('get', () => {
@@ -146,6 +162,19 @@ describe('update', () => {
     const monitor = await t.withIdentity(user).query(api.monitors.get, { id: monitorId });
     expect(monitor.enabled).toBe(false);
   });
+
+  test('can update visibility', async () => {
+    const t = setupBackend();
+    const monitorId = await createMonitor(t);
+
+    await t.withIdentity(user).mutation(api.monitors.update, {
+      id: monitorId,
+      visibility: "private",
+    });
+
+    const monitor = await t.withIdentity(user).query(api.monitors.get, { id: monitorId });
+    expect(monitor.visibility).toBe("private");
+  });
 });
 
 describe('remove', () => {
@@ -179,15 +208,17 @@ describe('remove', () => {
 });
 
 describe('getByProjectSlug', () => {
-  test('returns monitors for project (public)', async () => {
+  test('returns only public monitors and redacts sensitive fields', async () => {
     const t = setupBackend();
     await createMonitor(t, user, { projectSlug: 'my-project' });
-    await createMonitor(t, user, { projectSlug: 'my-project', name: 'Second' });
+    await createMonitor(t, user, { projectSlug: 'my-project', name: 'Second', visibility: "private" });
     await createMonitor(t, user, { projectSlug: 'other-project' });
 
-    // No auth required - public query
     const monitors = await t.query(api.monitors.getByProjectSlug, { projectSlug: 'my-project' });
-    expect(monitors).toHaveLength(2);
+    expect(monitors).toHaveLength(1);
+    expect(monitors[0]).toMatchObject({ name: 'Test Monitor', status: 'up' });
+    expect(monitors[0]).not.toHaveProperty('url');
+    expect(monitors[0]).not.toHaveProperty('headers');
   });
 
   test('returns empty array for non-existent project', async () => {

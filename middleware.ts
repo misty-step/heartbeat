@@ -5,6 +5,7 @@ const isPublicRoute = createRouteMatcher([
   "/terms",
   "/privacy",
   "/status(.*)",
+  "/s(.*)", // Public status pages at /s/[slug]
   "/sign-in(.*)",
   "/sign-up(.*)",
 ]);

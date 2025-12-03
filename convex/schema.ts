@@ -28,6 +28,7 @@ export default defineSchema({
     body: v.optional(v.string()),
     enabled: v.boolean(),
     projectSlug: v.string(),
+    visibility: v.union(v.literal("public"), v.literal("private")),
     userId: v.string(),
     consecutiveFailures: v.number(),
     lastCheckAt: v.optional(v.number()),
@@ -37,6 +38,7 @@ export default defineSchema({
   })
     .index("by_user", ["userId"])
     .index("by_project_slug", ["projectSlug"])
+    .index("by_project_slug_and_visibility", ["projectSlug", "visibility"])
     .index("by_enabled", ["enabled"]),
 
   checks: defineTable({

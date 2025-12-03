@@ -11,8 +11,10 @@
 import type * as checks from "../checks.js";
 import type * as crons from "../crons.js";
 import type * as incidents from "../incidents.js";
+import type * as migrations from "../migrations.js";
 import type * as monitoring from "../monitoring.js";
 import type * as monitors from "../monitors.js";
+import type * as publicTypes from "../publicTypes.js";
 
 import type {
   ApiFromModules,
@@ -24,8 +26,10 @@ declare const fullApi: ApiFromModules<{
   checks: typeof checks;
   crons: typeof crons;
   incidents: typeof incidents;
+  migrations: typeof migrations;
   monitoring: typeof monitoring;
   monitors: typeof monitors;
+  publicTypes: typeof publicTypes;
 }>;
 
 /**
