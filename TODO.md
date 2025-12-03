@@ -193,7 +193,7 @@
   Time: 10min
   ```
 
-- [ ] Deprecate `getByProjectSlug`
+- [x] Deprecate `getByProjectSlug`
   ```
   Files: convex/monitors.ts
   Change: Add @deprecated JSDoc comment, log warning on use
