@@ -45,6 +45,9 @@ importers:
       '@playwright/test':
         specifier: ^1.57.0
         version: 1.57.0
+      '@tailwindcss/oxide-darwin-arm64':
+        specifier: 4.1.17
+        version: 4.1.17
       '@tailwindcss/postcss':
         specifier: ^4.1.17
         version: 4.1.17
@@ -87,6 +90,12 @@ importers:
       jsdom:
         specifier: ^27.2.0
         version: 27.2.0
+      lightningcss:
+        specifier: ^1.30.2
+        version: 1.30.2
+      lightningcss-darwin-arm64:
+        specifier: 1.30.2
+        version: 1.30.2
       postcss:
         specifier: ^8
         version: 8.5.6
@@ -3780,8 +3789,7 @@ snapshots:
   '@tailwindcss/oxide-android-arm64@4.1.17':
     optional: true
 
-  '@tailwindcss/oxide-darwin-arm64@4.1.17':
-    optional: true
+  '@tailwindcss/oxide-darwin-arm64@4.1.17': {}
 
   '@tailwindcss/oxide-darwin-x64@4.1.17':
     optional: true
@@ -5323,8 +5331,7 @@ snapshots:
   lightningcss-android-arm64@1.30.2:
     optional: true
 
-  lightningcss-darwin-arm64@1.30.2:
-    optional: true
+  lightningcss-darwin-arm64@1.30.2: {}
 
   lightningcss-darwin-x64@1.30.2:
     optional: true
