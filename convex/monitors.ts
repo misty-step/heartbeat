@@ -50,14 +50,19 @@ export const get = query({
  */
 export const getByProjectSlug = query({
   args: { projectSlug: v.string() },
+  returns: v.array(publicMonitorValidator),
   handler: async (ctx, args) => {
     console.warn(
       "[DEPRECATED] getByProjectSlug exposes sensitive fields. Use getPublicMonitorsForProject instead."
     );
-    return await ctx.db
+    const monitors = await ctx.db
       .query("monitors")
-      .withIndex("by_project_slug", (q) => q.eq("projectSlug", args.projectSlug))
+      .withIndex("by_project_slug_and_visibility", (q) =>
+        q.eq("projectSlug", args.projectSlug).eq("visibility", "public")
+      )
       .collect();
+
+    return monitors.map(toPublicMonitor);
   },
 });
 
