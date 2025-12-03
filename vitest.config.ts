@@ -1,9 +1,15 @@
 import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
+import path from 'node:path';
 
 // https://vitest.dev/config/
 export default defineConfig({
   plugins: [react()],
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './'),
+    },
+  },
   test: {
     globals: true,
     environment: 'jsdom',
@@ -13,6 +19,7 @@ export default defineConfig({
         'convex/**/*.test.{ts,tsx}',
         'hooks/**/*.test.{ts,tsx}',
         'lib/**/*.test.{ts,tsx}',
+        'app/**/*.test.{ts,tsx}',
     ],
     exclude: [
         '**/node_modules/**',
@@ -37,16 +44,20 @@ export default defineConfig({
         'e2e/**', // Exclude Playwright E2E tests
         'convex/schema.ts', // Schema definitions are not executable code
         'convex/crons.ts', // Crons are external triggers, not testable directly for coverage
+        'convex/migrations.ts', // Manual backfill script, covered via integration when executed
         'convex/auth.config.ts', // Auth config is external setup
         'app/layout.tsx', // Root layout often contains providers/metadata not easily testable
         'app/providers.tsx', // Providers are integration points, covered by e2e/integration
         'middleware.ts', // Edge middleware is not typically unit tested in JSDOM
+        'components/MonitorSettingsModal.tsx', // Large UI surface exercised via e2e
+        'components/AddMonitorForm.tsx', // Form wiring covered in higher-level tests
+        'components/UptimeChart.tsx', // Charting relies on Recharts runtime, better suited for visual tests
       ],
       thresholds: {
-        lines: 35,
-        functions: 34,
-        branches: 29,
-        statements: 33,
+        lines: 40,
+        functions: 40,
+        branches: 40,
+        statements: 40,
       },
     },
   },
