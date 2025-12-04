@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@clerk/nextjs": "^6.35.5",
+    "@sentry/nextjs": "^10.28.0",
     "convex": "^1.29.3",
     "framer-motion": "^12.23.24",
     "geist": "^1.5.1",
