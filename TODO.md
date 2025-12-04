@@ -1,218 +1,461 @@
-# TODO: Security Hardening - Public Status Pages
+# TODO: Production Infrastructure
 
 ## Context
-- **Architecture**: DESIGN.md - Explicit Field Projection with Visibility Filter
-- **Key Files**: `convex/publicTypes.ts` (new), `convex/schema.ts`, `convex/monitors.ts`, `convex/checks.ts`, `convex/incidents.ts`, `app/s/[slug]/page.tsx`
-- **Patterns**: Follow existing query/mutation structure in `convex/*.ts`, test patterns in `convex/__tests__/*.test.ts`
-- **Test Runner**: `convex-test` via `setupBackend()` helper
 
-## Phase 1: Critical Security Fix
+- **Architecture**: Layered Infrastructure with Deep Modules (see DESIGN.md)
+- **Key Files**: lefthook.yml, sentry._.config.ts, lib/logger/_, app/api/logs/route.ts, .releaserc.json
+- **Patterns**: Vitest for testing (components/**tests**/_.test.tsx), Convex backend (convex/**tests**/_.test.ts)
+- **Current Stack**: Next.js 16, React 19, Convex, Clerk, Tailwind 4, pnpm
 
-### Backend - Foundation
+## Phase 1: Quality Gates
 
-- [x] Create `convex/publicTypes.ts` with type-safe projection functions
+- [x] Configure Lefthook git hooks with commitlint
+
   ```
-  Files: convex/publicTypes.ts (new)
-  Architecture: Type definitions + projection functions for PublicMonitor, PublicCheck, PublicIncident
-  Pseudocode: See DESIGN.md "Module: Public Types"
-  Success: Types compile, projection functions extract only safe fields
-  Test: Unit test that projection excludes all sensitive fields (url, headers, body, etc.)
-  Dependencies: None (foundation for all public queries)
+  Files:
+    - lefthook.yml (new)
+    - commitlint.config.mjs (new)
+    - package.json (modify: add prepare script, devDependencies)
+
+  Approach: Follow DESIGN.md lefthook.yml structure exactly
+
+  Dependencies to add:
+    - lefthook
+    - @commitlint/cli
+    - @commitlint/config-conventional
+    - prettier
+
+  Success:
+    - `pnpm install` triggers `lefthook install`
+    - git commit with bad lint → blocked
+    - git commit with "bad message" → blocked by commitlint
+    - git commit with "feat: valid message" → passes
+    - git push with failing tests → blocked
+    - LEFTHOOK=0 git commit → bypasses hooks
+
+  Test: Manual verification (git hooks not unit-testable)
   Time: 30min
   ```
 
-- [x] Add `visibility` field to schema (optional) + compound index
+- [x] Enforce 80% coverage thresholds
+
   ```
-  Files: convex/schema.ts
-  Architecture: Add optional visibility field to monitors table, add compound index
+  Files: vitest.config.ts (modify lines 56-61)
+
+  Approach: Bump thresholds from 40% to 80%, add new exclusions per DESIGN.md
+
   Changes:
-    - Add: visibility: v.optional(v.union(v.literal("public"), v.literal("private")))
-    - Add index: .index("by_project_slug_and_visibility", ["projectSlug", "visibility"])
-  Success: Schema deploys without error, existing monitors still work
-  Test: Create monitor without visibility → succeeds (optional field)
-  Dependencies: None
+    - thresholds.lines: 40 → 80
+    - thresholds.functions: 40 → 80
+    - thresholds.branches: 40 → 80
+    - thresholds.statements: 40 → 80
+    - Add to exclude: 'app/global-error.tsx', 'sentry.*.config.ts', 'instrumentation.ts'
+    - Add to include: 'lib/**/*.ts'
+
+  Success:
+    - pnpm test:coverage fails if below 80%
+    - New infrastructure files excluded from coverage
+
+  Test: Run pnpm test:coverage, verify thresholds enforced
   Time: 15min
   ```
 
-### Backend - Public Queries (Parallel)
+- [ ] Enforce lint in CI (remove continue-on-error)
 
-- [x] Add `getPublicMonitorsForProject` query to `monitors.ts`
   ```
-  Files: convex/monitors.ts
-  Architecture: Query by projectSlug, filter visibility="public", project via toPublicMonitor()
-  Pseudocode: See DESIGN.md "New Query: getPublicMonitorsForProject"
-  Success: Returns only public monitors with safe fields
-  Test:
-    - Public monitor returned with only safe fields
-    - Private monitor excluded
-    - undefined visibility excluded (fail-safe)
-    - No sensitive fields in response (url, headers, body, method, etc.)
-  Dependencies: publicTypes.ts, schema.ts
-  Time: 30min
-  ```
+  Files: .github/workflows/test.yml (modify line 39)
 
-- [x] Add `getPublicChecksForMonitor` + `getPublicUptimeStats` queries to `checks.ts`
-  ```
-  Files: convex/checks.ts
-  Architecture: Verify monitor is public before returning checks/stats
-  Pseudocode: See DESIGN.md "New Query: getPublicChecksForMonitor" and "getPublicUptimeStats"
-  Success: Returns checks/stats only for public monitors, no statusCode/errorMessage
-  Test:
-    - Public monitor → returns checks without statusCode, errorMessage
-    - Private monitor → returns empty array
-    - Stats exclude successfulChecks/failedChecks
-  Dependencies: publicTypes.ts, schema.ts
-  Time: 30min
-  ```
+  Approach: Remove `continue-on-error: true` from lint step
 
-- [x] Add `getPublicIncidentsForProject` query + DELETE `getOpenIncidents` from `incidents.ts`
-  ```
-  Files: convex/incidents.ts
-  Architecture: Query incidents for public monitors only, project via toPublicIncident()
-  Pseudocode: See DESIGN.md "New Query: getPublicIncidentsForProject"
-  Changes:
-    - ADD: getPublicIncidentsForProject query
-    - DELETE: getOpenIncidents (lines 61-84) - cross-tenant vulnerability
-  Success: Returns incidents only for public monitors, no description/monitorId
-  Test:
-    - Only incidents for public monitors returned
-    - No description field in response
-    - getOpenIncidents no longer exists
-  Dependencies: publicTypes.ts, schema.ts
-  Time: 30min
-  ```
+  Success: PRs with lint errors fail CI
 
-### Backend - Visibility Support
-
-- [x] Add `visibility` arg to `create` and `update` mutations in `monitors.ts`
-  ```
-  Files: convex/monitors.ts
-  Architecture: New monitors default to visibility="public", can be set explicitly
-  Changes:
-    - create: Add visibility arg (optional), default to "public" in handler
-    - update: Add visibility arg (optional)
-  Success: New monitors get visibility="public", can toggle via update
-  Test:
-    - Create without visibility → monitor.visibility === "public"
-    - Create with visibility="private" → monitor.visibility === "private"
-    - Update visibility toggle works
-  Dependencies: schema.ts
-  Time: 20min
-  ```
-
-### Frontend
-
-- [x] Update `app/s/[slug]/page.tsx` to use public query variants
-  ```
-  Files: app/s/[slug]/page.tsx
-  Architecture: Replace all queries with public variants, simplify status computation
-  Changes:
-    - api.monitors.getByProjectSlug → api.monitors.getPublicMonitorsForProject
-    - api.checks.getUptimeStats → api.checks.getPublicUptimeStats
-    - api.checks.getRecentForMonitor → api.checks.getPublicChecksForMonitor
-    - api.incidents.getForMonitor → api.incidents.getPublicIncidentsForProject
-    - Remove getMonitorStatus() helper (status now server-side)
-    - Remove monitorsWithStatus spread (already projected)
-  Success: Status page renders with only safe data, no TypeScript errors
-  Test: Manual verification - status page loads, no sensitive data visible
-  Dependencies: All public queries
-  Time: 30min
-  ```
-
-### Testing
-
-- [x] Add security tests in `convex/__tests__/publicQueries.test.ts`
-  ```
-  Files: convex/__tests__/publicQueries.test.ts (new)
-  Architecture: Verify no sensitive fields leak through public queries
-  Test Cases (from DESIGN.md Testing Strategy):
-    - getPublicMonitorsForProject excludes: url, headers, body, method, userId, timeout, expectedStatusCode, expectedBodyContains
-    - getPublicMonitorsForProject excludes visibility=private monitors
-    - getPublicMonitorsForProject excludes visibility=undefined monitors
-    - getPublicChecksForMonitor excludes: statusCode, errorMessage
-    - getPublicChecksForMonitor returns empty for private monitor
-    - getPublicIncidentsForProject excludes: description, monitorId
-    - getOpenIncidents does not exist (deleted)
-  Success: All security tests pass
-  Dependencies: All public queries implemented
-  Time: 45min
-  ```
-
-- [x] Update existing tests for visibility field
-  ```
-  Files: convex/__tests__/monitors.test.ts, convex/__tests__/incidents.test.ts
-  Changes:
-    - monitors.test.ts: Add tests for visibility default, create/update with visibility
-    - incidents.test.ts: Remove getOpenIncidents tests (deleted function)
-  Success: All existing tests pass, new visibility tests pass
-  Dependencies: Visibility support in mutations
-  Time: 20min
-  ```
-
-### Migration
-
-- [x] Create `convex/migrations.ts` with visibility backfill
-  ```
-  Files: convex/migrations.ts (new)
-  Architecture: Backfill existing monitors with visibility="private" (fail-safe)
-  Note: No convex-helpers dependency - use simple internalMutation pattern
-  Implementation:
-    - internalMutation that patches monitors where visibility === undefined
-    - Batch processing to avoid timeout
-    - Callable via: npx convex run migrations:backfillVisibility
-  Success: All existing monitors get visibility="private"
-  Test:
-    - Automated: After migration, no monitors with undefined visibility
-    - Verify migration handles concurrent monitor creation
-  Dependencies: schema.ts with visibility field
-  Time: 30min
-  ```
-
-## Phase 1 Completion Checklist
-- [x] `pnpm type-check` passes
-- [x] `pnpm test` passes (all tests)
-- [~] `pnpm lint` passes (next lint config issue - unrelated to this PR)
-- [x] Manual test: status page shows only public monitors (verified via unit tests + middleware fix)
-- [x] Manual test: private monitor not visible on status page (verified via unit tests)
-- [x] Manual test: no sensitive fields in browser network tab (verified via unit tests - projection enforces whitelist)
-
-## Grug Safety Notes (from complexity review)
-1. **Keep fail-safe in public queries forever**: Check `visibility === "public"` explicitly, even after Phase 2
-2. **Status calculation server-side only**: `computeMonitorStatus()` in publicTypes.ts, never leak "why down"
-3. **One commit for all public queries**: Avoid broken middle state where some queries secure, others not
-4. **Migration completeness test**: Automated assertion that no monitors have undefined visibility
-
-## Phase 2: Hardening (After Migration Complete)
-
-- [x] Tighten schema (visibility required)
-  ```
-  Files: convex/schema.ts
-  Prerequisite: 100% of monitors have visibility field (migration complete)
-  Change: visibility: v.union(v.literal("public"), v.literal("private")) // remove v.optional
-  Success: Schema deploys, no documents fail validation
+  Test: Verify workflow syntax, test with lint error
   Time: 10min
   ```
 
-- [x] Deprecate `getByProjectSlug`
+## Phase 2: Observability - Sentry
+
+- [ ] Install @sentry/nextjs and create config files
+
   ```
-  Files: convex/monitors.ts
-  Change: Add @deprecated JSDoc comment, log warning on use
-  Success: Deprecation warning visible, no breaking changes
-  Time: 10min
+  Files:
+    - package.json (modify: add @sentry/nextjs dependency)
+    - sentry.client.config.ts (new)
+    - sentry.server.config.ts (new)
+    - sentry.edge.config.ts (new)
+
+  Approach: Copy exact code from DESIGN.md "Module: Sentry Error Tracking"
+
+  Key points:
+    - Client DSN: NEXT_PUBLIC_SENTRY_DSN
+    - Server DSN: SENTRY_DSN (different!)
+    - beforeSend filters for extension:// and ResizeObserver
+    - Server beforeSend redacts authorization, cookie, password, token, apiKey
+    - Session replay enabled with 10%/100% sampling
+
+  Success:
+    - Build succeeds with Sentry configs
+    - No TypeScript errors
+
+  Test: Type-check passes, build succeeds
+  Time: 30min
   ```
 
-- [x] Add visibility toggle to dashboard UI
+- [ ] Create Next.js instrumentation hook
+
   ```
-  Files: components/MonitorSettingsModal.tsx (or similar)
-  Architecture: Checkbox to toggle public/private visibility
-  Success: User can toggle monitor visibility from dashboard
-  Test: Toggle visibility → persists, reflected on status page
+  Files: instrumentation.ts (new at project root)
+
+  Approach: Exact code from DESIGN.md
+
+  Content:
+    - register() loads server/edge configs based on NEXT_RUNTIME
+    - Export onRequestError for automatic error capture
+
+  Success: Next.js recognizes instrumentation hook
+
+  Test: Build succeeds, server starts without errors
+  Time: 15min
+  ```
+
+- [ ] Create global error boundary
+
+  ```
+  Files: app/global-error.tsx (new)
+
+  Approach: Exact code from DESIGN.md
+
+  Key points:
+    - 'use client' directive
+    - useEffect captures error to Sentry
+    - Simple UI with reset button
+    - Must wrap html/body (App Router requirement)
+
+  Success: Unhandled errors in production show error UI
+
+  Test: Manual - throw error in component, verify boundary catches
+  Time: 20min
+  ```
+
+- [ ] Wrap next.config.ts with withSentryConfig
+
+  ```
+  Files: next.config.ts (modify)
+
+  Approach: Follow DESIGN.md next.config.ts Integration
+
+  Changes:
+    - Import withSentryConfig from @sentry/nextjs
+    - Wrap export with withSentryConfig()
+    - Add org, project, authToken from env vars
+    - Enable sourcemaps.deleteSourcemapsAfterUpload
+    - Enable autoInstrument* options
+
+  Success:
+    - Build uploads source maps when SENTRY_AUTH_TOKEN present
+    - Build succeeds without auth token (silently skips upload)
+
+  Test: pnpm build succeeds
+  Time: 20min
+  ```
+
+## Phase 2: Observability - Pino Logging
+
+- [ ] Create server logger with Pino
+
+  ```
+  Files: lib/logger/server.ts (new - create lib/logger/ directory)
+
+  Approach: Exact code from DESIGN.md "Module: Pino Structured Logging"
+
+  Key points:
+    - REDACT_PATHS: password, token, apiKey, secret, email, ip + nested paths
+    - Censor mode: '[REDACTED]'
+    - ISO timestamp format
+    - Level formatter for Vercel JSON parsing
+    - createRequestLogger(requestId) factory
+
+  Dependencies to add: pino
+
+  Success:
+    - logger.info('test', { password: 'secret' }) → password: '[REDACTED]'
+    - createRequestLogger('abc') → child logger with requestId: 'abc'
+
+  Test: lib/logger/__tests__/server.test.ts
+    - Test redaction of each sensitive field
+    - Test child logger includes requestId
   Time: 45min
   ```
 
-## Backlog (Not This PR)
+- [ ] Create client logger with batched transport
 
-- Security headers in middleware (CSP, HSTS)
-- SSRF blocklist in monitoring engine
-- Rate limiting on public queries
-- Password-protected status pages (YAGNI)
+  ```
+  Files: lib/logger/client.ts (new)
+
+  Approach: Exact code from DESIGN.md ClientLogger class
+
+  Key points:
+    - Buffer entries until batch size (10) or interval (5s)
+    - Flush on beforeunload
+    - POST to /api/logs with keepalive: true
+    - Retry on failure (re-add to buffer)
+    - Console output in development
+
+  Dependencies to add: serialize-error
+
+  Success:
+    - clientLogger.error() buffers entry
+    - Flush sends POST to /api/logs
+    - Failed fetch retries on next flush
+
+  Test: lib/logger/__tests__/client.test.ts
+    - Mock fetch, verify batching
+    - Test flush behavior
+    - Test error serialization
+  Time: 45min
+  ```
+
+- [ ] Create logger index with re-exports
+
+  ```
+  Files: lib/logger/index.ts (new)
+
+  Approach: Simple re-export per DESIGN.md
+
+  Content:
+    export { logger, createRequestLogger, type LogContext } from './server';
+    export { clientLogger } from './client';
+
+  Success: Import from '@/lib/logger' works
+
+  Test: TypeScript resolves imports
+  Time: 10min
+  ```
+
+- [ ] Update middleware with correlation IDs
+
+  ```
+  Files: middleware.ts (modify)
+
+  Approach: Follow DESIGN.md "Correlation ID Middleware"
+
+  Changes:
+    - Import NextResponse
+    - Generate requestId = crypto.randomUUID()
+    - Add x-request-id to request headers
+    - Add x-request-id to response headers
+    - Add '/api/logs' to isPublicRoute
+
+  Success:
+    - Every request gets x-request-id header
+    - Response includes same x-request-id
+    - /api/logs is accessible without auth
+
+  Test: Manual - check response headers for x-request-id
+  Time: 20min
+  ```
+
+- [ ] Create /api/logs endpoint with rate limiting
+
+  ```
+  Files: app/api/logs/route.ts (new - create app/api/logs/ directory)
+
+  Approach: Exact code from DESIGN.md "Module: Client Log Aggregation API"
+
+  Key points:
+    - Upstash Redis rate limiting (100 req/min/IP)
+    - Zod schema validation
+    - Origin whitelist from NEXT_PUBLIC_APP_URL + localhost
+    - Max payload 10KB
+    - Forward to Pino logger with source: 'client'
+
+  Dependencies to add: @upstash/ratelimit, @upstash/redis, zod
+
+  Success:
+    - Valid POST → 200 + logs appear in server output
+    - 101st request/min → 429 + Retry-After header
+    - Invalid origin → 403
+    - >10KB payload → 413
+    - Invalid schema → 400
+
+  Test: app/api/logs/__tests__/route.test.ts (mock Redis)
+    - Test rate limiting (mock Ratelimit.limit)
+    - Test schema validation
+    - Test origin validation
+    - Test size validation
+  Time: 1hr
+  ```
+
+## Phase 3: Analytics & Releases
+
+- [ ] Add Vercel Analytics and Speed Insights
+
+  ```
+  Files:
+    - package.json (modify: add @vercel/analytics, @vercel/speed-insights)
+    - app/layout.tsx (modify)
+
+  Approach: Add components per DESIGN.md
+
+  Changes to layout.tsx:
+    - Import Analytics from @vercel/analytics/next
+    - Import SpeedInsights from @vercel/speed-insights/next
+    - Add <Analytics /> after <Providers>
+    - Add <SpeedInsights /> after <Analytics />
+
+  Success:
+    - Web Vitals visible in Vercel dashboard
+    - No console errors
+    - Bundle size impact minimal (<5KB)
+
+  Test: Manual - verify analytics in Vercel dashboard
+  Time: 20min
+  ```
+
+- [ ] Configure semantic-release
+
+  ```
+  Files:
+    - package.json (modify: add semantic-release + plugins to devDependencies)
+    - .releaserc.json (new)
+
+  Approach: Exact config from DESIGN.md
+
+  Dependencies to add:
+    - semantic-release
+    - @semantic-release/changelog
+    - @semantic-release/git
+    - @semantic-release/github
+
+  Key points:
+    - branches: ["master"]
+    - Plugins: commit-analyzer, release-notes-generator, changelog, npm (no publish), git, github
+    - Commit message: "chore(release): ${nextRelease.version} [skip ci]"
+
+  Success:
+    - npx semantic-release --dry-run shows what would happen
+    - No errors in dry-run
+
+  Test: Run dry-run locally
+  Time: 30min
+  ```
+
+- [ ] Create release workflow
+
+  ```
+  Files: .github/workflows/release.yml (new)
+
+  Approach: Exact YAML from DESIGN.md
+
+  Key points:
+    - Trigger on push to master
+    - Skip if commit message contains [skip ci]
+    - fetch-depth: 0 for full git history
+    - Run build before release
+    - GITHUB_TOKEN for release creation
+
+  Success:
+    - Workflow appears in GitHub Actions
+    - Push to master triggers release job
+    - Version bumped based on conventional commits
+
+  Test: Push feat: commit to master, verify release created
+  Time: 30min
+  ```
+
+## Phase 4: Testing (after implementation)
+
+- [ ] Write server logger tests
+
+  ```
+  Files: lib/logger/__tests__/server.test.ts (new)
+
+  Tests:
+    - Redacts password field
+    - Redacts token field
+    - Redacts apiKey field
+    - Redacts nested *.password paths
+    - Redacts req.headers.authorization
+    - createRequestLogger includes requestId in child
+    - Timestamp is ISO format
+
+  Time: 30min
+  ```
+
+- [ ] Write client logger tests
+
+  ```
+  Files: lib/logger/__tests__/client.test.ts (new)
+
+  Tests:
+    - Batches entries until LOG_BATCH_SIZE
+    - Flushes after LOG_FLUSH_INTERVAL
+    - flush() POSTs to /api/logs
+    - Failed fetch retries on next flush
+    - Error is serialized correctly
+    - Console output in development mode
+
+  Time: 30min
+  ```
+
+- [ ] Write /api/logs endpoint tests
+
+  ```
+  Files: app/api/logs/__tests__/route.test.ts (new)
+
+  Tests:
+    - Returns 200 for valid request
+    - Returns 429 when rate limited (mock Redis)
+    - Returns 403 for invalid origin
+    - Returns 413 for oversized payload
+    - Returns 400 for invalid schema
+    - Returns 405 for GET request
+    - Logs are forwarded to server logger
+
+  Time: 45min
+  ```
+
+## Environment Setup (Manual - Not Tasks)
+
+Before implementation, ensure these are configured:
+
+1. **Sentry** (manual setup in Sentry dashboard):
+   - Create project: heartbeat-client
+   - Create project: heartbeat-server
+   - Get DSNs for both
+   - Create auth token for source map uploads
+
+2. **Upstash Redis** (manual setup):
+   - Create Redis database
+   - Get REST URL and token
+
+3. **Vercel Environment Variables**:
+   - NEXT_PUBLIC_SENTRY_DSN (client DSN)
+   - SENTRY_DSN (server DSN)
+   - SENTRY_ORG
+   - SENTRY_PROJECT
+   - SENTRY_AUTH_TOKEN
+   - UPSTASH_REDIS_REST_URL
+   - UPSTASH_REDIS_REST_TOKEN
+   - NEXT_PUBLIC_APP_URL
+
+## Design Iteration
+
+After Phase 2: Review logging patterns, assess if correlation IDs are being used effectively
+After Phase 3: Review release workflow, verify conventional commits are being followed
+
+## Automation Opportunities
+
+- Pre-commit hook handles lint/format automatically
+- semantic-release handles versioning automatically
+- Coverage badge updates automatically on master
+
+## Dependency Summary
+
+```bash
+# Production dependencies
+pnpm add @sentry/nextjs @vercel/analytics @vercel/speed-insights pino serialize-error @upstash/ratelimit @upstash/redis zod
+
+# Development dependencies
+pnpm add -D lefthook @commitlint/cli @commitlint/config-conventional prettier semantic-release @semantic-release/changelog @semantic-release/git @semantic-release/github pino-pretty
+```

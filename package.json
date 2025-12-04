@@ -10,7 +10,7 @@
     "dev:convex": "convex dev",
     "build": "npx convex deploy --cmd 'next build'",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint . --max-warnings 0",
     "type-check": "tsc --noEmit",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
@@ -33,6 +33,7 @@
   "devDependencies": {
     "@commitlint/cli": "^20.1.0",
     "@commitlint/config-conventional": "^20.0.0",
+    "@eslint/eslintrc": "^3.3.3",
     "@playwright/test": "^1.57.0",
     "@tailwindcss/oxide-darwin-arm64": "4.1.17",
     "@tailwindcss/postcss": "^4.1.17",

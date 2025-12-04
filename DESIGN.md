@@ -1,679 +1,1281 @@
-# DESIGN.md - Security Hardening: Public Status Pages
+# Production Infrastructure Architecture Design
 
 ## Architecture Overview
 
-**Selected Approach**: Explicit Field Projection with Visibility Filter
+**Selected Approach**: Layered Infrastructure with Deep Modules
 
-**Rationale**: Whitelist-based projection prevents future field leakage. Visibility filter gives users control and provides defense-in-depth. Minimal code changes, maximum security impact.
+Each infrastructure component is a standalone deep module — simple interface hiding implementation complexity. Components integrate at well-defined touchpoints (layout, middleware, CI) but remain independently testable and replaceable.
+
+**Rationale**: Six independent pillars (hooks, coverage, Sentry, logging, analytics, releases) share no runtime state. Composing them as isolated modules minimizes coupling and allows incremental rollout. Each can fail independently without cascading failures.
 
 **Core Modules**:
-- `convex/publicTypes.ts`: Type-safe projection definitions and transformer functions
-- `convex/monitors.ts`: Add `getPublicMonitorsForProject`, modify `create`/`update` for visibility
-- `convex/checks.ts`: Add `getPublicChecksForMonitor`, `getPublicUptimeStats`
-- `convex/incidents.ts`: Add `getPublicIncidentsForProject`, delete `getOpenIncidents`
-- `convex/migrations.ts`: Backfill migration for visibility field
-- `app/s/[slug]/page.tsx`: Switch to public query variants
+
+| Module                  | Interface               | Hidden Complexity                                     |
+| ----------------------- | ----------------------- | ----------------------------------------------------- |
+| `lefthook.yml`          | Git hooks auto-run      | Parallel execution, staged file filtering, commitlint |
+| `sentry.*.config.ts`    | `Sentry.init()`         | Source maps, beforeSend filters, React 19 boundaries  |
+| `lib/logger/*`          | `logger.info(msg, ctx)` | Pino transport, redaction rules, correlation IDs      |
+| `app/api/logs/route.ts` | `POST /api/logs`        | Rate limiting, schema validation, origin checks       |
+| `@vercel/analytics`     | `<Analytics />`         | Web vitals, performance tracking                      |
+| `.releaserc.json`       | Conventional commits    | Version bumping, changelog, GitHub releases           |
 
 **Data Flow**:
+
 ```
-Public Status Page → getPublicMonitorsForProject (filter: visibility="public")
-                   → projectSafeFields() projection
-                   → PublicMonitor[] (no sensitive data)
+Client Error → Sentry SDK → Sentry Dashboard
+Server Error → Sentry SDK → Sentry Dashboard
+Client Log → /api/logs → Pino → Vercel Logs
+Server Log → Pino → stdout → Vercel Logs
+Commit → Lefthook → lint/test → Git
+Push → CI → test/build → semantic-release → GitHub Release
 ```
 
 **Key Design Decisions**:
-1. **Whitelist over Blacklist**: New fields cannot accidentally leak
-2. **Fail-safe Default**: Existing monitors → `private`, new monitors → `public`
-3. **Type-safe Projections**: TypeScript enforces field selection at compile time
+
+1. Separate Sentry DSNs (client/server) for noise isolation and security
+2. Rate-limited `/api/logs` endpoint prevents client log DDoS
+3. Correlation IDs trace requests across client → middleware → Convex
+4. Lefthook over Husky for native Go speed and pnpm compatibility
 
 ---
 
-## Module: Public Types (`convex/publicTypes.ts`)
+## Module: Lefthook Git Hooks
 
-**Responsibility**: Single source of truth for what fields are safe to expose publicly. Hides projection complexity from query handlers.
+**Responsibility**: Enforce code quality at commit/push time without blocking IDE performance.
 
 **Public Interface**:
-```typescript
-// Safe types - ONLY these fields ever exposed publicly
-export type PublicMonitor = {
-  _id: Id<"monitors">;
-  name: string;
-  status: "up" | "degraded" | "down";
-  lastCheckAt?: number;
-  lastResponseTime?: number;
-};
 
-export type PublicCheck = {
-  _id: Id<"checks">;
-  status: "up" | "down";  // simplified - no "degraded" in checks
-  responseTime: number;
-  checkedAt: number;
-  // EXCLUDED: statusCode, errorMessage
-};
-
-export type PublicIncident = {
-  _id: Id<"incidents">;
-  title: string;
-  status: "investigating" | "identified" | "resolved";
-  startedAt: number;
-  resolvedAt?: number;
-  // EXCLUDED: description, monitorId, notifiedAt
-};
-
-// Projection functions - transform full docs to public types
-export function toPublicMonitor(
-  monitor: Doc<"monitors">
-): PublicMonitor;
-
-export function toPublicCheck(
-  check: Doc<"checks">
-): PublicCheck;
-
-export function toPublicIncident(
-  incident: Doc<"incidents">
-): PublicIncident;
-
-// Helper to compute monitor status from consecutiveFailures
-export function computeMonitorStatus(
-  consecutiveFailures: number
-): "up" | "degraded" | "down";
+```yaml
+# lefthook.yml - single config file, auto-installed via prepare script
+pre-commit: # Fast checks on staged files only
+pre-push: # Full test suite before remote push
+commit-msg: # Conventional commit format enforcement
 ```
 
 **Internal Implementation**:
+
+- Parallel linting of staged `.ts`/`.tsx` files
+- Auto-fix and re-stage formatted files
+- commitlint with `@commitlint/config-conventional`
+- Emergency bypass via `LEFTHOOK=0` or `--no-verify`
+
+**Data Structures**:
+
+```yaml
+# lefthook.yml
+pre-commit:
+  parallel: true
+  commands:
+    lint:
+      glob: "*.{ts,tsx}"
+      run: pnpm eslint --fix {staged_files}
+      stage_fixed: true
+    format:
+      glob: "*.{ts,tsx,json,md,css}"
+      run: pnpm prettier --write {staged_files}
+      stage_fixed: true
+    typecheck:
+      run: pnpm tsc --noEmit
+
+pre-push:
+  commands:
+    test:
+      run: pnpm test
+
+commit-msg:
+  commands:
+    lint-commit:
+      run: pnpm commitlint --edit {1}
+```
+
+```javascript
+// commitlint.config.js
+export default {
+  extends: ["@commitlint/config-conventional"],
+  rules: {
+    "type-enum": [
+      2,
+      "always",
+      [
+        "feat",
+        "fix",
+        "docs",
+        "style",
+        "refactor",
+        "perf",
+        "test",
+        "build",
+        "ci",
+        "chore",
+        "revert",
+      ],
+    ],
+    "subject-case": [2, "always", "lower-case"],
+    "header-max-length": [2, "always", 72],
+  },
+};
+```
+
+**Dependencies**:
+
+- Requires: lefthook (Go binary), @commitlint/cli, prettier
+- Used by: Developer git workflow
+
+**Error Handling**:
+
+- Lint errors → Block commit, show errors, suggest `--fix`
+- Test failures on push → Block push, show failures
+- Non-conventional commit → Block commit, show format example
+- Emergency override → `LEFTHOOK=0 git commit -m "hotfix"`
+
+**Installation Pseudocode**:
+
+```pseudocode
+function setupLefthook():
+  1. Add dependencies to package.json
+     - lefthook (devDependencies)
+     - @commitlint/cli, @commitlint/config-conventional
+     - prettier (if not present)
+
+  2. Add prepare script to package.json
+     - "prepare": "lefthook install"
+
+  3. Create lefthook.yml at project root
+     - pre-commit: lint, format, typecheck (parallel)
+     - pre-push: full test suite
+     - commit-msg: commitlint
+
+  4. Create commitlint.config.js
+     - extends: @commitlint/config-conventional
+     - custom rules for header length, case
+
+  5. Run pnpm install to trigger prepare script
+```
+
+---
+
+## Module: Coverage Enforcement
+
+**Responsibility**: Enforce 80% test coverage threshold, block PRs that regress coverage.
+
+**Public Interface**:
+
 ```typescript
-export function toPublicMonitor(monitor: Doc<"monitors">): PublicMonitor {
-  return {
-    _id: monitor._id,
-    name: monitor.name,
-    status: computeMonitorStatus(monitor.consecutiveFailures),
-    lastCheckAt: monitor.lastCheckAt,
-    lastResponseTime: monitor.lastResponseTime,
-  };
+// vitest.config.ts - coverage.thresholds
+thresholds: {
+  lines: 80,
+  functions: 80,
+  branches: 80,
+  statements: 80,
+}
+```
+
+**Internal Implementation**:
+
+- v8 coverage provider (native, fast)
+- Strategic exclusions for UI-heavy components
+- CI workflow fails on threshold violation
+- Coverage badge auto-updates on master
+
+**Data Structures**:
+
+```typescript
+// vitest.config.ts coverage section
+coverage: {
+  provider: 'v8',
+  reporter: ['text', 'lcov', 'json-summary'],
+  include: [
+    'components/**/*.tsx',
+    'app/**/*.tsx',
+    'hooks/**/*.ts',
+    'convex/**/*.ts',
+    'lib/**/*.ts',  // NEW: include logger
+  ],
+  exclude: [
+    '**/_generated/**',
+    '**/*.test.{ts,tsx}',
+    'e2e/**',
+    'convex/schema.ts',
+    'convex/crons.ts',
+    'convex/migrations.ts',
+    'convex/auth.config.ts',
+    'app/layout.tsx',
+    'app/providers.tsx',
+    'middleware.ts',
+    'app/global-error.tsx',      // NEW: Sentry error boundary
+    'sentry.*.config.ts',         // NEW: Sentry configs
+    'instrumentation.ts',         // NEW: Next.js instrumentation
+    // Large UI surfaces covered by e2e
+    'components/MonitorSettingsModal.tsx',
+    'components/AddMonitorForm.tsx',
+    'components/UptimeChart.tsx',
+  ],
+  thresholds: {
+    lines: 80,
+    functions: 80,
+    branches: 80,
+    statements: 80,
+  },
+},
+```
+
+**CI Enforcement Pseudocode**:
+
+```pseudocode
+function enforceCoverage(workflowStep):
+  1. Run vitest with coverage
+     - pnpm vitest run --coverage
+     - Exit code non-zero if thresholds not met
+
+  2. If PR event, post coverage comment
+     - Parse coverage-summary.json
+     - Format markdown table
+     - Create PR comment via GitHub API
+
+  3. If master branch, update badge
+     - Extract coverage percentage
+     - Update README.md badge URL
+     - Auto-commit badge change
+```
+
+---
+
+## Module: Sentry Error Tracking
+
+**Responsibility**: Capture unhandled exceptions across client, server, and edge runtimes with readable stack traces.
+
+**Public Interface**:
+
+```typescript
+// Automatic capture - no explicit calls needed in application code
+// Manual capture when needed:
+import * as Sentry from "@sentry/nextjs";
+Sentry.captureException(error);
+Sentry.captureMessage("Something happened", "warning");
+```
+
+**Internal Implementation**:
+
+- Three config files for client/server/edge runtimes
+- Source map upload during build
+- beforeSend filters for noise reduction (browser extensions)
+- React 19 error boundary integration
+- Separate DSNs for client vs server isolation
+
+**Data Structures**:
+
+```typescript
+// sentry.client.config.ts
+import * as Sentry from "@sentry/nextjs";
+
+Sentry.init({
+  dsn: process.env.NEXT_PUBLIC_SENTRY_DSN, // CLIENT DSN
+  environment: process.env.NODE_ENV,
+
+  // Performance monitoring
+  tracesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0,
+
+  // Session replay for visual debugging
+  replaysSessionSampleRate: 0.1,
+  replaysOnErrorSampleRate: 1.0,
+  integrations: [
+    Sentry.replayIntegration({
+      maskAllText: false,
+      blockAllMedia: false,
+    }),
+  ],
+
+  // Filter out browser extension noise
+  beforeSend(event, hint) {
+    const error = hint.originalException;
+
+    // Ignore browser extension errors
+    if (typeof error === "object" && error !== null) {
+      const errorString = String(error);
+      if (
+        errorString.includes("extension://") ||
+        errorString.includes("chrome-extension://")
+      ) {
+        return null;
+      }
+    }
+
+    // Ignore ResizeObserver loop errors (benign)
+    if (event.message?.includes("ResizeObserver loop")) {
+      return null;
+    }
+
+    return event;
+  },
+});
+```
+
+```typescript
+// sentry.server.config.ts
+import * as Sentry from "@sentry/nextjs";
+
+Sentry.init({
+  dsn: process.env.SENTRY_DSN, // SERVER DSN (different!)
+  environment: process.env.NODE_ENV,
+  tracesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0,
+
+  // Redact sensitive data from server errors
+  beforeSend(event) {
+    if (event.request) {
+      // Remove auth headers
+      if (event.request.headers) {
+        delete event.request.headers["authorization"];
+        delete event.request.headers["cookie"];
+      }
+      // Remove sensitive body fields
+      if (event.request.data && typeof event.request.data === "object") {
+        const data = event.request.data as Record<string, unknown>;
+        delete data.password;
+        delete data.token;
+        delete data.apiKey;
+      }
+    }
+    return event;
+  },
+});
+```
+
+```typescript
+// sentry.edge.config.ts
+import * as Sentry from "@sentry/nextjs";
+
+Sentry.init({
+  dsn: process.env.SENTRY_DSN, // Same as server
+  environment: process.env.NODE_ENV,
+  tracesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0,
+});
+```
+
+```typescript
+// instrumentation.ts (Next.js 15+ server instrumentation hook)
+export async function register() {
+  if (process.env.NEXT_RUNTIME === "nodejs") {
+    await import("./sentry.server.config");
+  }
+  if (process.env.NEXT_RUNTIME === "edge") {
+    await import("./sentry.edge.config");
+  }
 }
 
-export function toPublicCheck(check: Doc<"checks">): PublicCheck {
-  return {
-    _id: check._id,
-    status: check.status === "up" ? "up" : "down",  // collapse degraded to down
-    responseTime: check.responseTime,
-    checkedAt: check.checkedAt,
-  };
+export const onRequestError = Sentry.captureRequestError;
+```
+
+```typescript
+// app/global-error.tsx (App Router error boundary)
+'use client';
+
+import * as Sentry from '@sentry/nextjs';
+import { useEffect } from 'react';
+
+export default function GlobalError({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string };
+  reset: () => void;
+}) {
+  useEffect(() => {
+    Sentry.captureException(error);
+  }, [error]);
+
+  return (
+    <html>
+      <body>
+        <div className="flex min-h-screen items-center justify-center">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold mb-4">Something went wrong</h2>
+            <button
+              onClick={reset}
+              className="px-4 py-2 bg-primary text-white rounded"
+            >
+              Try again
+            </button>
+          </div>
+        </div>
+      </body>
+    </html>
+  );
+}
+```
+
+**next.config.ts Integration**:
+
+```typescript
+import type { NextConfig } from "next";
+import { withSentryConfig } from "@sentry/nextjs";
+
+const nextConfig: NextConfig = {
+  // existing config
+};
+
+export default withSentryConfig(nextConfig, {
+  // Sentry webpack plugin options
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+
+  // Upload source maps for readable stack traces
+  sourcemaps: {
+    deleteSourcemapsAfterUpload: true,
+  },
+
+  // Silence build logs
+  silent: !process.env.CI,
+
+  // Auto-instrument server components
+  autoInstrumentServerFunctions: true,
+  autoInstrumentMiddleware: true,
+  autoInstrumentAppDirectory: true,
+});
+```
+
+**Dependencies**:
+
+- Requires: @sentry/nextjs, SENTRY_AUTH_TOKEN, two Sentry projects
+- Used by: All runtime code (automatic), explicit Sentry.capture\* calls
+
+**Error Categories**:
+
+- Client errors → heartbeat-client Sentry project
+- Server/edge errors → heartbeat-server Sentry project
+- Convex errors → Sentry dashboard integration (no code)
+
+---
+
+## Module: Pino Structured Logging
+
+**Responsibility**: Emit queryable JSON logs with automatic redaction and correlation IDs.
+
+**Public Interface**:
+
+```typescript
+// Server-side (Node.js)
+import { logger, createRequestLogger } from "@/lib/logger/server";
+logger.info("Monitor checked", { monitorId, responseTime });
+logger.error("Check failed", { monitorId, error });
+
+// Client-side (browser)
+import { clientLogger } from "@/lib/logger/client";
+clientLogger.error("Component error", { component: "Dashboard", error });
+```
+
+**Internal Implementation**:
+
+- Pino for server (fastest Node.js logger, native JSON)
+- Custom client logger with batched remote transport
+- Explicit redaction paths for sensitive fields
+- Request-scoped correlation IDs via middleware
+
+**Data Structures**:
+
+```typescript
+// lib/logger/server.ts
+import pino from "pino";
+
+// Explicit redaction paths per SEC2
+const REDACT_PATHS = [
+  "password",
+  "token",
+  "apiKey",
+  "secret",
+  "email",
+  "ip",
+  "*.password",
+  "*.token",
+  "*.apiKey",
+  "*.secret",
+  "req.headers.authorization",
+  "req.headers.cookie",
+  "body.password",
+  "body.token",
+  "body.apiKey",
+];
+
+export const logger = pino({
+  level: process.env.LOG_LEVEL || "info",
+
+  // Redact sensitive fields
+  redact: {
+    paths: REDACT_PATHS,
+    censor: "[REDACTED]",
+  },
+
+  // Vercel-optimized JSON output
+  formatters: {
+    level: (label) => ({ level: label }),
+  },
+
+  // Add timestamp as ISO string
+  timestamp: pino.stdTimeFunctions.isoTime,
+});
+
+// Create request-scoped logger with correlation ID
+export function createRequestLogger(requestId: string) {
+  return logger.child({ requestId });
 }
 
-export function toPublicIncident(incident: Doc<"incidents">): PublicIncident {
-  return {
-    _id: incident._id,
-    title: incident.title,
-    status: incident.status,
-    startedAt: incident.startedAt,
-    resolvedAt: incident.resolvedAt,
-  };
+// Type-safe log context
+export type LogContext = Record<string, unknown>;
+```
+
+```typescript
+// lib/logger/client.ts
+import { serializeError } from "serialize-error";
+
+type LogLevel = "debug" | "info" | "warn" | "error";
+
+interface LogEntry {
+  level: LogLevel;
+  message: string;
+  timestamp: string;
+  context?: Record<string, unknown>;
+  error?: ReturnType<typeof serializeError>;
+  url?: string;
+  userAgent?: string;
 }
 
-export function computeMonitorStatus(
-  consecutiveFailures: number
-): "up" | "degraded" | "down" {
-  if (consecutiveFailures === 0) return "up";
-  if (consecutiveFailures < 3) return "degraded";
-  return "down";
+const LOG_BATCH_SIZE = 10;
+const LOG_FLUSH_INTERVAL = 5000; // 5 seconds
+
+class ClientLogger {
+  private buffer: LogEntry[] = [];
+  private flushTimer: ReturnType<typeof setTimeout> | null = null;
+
+  constructor() {
+    // Flush on page unload
+    if (typeof window !== "undefined") {
+      window.addEventListener("beforeunload", () => this.flush());
+      this.startFlushTimer();
+    }
+  }
+
+  private startFlushTimer() {
+    this.flushTimer = setInterval(() => this.flush(), LOG_FLUSH_INTERVAL);
+  }
+
+  private log(
+    level: LogLevel,
+    message: string,
+    context?: Record<string, unknown>,
+    error?: Error,
+  ) {
+    const entry: LogEntry = {
+      level,
+      message,
+      timestamp: new Date().toISOString(),
+      context,
+      url: typeof window !== "undefined" ? window.location.href : undefined,
+      userAgent:
+        typeof navigator !== "undefined" ? navigator.userAgent : undefined,
+    };
+
+    if (error) {
+      entry.error = serializeError(error);
+    }
+
+    // Console output for development
+    if (process.env.NODE_ENV === "development") {
+      const consoleMethod =
+        level === "error" ? "error" : level === "warn" ? "warn" : "log";
+      console[consoleMethod](
+        `[${level.toUpperCase()}]`,
+        message,
+        context,
+        error,
+      );
+    }
+
+    this.buffer.push(entry);
+
+    if (this.buffer.length >= LOG_BATCH_SIZE) {
+      this.flush();
+    }
+  }
+
+  async flush() {
+    if (this.buffer.length === 0) return;
+
+    const entries = [...this.buffer];
+    this.buffer = [];
+
+    try {
+      await fetch("/api/logs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ entries }),
+        keepalive: true, // Survive page unload
+      });
+    } catch {
+      // Re-add to buffer on failure (will retry on next flush)
+      this.buffer.unshift(...entries);
+    }
+  }
+
+  debug(message: string, context?: Record<string, unknown>) {
+    this.log("debug", message, context);
+  }
+
+  info(message: string, context?: Record<string, unknown>) {
+    this.log("info", message, context);
+  }
+
+  warn(message: string, context?: Record<string, unknown>) {
+    this.log("warn", message, context);
+  }
+
+  error(message: string, context?: Record<string, unknown>, error?: Error) {
+    this.log("error", message, context, error);
+  }
+}
+
+export const clientLogger = new ClientLogger();
+```
+
+```typescript
+// lib/logger/index.ts (re-export for convenience)
+export { logger, createRequestLogger, type LogContext } from "./server";
+export { clientLogger } from "./client";
+```
+
+**Correlation ID Middleware**:
+
+```typescript
+// Updated middleware.ts
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
+
+const isPublicRoute = createRouteMatcher([
+  "/",
+  "/terms",
+  "/privacy",
+  "/status(.*)",
+  "/s(.*)",
+  "/sign-in(.*)",
+  "/sign-up(.*)",
+  "/api/logs", // Public endpoint (has its own auth)
+]);
+
+export default clerkMiddleware(async (auth, request) => {
+  // Generate correlation ID for request tracing
+  const requestId = crypto.randomUUID();
+
+  // Clone headers and add correlation ID
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-request-id", requestId);
+
+  if (!isPublicRoute(request)) {
+    await auth.protect();
+  }
+
+  // Pass correlation ID to response headers for debugging
+  const response = NextResponse.next({
+    request: { headers: requestHeaders },
+  });
+  response.headers.set("x-request-id", requestId);
+
+  return response;
+});
+
+export const config = {
+  matcher: [
+    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
+    "/(api|trpc)(.*)",
+  ],
+};
+```
+
+**Dependencies**:
+
+- Requires: pino, serialize-error, middleware updates
+- Used by: All server code, client components with error handling
+
+---
+
+## Module: Client Log Aggregation API
+
+**Responsibility**: Receive batched logs from client, validate, rate-limit, and forward to server logger.
+
+**Public Interface**:
+
+```typescript
+// POST /api/logs
+// Request body: { entries: LogEntry[] }
+// Response: 200 OK | 400 Bad Request | 413 Payload Too Large | 429 Too Many Requests
+```
+
+**Internal Implementation**:
+
+- Upstash Redis rate limiting (100 req/min per IP)
+- Zod schema validation
+- Origin whitelist (CORS)
+- Max payload size enforcement (10KB)
+- Forward valid logs to Pino server logger
+
+**Data Structures**:
+
+```typescript
+// app/api/logs/route.ts
+import { NextRequest, NextResponse } from "next/server";
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
+import { z } from "zod";
+import { logger } from "@/lib/logger/server";
+
+// Rate limiter: 100 requests per minute per IP
+const ratelimit = new Ratelimit({
+  redis: Redis.fromEnv(),
+  limiter: Ratelimit.slidingWindow(100, "1 m"),
+  analytics: true,
+});
+
+// Schema validation
+const LogEntrySchema = z.object({
+  level: z.enum(["debug", "info", "warn", "error"]),
+  message: z.string().max(1000),
+  timestamp: z.string().datetime(),
+  context: z.record(z.unknown()).optional(),
+  error: z
+    .object({
+      name: z.string().optional(),
+      message: z.string().optional(),
+      stack: z.string().optional(),
+    })
+    .optional(),
+  url: z.string().url().optional(),
+  userAgent: z.string().max(500).optional(),
+});
+
+const RequestSchema = z.object({
+  entries: z.array(LogEntrySchema).max(50), // Max 50 entries per batch
+});
+
+// Allowed origins
+const ALLOWED_ORIGINS = [
+  process.env.NEXT_PUBLIC_APP_URL,
+  "http://localhost:3000", // Development
+].filter(Boolean);
+
+const MAX_PAYLOAD_SIZE = 10 * 1024; // 10KB
+
+export async function POST(request: NextRequest) {
+  // Get client IP for rate limiting
+  const ip =
+    request.headers.get("x-forwarded-for")?.split(",")[0] ??
+    request.headers.get("x-real-ip") ??
+    "unknown";
+
+  // Rate limit check
+  const { success, remaining, reset } = await ratelimit.limit(ip);
+
+  if (!success) {
+    return NextResponse.json(
+      { error: "Rate limit exceeded" },
+      {
+        status: 429,
+        headers: {
+          "X-RateLimit-Remaining": remaining.toString(),
+          "X-RateLimit-Reset": reset.toString(),
+          "Retry-After": Math.ceil((reset - Date.now()) / 1000).toString(),
+        },
+      },
+    );
+  }
+
+  // Origin check
+  const origin = request.headers.get("origin");
+  if (origin && !ALLOWED_ORIGINS.includes(origin)) {
+    return NextResponse.json({ error: "Invalid origin" }, { status: 403 });
+  }
+
+  // Payload size check
+  const contentLength = request.headers.get("content-length");
+  if (contentLength && parseInt(contentLength) > MAX_PAYLOAD_SIZE) {
+    return NextResponse.json({ error: "Payload too large" }, { status: 413 });
+  }
+
+  try {
+    const body = await request.json();
+
+    // Schema validation
+    const result = RequestSchema.safeParse(body);
+    if (!result.success) {
+      return NextResponse.json(
+        { error: "Invalid request body", details: result.error.flatten() },
+        { status: 400 },
+      );
+    }
+
+    // Forward logs to server logger
+    const requestId =
+      request.headers.get("x-request-id") ?? crypto.randomUUID();
+    const clientLoggerInstance = logger.child({
+      source: "client",
+      clientIp: ip,
+      requestId,
+    });
+
+    for (const entry of result.data.entries) {
+      const logMethod =
+        entry.level === "error"
+          ? "error"
+          : entry.level === "warn"
+            ? "warn"
+            : "info";
+
+      clientLoggerInstance[logMethod](entry.message, {
+        ...entry.context,
+        clientUrl: entry.url,
+        clientUserAgent: entry.userAgent,
+        clientTimestamp: entry.timestamp,
+        clientError: entry.error,
+      });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    logger.error("Failed to process client logs", { error, ip });
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
+  }
+}
+
+// Block other methods
+export async function GET() {
+  return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
 }
 ```
 
 **Dependencies**:
-- Requires: Convex `Doc` type from `_generated/dataModel`
-- Used by: `monitors.ts`, `checks.ts`, `incidents.ts` public queries
 
-**Error Handling**: Pure functions - no error states. Input validation handled at query level.
+- Requires: @upstash/redis, @upstash/ratelimit, zod, lib/logger/server
+- Used by: lib/logger/client
 
----
+**Error Handling**:
 
-## Module: Public Monitor Queries (`convex/monitors.ts`)
-
-**Changes**:
-1. Add `getPublicMonitorsForProject` query (replaces `getByProjectSlug` for public use)
-2. Add `visibility` arg to `create` mutation (default: `"public"`)
-3. Add `visibility` arg to `update` mutation
-
-### New Query: `getPublicMonitorsForProject`
-
-**Interface**:
-```typescript
-export const getPublicMonitorsForProject = query({
-  args: { projectSlug: v.string() },
-  returns: v.array(/* PublicMonitor validator */),
-  handler: async (ctx, args) => {
-    // 1. Query monitors by projectSlug where visibility = "public"
-    // 2. Transform via toPublicMonitor()
-    // 3. Return PublicMonitor[]
-  },
-});
-```
-
-**Implementation Pseudocode**:
-```pseudocode
-function getPublicMonitorsForProject(projectSlug):
-  1. Query monitors index "by_project_slug" where projectSlug matches
-
-  2. Filter results:
-     - visibility === "public" (explicit opt-in)
-     - Exclude visibility === undefined (migration in progress - fail-safe)
-     - Exclude visibility === "private"
-
-  3. Map each monitor through toPublicMonitor():
-     - Extract only: _id, name, status (computed), lastCheckAt, lastResponseTime
-     - Compute status from consecutiveFailures
-
-  4. Return PublicMonitor[]
-```
-
-### Modified: `create` mutation
-
-**Interface Change**:
-```typescript
-// Add to args:
-visibility: v.optional(v.union(v.literal("public"), v.literal("private"))),
-
-// Handler: default to "public" for NEW monitors
-visibility: args.visibility ?? "public",
-```
-
-### Modified: `update` mutation
-
-**Interface Change**:
-```typescript
-// Add to args:
-visibility: v.optional(v.union(v.literal("public"), v.literal("private"))),
-```
-
-**Note**: Existing `getByProjectSlug` preserved for backwards compatibility during migration. Mark as `@deprecated` with TODO to remove after Phase 2.
+- Rate limit exceeded → 429 with retry-after header
+- Invalid origin → 403 Forbidden
+- Oversized payload → 413 Payload Too Large
+- Invalid schema → 400 with validation errors
+- Server error → 500, log error, don't expose details
 
 ---
 
-## Module: Public Check Queries (`convex/checks.ts`)
+## Module: Vercel Analytics
 
-**Changes**:
-1. Add `getPublicChecksForMonitor` query
-2. Add `getPublicUptimeStats` query
+**Responsibility**: Track Web Vitals and page views with zero configuration.
 
-### New Query: `getPublicChecksForMonitor`
+**Public Interface**:
 
-**Interface**:
-```typescript
-export const getPublicChecksForMonitor = query({
-  args: {
-    monitorId: v.id("monitors"),
-    limit: v.optional(v.number()),
-  },
-  returns: v.array(/* PublicCheck validator */),
-  handler: async (ctx, args) => {
-    // 1. Verify monitor exists AND visibility = "public"
-    // 2. Query recent checks
-    // 3. Transform via toPublicCheck()
-    // 4. Return PublicCheck[]
-  },
-});
+```tsx
+// Add to app/layout.tsx
+import { Analytics } from '@vercel/analytics/next';
+import { SpeedInsights } from '@vercel/speed-insights/next';
+
+<Analytics />
+<SpeedInsights />
 ```
 
-**Implementation Pseudocode**:
-```pseudocode
-function getPublicChecksForMonitor(monitorId, limit = 50):
-  1. Fetch monitor by ID
-     - If not found → return empty array (don't leak existence)
-     - If visibility !== "public" → return empty array
+**Internal Implementation**:
 
-  2. Query checks by_monitor index, order desc, take limit
+- Automatic Web Vitals collection (LCP, FID, CLS, TTFB, INP)
+- Page view tracking
+- Speed Insights for performance monitoring
+- Vercel dashboard integration (automatic)
 
-  3. Map each check through toPublicCheck():
-     - Extract only: _id, status (simplified), responseTime, checkedAt
-     - EXCLUDE: statusCode, errorMessage
+**Integration**:
 
-  4. Return PublicCheck[]
+```tsx
+// app/layout.tsx (updated)
+import type { Metadata } from "next";
+import { Manrope, Newsreader, IBM_Plex_Mono } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
+import { Providers } from "./providers";
+import "./globals.css";
+
+// ... font definitions ...
+
+export const metadata: Metadata = {
+  // ... existing metadata ...
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="en" suppressHydrationWarning className={`...`}>
+      <body className="antialiased bg-background text-foreground">
+        <Providers>{children}</Providers>
+        <Analytics />
+        <SpeedInsights />
+      </body>
+    </html>
+  );
+}
 ```
 
-### New Query: `getPublicUptimeStats`
+**Dependencies**:
 
-**Interface**:
-```typescript
-export const getPublicUptimeStats = query({
-  args: {
-    monitorId: v.id("monitors"),
-    days: v.optional(v.number()),
-  },
-  returns: v.object({
-    uptimePercentage: v.number(),
-    totalChecks: v.number(),
-    avgResponseTime: v.union(v.number(), v.null()),
-  }),
-  handler: async (ctx, args) => {
-    // Same logic as getUptimeStats but:
-    // 1. Verify monitor visibility = "public"
-    // 2. Return FEWER fields (no successfulChecks/failedChecks)
-  },
-});
-```
-
-**Implementation Pseudocode**:
-```pseudocode
-function getPublicUptimeStats(monitorId, days = 30):
-  1. Fetch monitor by ID
-     - If not found OR visibility !== "public" → return default stats
-
-  2. Calculate startTime = now - (days * 24h * 60m * 60s * 1000ms)
-
-  3. Query checks by_monitor index, filter checkedAt >= startTime
-
-  4. Calculate:
-     - uptimePercentage = (checks where status = "up") / total * 100
-     - avgResponseTime = mean of responseTime values
-
-  5. Return { uptimePercentage, totalChecks, avgResponseTime }
-     - EXCLUDE: successfulChecks, failedChecks (reveals failure patterns)
-```
+- Requires: @vercel/analytics, @vercel/speed-insights
+- Used by: Root layout (one-time setup)
 
 ---
 
-## Module: Public Incident Queries (`convex/incidents.ts`)
+## Module: semantic-release Automation
 
-**Changes**:
-1. Add `getPublicIncidentsForProject` query
-2. **DELETE** `getOpenIncidents` (cross-tenant vulnerability)
+**Responsibility**: Automatically version, changelog, and release based on conventional commits.
 
-### New Query: `getPublicIncidentsForProject`
+**Public Interface**:
 
-**Interface**:
-```typescript
-export const getPublicIncidentsForProject = query({
-  args: {
-    projectSlug: v.string(),
-    limit: v.optional(v.number()),
-    statusFilter: v.optional(
-      v.union(v.literal("investigating"), v.literal("identified"), v.literal("resolved"))
-    ),
-  },
-  returns: v.array(/* PublicIncident validator */),
-  handler: async (ctx, args) => {
-    // 1. Get public monitors for project
-    // 2. Query incidents for those monitors
-    // 3. Transform via toPublicIncident()
-    // 4. Return PublicIncident[]
-  },
-});
+```bash
+# Triggered by CI on master push
+# Analyzes commits since last release
+# Creates GitHub release with changelog
 ```
 
-**Implementation Pseudocode**:
-```pseudocode
-function getPublicIncidentsForProject(projectSlug, limit = 50, statusFilter?):
-  1. Query monitors by_project_slug where:
-     - projectSlug matches
-     - visibility === "public"
+**Internal Implementation**:
 
-  2. If no public monitors → return []
+- Commit analysis for version bumping
+- CHANGELOG.md generation
+- GitHub release creation
+- Version commit back to repo
 
-  3. For each public monitor:
-     - Query incidents by_monitor index
-     - Order desc by startedAt
+**Data Structures**:
 
-  4. Flatten and sort all incidents by startedAt desc
-
-  5. Apply statusFilter if provided
-
-  6. Map through toPublicIncident():
-     - Extract only: _id, title, status, startedAt, resolvedAt
-     - EXCLUDE: description, monitorId, notifiedAt
-
-  7. Take first `limit` results
-
-  8. Return PublicIncident[]
+```json
+// .releaserc.json
+{
+  "branches": ["master"],
+  "plugins": [
+    "@semantic-release/commit-analyzer",
+    "@semantic-release/release-notes-generator",
+    [
+      "@semantic-release/changelog",
+      {
+        "changelogFile": "CHANGELOG.md"
+      }
+    ],
+    [
+      "@semantic-release/npm",
+      {
+        "npmPublish": false
+      }
+    ],
+    [
+      "@semantic-release/git",
+      {
+        "assets": ["CHANGELOG.md", "package.json"],
+        "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+      }
+    ],
+    "@semantic-release/github"
+  ]
+}
 ```
 
-### DELETE: `getOpenIncidents`
+```yaml
+# .github/workflows/release.yml
+name: Release
 
-**Current Code** (incidents.ts:61-84):
-```typescript
-// VULNERABILITY: Returns ALL investigating incidents across ALL tenants
-// No auth check, no user filtering
-export const getOpenIncidents = query({...});
+on:
+  push:
+    branches: [master]
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    # Don't run on automated commits
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 10.22.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build
+        run: pnpm build
+        env:
+          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
+
+      - name: Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx semantic-release
 ```
 
-**Action**: Delete entirely. Tests reference it but test confirms cross-tenant leak.
+**Version Bump Rules**:
+| Commit Type | Version Bump |
+|-------------|--------------|
+| `fix:` | PATCH (0.0.X) |
+| `feat:` | MINOR (0.X.0) |
+| `BREAKING CHANGE:` | MAJOR (X.0.0) |
+| `docs:`, `style:`, `refactor:`, `test:`, `chore:` | No release |
 
----
+**Dependencies**:
 
-## Module: Migration (`convex/migrations.ts`)
-
-**Responsibility**: Backfill existing monitors with `visibility: "private"` (fail-safe default).
-
-**Interface**:
-```typescript
-import { makeMigration } from "convex-helpers/server/migrations";
-
-export const backfillVisibility = makeMigration(convex, {
-  table: "monitors",
-  migrateOne: async (ctx, doc) => {
-    if (doc.visibility === undefined) {
-      await ctx.db.patch(doc._id, { visibility: "private" as const });
-    }
-  },
-});
-
-// Run via: npx convex run migrations:backfillVisibility
-```
-
-**Why `private` default for existing**:
-- Current "public by default" IS the vulnerability
-- Users must explicitly opt-in to public visibility
-- Fail-safe: better to show fewer monitors than leak data
-
-**Migration Execution**:
-1. Deploy schema + queries (Phase 1)
-2. Run `npx convex run migrations:backfillVisibility`
-3. Monitor progress via Convex dashboard
-4. After 100% complete: tighten schema (Phase 2)
-
----
-
-## Schema Changes (`convex/schema.ts`)
-
-### Phase 1: Add Optional Field
-
-```typescript
-monitors: defineTable({
-  // ... existing fields ...
-
-  // NEW: Visibility control
-  // Optional in Phase 1 to allow existing docs without field
-  visibility: v.optional(v.union(v.literal("public"), v.literal("private"))),
-})
-  // ... existing indexes ...
-  // NEW: Compound index for efficient public queries
-  .index("by_project_slug_and_visibility", ["projectSlug", "visibility"]),
-```
-
-**Why Optional**: Convex schema validation requires all existing documents to match schema. Making it required would fail on push. Phase 2 tightens after backfill.
-
-### Phase 2: Tighten to Required (After Migration)
-
-```typescript
-// After 100% backfill:
-visibility: v.union(v.literal("public"), v.literal("private")),
-```
-
----
-
-## Status Page Changes (`app/s/[slug]/page.tsx`)
-
-**Changes**: Replace all query calls with public variants.
-
-### Before (Vulnerable):
-```typescript
-const monitors = await fetchQuery(api.monitors.getByProjectSlug, { projectSlug: slug });
-const uptimeStats = await fetchQuery(api.checks.getUptimeStats, { monitorId });
-const recentChecks = await fetchQuery(api.checks.getRecentForMonitor, { monitorId });
-const incidents = await fetchQuery(api.incidents.getForMonitor, { monitorId });
-```
-
-### After (Secure):
-```typescript
-const monitors = await fetchQuery(api.monitors.getPublicMonitorsForProject, { projectSlug: slug });
-const uptimeStats = await fetchQuery(api.checks.getPublicUptimeStats, { monitorId });
-const recentChecks = await fetchQuery(api.checks.getPublicChecksForMonitor, { monitorId });
-const incidents = await fetchQuery(api.incidents.getPublicIncidentsForProject, { projectSlug: slug });
-```
-
-**Additional Changes**:
-- Remove `getMonitorStatus()` helper (status now computed server-side)
-- Remove spread of monitor fields into `monitorsWithStatus` (already projected)
-- Update TypeScript types to use `PublicMonitor`, `PublicCheck`, `PublicIncident`
+- Requires: semantic-release, plugins, GITHUB_TOKEN
+- Used by: CI on master push
 
 ---
 
 ## File Organization
 
 ```
-convex/
-  publicTypes.ts           # NEW: Type definitions + projection functions
-  schema.ts                # MODIFY: Add visibility field + index
-  monitors.ts              # MODIFY: Add getPublicMonitorsForProject, modify create/update
-  checks.ts                # MODIFY: Add getPublicChecksForMonitor, getPublicUptimeStats
-  incidents.ts             # MODIFY: Add getPublicIncidentsForProject, DELETE getOpenIncidents
-  migrations.ts            # NEW: Backfill migration
-  __tests__/
-    publicQueries.test.ts  # NEW: Security tests for public queries
-    monitors.test.ts       # MODIFY: Add visibility tests
-    incidents.test.ts      # MODIFY: Remove getOpenIncidents tests
-
-app/
-  s/[slug]/page.tsx        # MODIFY: Use public query variants
-
-components/
-  MonitorSettingsModal.tsx # MODIFY (Phase 2): Add visibility toggle
+/
+├── lefthook.yml                    # Git hooks config
+├── commitlint.config.js            # Conventional commits rules
+├── .releaserc.json                 # semantic-release config
+├── sentry.client.config.ts         # Sentry client init
+├── sentry.server.config.ts         # Sentry server init
+├── sentry.edge.config.ts           # Sentry edge init
+├── instrumentation.ts              # Next.js server instrumentation
+├── next.config.ts                  # Wrapped with withSentryConfig
+├── middleware.ts                   # Updated with correlation IDs
+├── lib/
+│   └── logger/
+│       ├── index.ts                # Re-exports
+│       ├── server.ts               # Pino server logger
+│       └── client.ts               # Client logger with remote transport
+├── app/
+│   ├── layout.tsx                  # Add Analytics + SpeedInsights
+│   ├── global-error.tsx            # Sentry error boundary
+│   └── api/
+│       └── logs/
+│           └── route.ts            # Client log aggregation endpoint
+├── .github/
+│   └── workflows/
+│       ├── test.yml                # Updated coverage thresholds
+│       └── release.yml             # semantic-release workflow
+└── vitest.config.ts                # Updated coverage to 80%
 ```
+
+**Modifications to Existing Files**:
+
+| File                         | Changes                                         |
+| ---------------------------- | ----------------------------------------------- |
+| `package.json`               | Add dependencies, prepare script                |
+| `next.config.ts`             | Wrap with withSentryConfig                      |
+| `middleware.ts`              | Add correlation ID injection                    |
+| `app/layout.tsx`             | Add Analytics + SpeedInsights components        |
+| `vitest.config.ts`           | Bump coverage thresholds to 80%, add exclusions |
+| `.github/workflows/test.yml` | Remove continue-on-error from lint              |
 
 ---
 
-## Error Handling Strategy
+## Environment Variables
 
-**Public Query Errors**:
-| Scenario | Response | Rationale |
-|----------|----------|-----------|
-| Project not found | Return `[]` | Don't leak existence |
-| All monitors private | Return `[]` | Fail-safe, don't leak |
-| Monitor not public | Return `[]` | Don't leak existence |
-| Database error | Log, return `[]` | Don't expose internals |
+```bash
+# Sentry (SEPARATE projects for client/server)
+NEXT_PUBLIC_SENTRY_DSN=https://...@o123.ingest.sentry.io/heartbeat-client
+SENTRY_DSN=https://...@o123.ingest.sentry.io/heartbeat-server
+SENTRY_ORG=your-org
+SENTRY_PROJECT=heartbeat
+SENTRY_AUTH_TOKEN=sntrys_...
 
-**Status Page Handling**:
-```typescript
-const monitors = await fetchQuery(api.monitors.getPublicMonitorsForProject, { projectSlug: slug });
+# Upstash Redis (for /api/logs rate limiting)
+UPSTASH_REDIS_REST_URL=https://...
+UPSTASH_REDIS_REST_TOKEN=...
 
-if (!monitors || monitors.length === 0) {
-  notFound();  // 404 - no public monitors
-}
+# App URL (for CORS whitelist)
+NEXT_PUBLIC_APP_URL=https://heartbeat.example.com
+
+# Existing (already configured)
+NEXT_PUBLIC_CONVEX_URL=...
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=...
+CLERK_SECRET_KEY=...
 ```
 
 ---
 
 ## Testing Strategy
 
-### Security Tests (Critical) - `convex/__tests__/publicQueries.test.ts`
+**Unit Tests** (fast, isolated):
 
-```typescript
-describe('getPublicMonitorsForProject - Security', () => {
-  test('excludes sensitive fields: url', async () => {
-    // Create monitor with URL
-    // Query public
-    // Assert url NOT in response
-  });
+- `lib/logger/server.test.ts` - Pino redaction, child logger creation
+- `lib/logger/client.test.ts` - Batching, flush on unload
+- Log schema validation functions
 
-  test('excludes sensitive fields: headers', async () => {...});
-  test('excludes sensitive fields: body', async () => {...});
-  test('excludes sensitive fields: method', async () => {...});
-  test('excludes sensitive fields: userId', async () => {...});
-  test('excludes sensitive fields: timeout', async () => {...});
-  test('excludes sensitive fields: expectedStatusCode', async () => {...});
-  test('excludes sensitive fields: expectedBodyContains', async () => {...});
+**Integration Tests** (slower, real dependencies):
 
-  test('excludes visibility=private monitors', async () => {
-    // Create public + private monitors
-    // Query public
-    // Assert only public returned
-  });
+- `/api/logs` endpoint with mock Redis
+- Rate limiting behavior
+- Schema validation error responses
 
-  test('excludes visibility=undefined monitors (migration)', async () => {
-    // Direct DB insert with no visibility
-    // Query public
-    // Assert not returned
-  });
+**E2E Tests**:
 
-  test('cross-tenant isolation', async () => {
-    // User A creates monitor in project X
-    // User B creates monitor in project X (different userId)
-    // Both set visibility=public
-    // Query public for project X
-    // Assert ONLY sees monitors marked public, not by userId
-  });
-});
+- Lefthook hooks trigger on commit/push (manual verification)
+- Client errors appear in Sentry (manual verification)
+- semantic-release dry-run in CI
 
-describe('getPublicChecksForMonitor - Security', () => {
-  test('excludes statusCode', async () => {...});
-  test('excludes errorMessage', async () => {...});
-  test('returns empty for private monitor', async () => {...});
-});
+**Mocking Strategy**:
 
-describe('getPublicIncidentsForProject - Security', () => {
-  test('excludes description', async () => {...});
-  test('excludes monitorId', async () => {...});
-  test('only returns incidents for public monitors', async () => {...});
-});
+- Mock Upstash Redis in API route tests
+- Mock fetch in client logger tests
+- Real Pino in server logger tests (fast enough)
 
-describe('getOpenIncidents - DELETED', () => {
-  test('query does not exist', async () => {
-    expect(api.incidents.getOpenIncidents).toBeUndefined();
-  });
-});
-```
+**Coverage Exclusions Rationale**:
 
-### Functional Tests - Extend existing test files
-
-```typescript
-// convex/__tests__/monitors.test.ts
-describe('visibility field', () => {
-  test('new monitors default to visibility=public', async () => {...});
-  test('can set visibility=private on create', async () => {...});
-  test('can toggle visibility via update', async () => {...});
-  test('getPublicMonitorsForProject excludes private', async () => {...});
-});
-
-// convex/__tests__/incidents.test.ts
-describe('getPublicIncidentsForProject', () => {
-  test('returns incidents for public monitors only', async () => {...});
-  test('respects statusFilter', async () => {...});
-  test('respects limit', async () => {...});
-});
-```
-
-### Regression Tests
-
-- Authenticated `list`, `get`, `create`, `update`, `remove` unchanged
-- Dashboard shows all monitors (public + private) for owner
-- Uptime calculations correct
-- Incident timeline displays correctly
-
----
-
-## Performance Considerations
-
-**Expected Load**: Public status pages cached via ISR (60s revalidation), minimal query pressure.
-
-**Optimizations**:
-1. **Compound Index**: `by_project_slug_and_visibility` enables efficient public query without client-side filter
-2. **Projection at Query**: Only selected fields transferred over network
-3. **ISR Caching**: Next.js caches rendered pages for 60s
-
-**No Performance Regression**: New queries are additive; existing authenticated queries unchanged.
+- `sentry.*.config.ts` - Configuration, not logic
+- `instrumentation.ts` - Next.js hook, not testable in JSDOM
+- `global-error.tsx` - Error boundary, tested via e2e
+- `middleware.ts` - Edge runtime, not testable in JSDOM
 
 ---
 
 ## Security Considerations
 
-**Threats Mitigated**:
-| Threat | Mitigation |
-|--------|------------|
-| Credential exposure (headers, body) | Whitelist projection excludes fields |
-| Internal URL exposure | `url` field excluded from public types |
-| Auth state leakage (401/403) | `statusCode` excluded from PublicCheck |
-| Error message leakage | `errorMessage` excluded from PublicCheck |
-| Cross-tenant incident access | Delete `getOpenIncidents`, scope to project |
-| Existence oracle | Return empty array, don't throw "not found" |
+**SEC1: Rate Limiting**
 
-**Defense in Depth**:
-1. **Layer 1**: Visibility filter at database query level
-2. **Layer 2**: Type-safe projection functions
-3. **Layer 3**: TypeScript types enforce field selection
-4. **Layer 4**: Tests verify no sensitive field leakage
+- Upstash Redis sliding window (100 req/min/IP)
+- Prevents client log DDoS
+- Returns 429 with retry-after header
+
+**SEC2: Pino Redaction**
+
+- Explicit paths: password, token, apiKey, secret, email, ip
+- Nested paths: \*.password, req.headers.authorization
+- Censor mode: '[REDACTED]'
+
+**SEC3: Separate Sentry DSNs**
+
+- Client errors → heartbeat-client project (public DSN)
+- Server errors → heartbeat-server project (private DSN)
+- Prevents mixing client/server noise
+
+**SEC4: Origin Validation**
+
+- CORS whitelist in /api/logs
+- Rejects requests from unknown origins
+- Payload size limit (10KB)
+
+**Secret Management**:
+
+- All secrets in Vercel env vars (not .env files)
+- SENTRY_AUTH_TOKEN only in CI
+- TruffleHog scan in CI (future phase)
 
 ---
 
-## Alternative Architectures Considered
+## Performance Considerations
 
-### Alternative A: Blacklist Sensitive Fields
-```typescript
-const { url, headers, body, ...safeFields } = monitor;
-return safeFields;
-```
-- **Pros**: Less code
-- **Cons**: New fields auto-leak, violates security-by-default
-- **Verdict**: Rejected - whitelist is safer
+**Git Hooks**:
 
-### Alternative B: Separate Public Tables
-```typescript
-// publicMonitors table with only safe fields
-// Sync on write
-```
-- **Pros**: Physical separation
-- **Cons**: Data duplication, sync complexity, over-engineered
-- **Verdict**: Rejected - projection achieves same goal simpler
+- pre-commit: <5s target (parallel lint/format)
+- pre-push: Full test suite (acceptable delay before push)
+- Emergency bypass: `LEFTHOOK=0`
 
-### Alternative C: RLS (Row-Level Security)
-```typescript
-// Convex doesn't have native RLS
-// Would require custom middleware
-```
-- **Pros**: Database-enforced
-- **Cons**: Not supported, would need major architecture change
-- **Verdict**: N/A - not available in Convex
+**Logging**:
 
-### Alternative D: API Gateway / Edge Function
-```typescript
-// Proxy requests through edge function that strips fields
-```
-- **Pros**: Central control point
-- **Cons**: Additional infrastructure, latency, complexity
-- **Verdict**: Rejected - query-level projection is simpler
+- Pino: Fastest Node.js logger (~30K logs/sec)
+- Client batching: 10 entries or 5s interval
+- Rate limiting: Prevents log flooding
 
-**Selected**: Projection functions with visibility filter
-- Simple, auditable, type-safe
-- No new infrastructure
-- Defense-in-depth with multiple layers
+**Sentry**:
+
+- tracesSampleRate: 10% in production
+- replaysSessionSampleRate: 10%
+- replaysOnErrorSampleRate: 100%
+
+**Analytics**:
+
+- Zero-config, minimal bundle impact
+- Automatic code splitting by Vercel
 
 ---
 
 ## Implementation Phases
 
-### Phase 1: Critical Security Fix (Deploy ASAP)
-1. Create `convex/publicTypes.ts`
-2. Add `visibility` field to schema (optional)
-3. Add `getPublicMonitorsForProject` to `monitors.ts`
-4. Add `getPublicChecksForMonitor`, `getPublicUptimeStats` to `checks.ts`
-5. Add `getPublicIncidentsForProject` to `incidents.ts`
-6. Delete `getOpenIncidents` from `incidents.ts`
-7. Update `app/s/[slug]/page.tsx` to use public queries
-8. Add security tests
-9. Deploy to Convex
-10. Run backfill migration (`visibility: "private"` for existing)
+### Phase 1: Quality Gates
 
-### Phase 2: Hardening (After Migration)
-11. Tighten schema (`visibility` required)
-12. Add `visibility` arg to `create` mutation
-13. Add compound index `by_project_slug_and_visibility`
-14. Add visibility toggle to dashboard UI
-15. Mark `getByProjectSlug` as deprecated
+1. Install lefthook, commitlint, prettier
+2. Create lefthook.yml, commitlint.config.js
+3. Update package.json prepare script
+4. Bump vitest.config.ts coverage to 80%
+5. Update CI lint step (remove continue-on-error)
 
-### Phase 3: Future Hardening (If Needed)
-16. Add security headers to middleware
-17. Add SSRF blocklist to monitoring engine
-18. Add rate limiting on public queries
+### Phase 2: Observability
+
+6. Create TWO Sentry projects (heartbeat-client, heartbeat-server)
+7. Install @sentry/nextjs
+8. Create sentry.client.config.ts, sentry.server.config.ts, sentry.edge.config.ts
+9. Create instrumentation.ts
+10. Create app/global-error.tsx
+11. Wrap next.config.ts with withSentryConfig
+12. Create lib/logger/server.ts (Pino with redaction)
+13. Create lib/logger/client.ts (batched remote transport)
+14. Update middleware.ts (correlation IDs)
+15. Create app/api/logs/route.ts (rate-limited endpoint)
+16. Set up Upstash Redis
+
+### Phase 3: Analytics & Releases
+
+17. Install @vercel/analytics, @vercel/speed-insights
+18. Update app/layout.tsx (add Analytics + SpeedInsights)
+19. Install semantic-release + plugins
+20. Create .releaserc.json
+21. Create .github/workflows/release.yml
 
 ---
 
-## Summary
+## Alternatives Considered
 
-This is a surgical security fix with three parts:
-1. **Projection**: Type-safe whitelist via `publicTypes.ts`
-2. **Visibility**: Database-level filter + user control
-3. **Cleanup**: Delete cross-tenant `getOpenIncidents`
+### Alternative A: Husky + lint-staged
 
-**Complexity**: Low. Schema migration is simple, queries are additive, projection is defensive.
+- **Pros**: Widespread adoption, familiar to most devs
+- **Cons**: JS-based (slower), pnpm compatibility issues, separate packages for lint-staged
+- **Verdict**: Rejected - Lefthook is faster, single package, better pnpm support
 
-**Risk**: Minimal. Fail-safe defaults mean worst case is fewer public monitors (intentional).
+### Alternative B: Changesets
 
-**Next**: Run `/plan` to convert this architecture into atomic implementation tasks.
+- **Pros**: Manual control, monorepo support, explicit changeset files
+- **Cons**: Requires manual changeset creation, overkill for single-package
+- **Verdict**: Rejected - Single package doesn't need multi-package coordination
+
+### Alternative C: Winston Logging
+
+- **Pros**: Feature-rich, transports ecosystem
+- **Cons**: Slower than Pino, heavier bundle, less Vercel-optimized
+- **Verdict**: Rejected - Pino is faster, native JSON, better for serverless
+
+### Alternative D: Single Sentry Project
+
+- **Pros**: Simpler setup, one DSN
+- **Cons**: Client/server errors mixed, harder to filter noise, security risk
+- **Verdict**: Rejected - Separation improves debugging and security
+
+### Alternative E: Custom Rate Limiting (in-memory)
+
+- **Pros**: No external dependency
+- **Cons**: Doesn't work across serverless instances, resets on deploy
+- **Verdict**: Rejected - Upstash Redis provides distributed rate limiting

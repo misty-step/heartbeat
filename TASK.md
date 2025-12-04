@@ -1,24 +1,39 @@
-# Security Hardening: Fix Data Leak in Public Status Pages
+# Production Infrastructure: Quality Gates, Observability & Release Automation
 
 ## Executive Summary
 
-**Problem**: Public status page queries expose sensitive monitor configuration (auth headers, URLs, request bodies) to anyone who knows a project slug. This is a critical security vulnerability that could expose API keys, Bearer tokens, and internal infrastructure details.
+**Problem**: Heartbeat lacks production-grade infrastructure for confident deployments — no git hooks prevent broken commits, no structured logging for debugging, no error tracking for production issues, and no automated release workflow.
 
-**Solution**: Implement explicit field projection for all public queries. Add visibility field with fail-safe defaults. Remove broken queries.
+**Solution**: Implement six infrastructure pillars: (1) Lefthook git hooks, (2) 80% test coverage enforcement, (3) Sentry error tracking, (4) Pino structured logging with client aggregation, (5) Vercel Analytics, (6) semantic-release automation.
 
-**User Value**: Users can confidently create public status pages knowing their sensitive monitoring configuration is protected. Private infrastructure remains private.
+**User Value**: Pass the "Friday Afternoon Test" — merge to production Friday at 5pm and turn your phone off. Catch errors before users report them, trace issues through structured logs, and ship releases with confidence.
 
-**Success Criteria**: Zero sensitive fields exposed via public APIs; all queries either require auth OR return only safe projected fields.
+**Success Criteria**: All PRs pass quality gates (lint, type-check, tests), production errors appear in Sentry within seconds, logs are queryable with correlation IDs, releases auto-generate changelogs.
 
 ---
 
-## User Context
+## Architecture Decision
 
-**Who**: Heartbeat users who create monitors for URLs (including private APIs with auth headers) and want to share public status pages.
+### Selected Approach: Layered Infrastructure with Deep Modules
 
-**Problem**: Users monitoring private APIs must include authentication headers. Currently, anyone viewing `/s/{slug}` can see those headers, request bodies, and internal URLs.
+Each infrastructure component is a **deep module** — simple interface hiding implementation complexity:
 
-**Benefit**: After fix, users get the status page visibility they want without risking credential exposure.
+| Module              | Interface                   | Hidden Complexity                             |
+| ------------------- | --------------------------- | --------------------------------------------- |
+| `lefthook.yml`      | git hooks auto-run          | Parallel execution, staged files, commitlint  |
+| `@sentry/nextjs`    | `Sentry.captureException()` | Source maps, breadcrumbs, React 19 boundaries |
+| `lib/logger`        | `logger.info(msg, ctx)`     | Pino transport, redaction, correlation IDs    |
+| `@vercel/analytics` | `<Analytics />`             | Web vitals, performance tracking              |
+| `semantic-release`  | Conventional commits        | Version bumping, changelog, GitHub releases   |
+
+### Alternatives Considered
+
+| Approach            | Value  | Simplicity | Risk   | Why Not                                                        |
+| ------------------- | ------ | ---------- | ------ | -------------------------------------------------------------- |
+| Husky + lint-staged | Medium | Low        | Low    | Lefthook is faster, native Go, better pnpm support             |
+| Changesets          | Medium | Medium     | Low    | Overkill for single-package; requires manual changeset files   |
+| Winston logging     | Medium | Medium     | Low    | Pino is faster, better JSON, Vercel-optimized                  |
+| DataDog/LogRocket   | High   | Low        | Medium | Cost, vendor lock-in; Sentry+Pino sufficient for current scale |
 
 ---
 
@@ -26,279 +41,293 @@
 
 ### Functional Requirements
 
-**F1**: Public status pages show ONLY safe fields:
-- `_id`, `name`, `status` (computed), `lastCheckAt`, `lastResponseTime`
-- Never: `url`, `method`, `headers`, `body`, `expectedStatusCode`, `expectedBodyContains`, `userId`, `timeout`
+**FR1: Git Hooks (Lefthook)**
 
-**F2**: Per-monitor visibility toggle (public/private)
-- Private monitors excluded from status page queries entirely
-- **NEW monitors** default to `public` (user is actively creating, informed consent)
-- **EXISTING monitors** default to `private` during migration (fail-safe)
+- Pre-commit: lint staged files, type-check, format
+- Pre-push: run full test suite
+- Commit-msg: enforce conventional commits via commitlint
 
-**F3**: Public check/incident queries return sanitized data
-- Error messages redacted
-- Status codes redacted (can reveal auth state: 401/403)
-- Incident descriptions hidden
+**FR2: Test Coverage**
 
-**F4**: Delete `getOpenIncidents` (cross-tenant leak, dead code)
+- Enforce 80% coverage threshold (lines, branches, functions, statements)
+- Block PRs that drop coverage below threshold
+- Generate coverage reports in PR comments
 
-**F5**: Authenticated dashboard retains full access to user's own data
+**FR3: Error Tracking (Sentry)**
+
+- Capture unhandled exceptions in Next.js (client + server + edge)
+- Capture Convex function errors via dashboard integration
+- Upload source maps for readable stack traces
+- Session replay for visual debugging
+
+**FR4: Structured Logging (Pino)**
+
+- Server-side: JSON logs with correlation IDs, automatic redaction
+- Client-side: Structured console + remote transport to `/api/logs`
+- Vercel-optimized output (automatic JSON parsing)
+
+**FR5: Analytics (Vercel)**
+
+- Web Vitals tracking (LCP, FID, CLS, TTFB)
+- Page view analytics
+- Speed Insights for performance monitoring
+
+**FR6: Release Automation (semantic-release)**
+
+- Auto-version based on conventional commits
+- Generate CHANGELOG.md automatically
+- Create GitHub releases with notes
+- Commit version bumps back to repo
 
 ### Non-Functional Requirements
 
-**NF1**: No breaking changes to authenticated dashboard functionality
-**NF2**: Status pages may show fewer monitors after migration (intentional, fail-safe)
-**NF3**: Type-safe projections prevent accidental field leakage
-**NF4**: Zero-downtime deployment via two-phase migration
+- **Performance**: Git hooks complete in <5s for staged files
+- **Security**: No secrets in logs (Pino redaction), Sentry auth token in env vars
+- **Reliability**: Hooks can be skipped with `LEFTHOOK=0` for emergencies
+- **Maintainability**: Single config file per tool, documented in CLAUDE.md
 
----
+### Security Requirements (from audit)
 
-## Architecture Decision
+**SEC1: Rate Limit `/api/logs` Endpoint**
 
-### Selected Approach: Explicit Field Projection with Visibility Filter
+- Use Upstash Redis for rate limiting (100 logs/min per IP)
+- Request size validation (max 10KB)
+- Origin validation (CORS whitelist)
+- Schema validation with Zod
 
-Create dedicated public query variants that:
-1. Filter by `visibility: "public"` at database level
-2. Project to safe fields only using typed projection functions
-3. Keep existing authenticated queries unchanged
+**SEC2: Pino Redaction Rules**
 
-**Rationale**:
-- **Simplicity**: Single projection function, easy to audit
-- **Explicitness**: Whitelist safe fields (not blacklist sensitive)
-- **User Value**: Visibility toggle is intuitive UX
-- **Risk**: Minimal - additive schema change, projection is defensive
+- Explicit redact paths for: password, token, apiKey, secret, email, ip
+- Nested paths: `*.password`, `req.headers.authorization`, `body.password`
+- Use `censor: '[REDACTED]'` mode
 
-### Alternatives Considered
+**SEC3: Separate Sentry DSNs**
 
-| Approach | Value | Simplicity | Risk | Why Not |
-|----------|-------|------------|------|---------|
-| **A: Projection only (no visibility)** | HIGH | HIGHEST | LOW | Jobs recommended this. Valid, but visibility provides defense-in-depth and user control |
-| **B: Separate public tables** | HIGH | LOW | MEDIUM | Over-engineered, data duplication |
-| **C: View layer abstraction** | MEDIUM | LOW | LOW | Unnecessary complexity |
+- `heartbeat-client` project (browser errors)
+- `heartbeat-server` project (backend errors)
+- Different DSNs in `NEXT_PUBLIC_SENTRY_DSN` vs `SENTRY_DSN`
 
-### Removed from Scope (Per Jobs Review)
+**SEC4: Secrets Management**
 
-- ~~`publicName` field~~ - Wrong solution. If monitor name is sensitive, the name itself is the problem.
-- ~~Phase 3 password protection~~ - YAGNI. Build if users request.
-
----
-
-## Schema Changes
-
-```typescript
-// convex/schema.ts - monitors table additions
-monitors: defineTable({
-  // ... existing fields ...
-
-  // NEW: Visibility control (MUST be optional in Phase 1 for Convex migration)
-  visibility: v.optional(v.union(v.literal("public"), v.literal("private"))),
-})
-```
-
-**Why optional**: Convex schema validation fails on push if existing documents lack a non-optional field. Phase 2 tightens to required after backfill.
-
----
-
-## Migration Strategy (Critical - Per Data Integrity Review)
-
-### Phase 1: Add Optional Field + Deploy New Queries
-
-```typescript
-// convex/migrations.ts
-export const backfillVisibility = migration({
-  table: "monitors",
-  migrateOne: async (ctx, doc) => {
-    if (doc.visibility === undefined) {
-      // FAIL-SAFE: Default existing monitors to PRIVATE
-      // Users must explicitly opt-in to public
-      await ctx.db.patch(doc._id, { visibility: "private" });
-    }
-  },
-});
-```
-
-**Rationale**: Current "public by default" IS THE BUG. Don't preserve it.
-
-### Phase 2: Tighten Schema (After Migration Completes)
-
-```typescript
-// After 100% backfill, change to required:
-visibility: v.union(v.literal("public"), v.literal("private")),
-```
+- Migrate secrets to Vercel encrypted storage (not .env files)
+- Add TruffleHog CI scan for leaked secrets
+- Document secrets rotation process
 
 ---
 
 ## Implementation Phases
 
-### Phase 1: Critical Security Fix (Deploy ASAP)
+### Phase 1: Quality Gates (MVP)
 
-1. **Add visibility field to schema** (optional)
-2. **Create safe projection types**
-   ```typescript
-   type PublicMonitor = {
-     _id: Id<"monitors">;
-     name: string;
-     status: "up" | "degraded" | "down";
-     lastCheckAt?: number;
-     lastResponseTime?: number;
-   };
-   
-   type PublicCheck = {
-     _id: Id<"checks">;
-     status: "up" | "down";
-     responseTime: number;
-     checkedAt: number;
-     // NO statusCode, NO errorMessage
-   };
-   
-   type PublicIncident = {
-     _id: Id<"incidents">;
-     title: string;
-     status: "investigating" | "identified" | "resolved";
-     startedAt: number;
-     resolvedAt?: number;
-     // NO description
-   };
-   ```
-3. **Create `getPublicMonitorsForProject`** - replaces `getByProjectSlug`
-4. **Create `getPublicChecksForMonitor`** - replaces `getRecentForMonitor` for public use
-5. **Create `getPublicUptimeStats`** - explicit public naming
-6. **Create `getPublicIncidentsForProject`** - replaces per-monitor incident fetch
-7. **Update status page** to use new queries
-8. **Run backfill migration** (visibility = "private" default)
-9. **DELETE `getOpenIncidents`** (cross-tenant leak)
+1. Install Lefthook, configure pre-commit/pre-push/commit-msg hooks
+2. Install commitlint with conventional commits config
+3. Increase coverage thresholds to 80%
+4. Update CI workflow to enforce coverage
 
-### Phase 2: Hardening (Post-Migration)
+### Phase 2: Observability
 
-10. **Tighten schema** (visibility required)
-11. **Update `create` mutation** to require visibility arg
-12. **Add cascade deletes** to `monitors.remove` (clean up orphaned checks/incidents)
-13. **Add visibility toggle** to dashboard UI (simple checkbox)
-14. **Add compound index** on `(projectSlug, visibility)` if performance needed
+5. Create TWO Sentry projects (client/server), get separate DSNs
+6. Install @sentry/nextjs, configure client/server/edge configs with separate DSNs
+7. Add instrumentation.ts for Next.js 15+ server tracking
+8. Create global-error.tsx error boundary
+9. Enable Convex Sentry integration via dashboard
+10. Install Pino with explicit redaction rules (SEC2)
+11. Create lib/logger/server.ts and lib/logger/client.ts
+12. Add correlation ID middleware
+13. Install Upstash Redis, create /api/logs endpoint with rate limiting (SEC1)
+14. Migrate secrets to Vercel encrypted storage (SEC4)
 
-### Phase 3: Additional Security (Short-term)
+### Phase 3: Analytics & Releases
 
-15. **Add security headers** (CSP, HSTS, X-Frame-Options) to middleware
-16. **Add SSRF blocklist** to monitoring engine (block internal IPs, metadata endpoints)
-17. **Add rate limiting** on public queries
-
----
-
-## Risks & Mitigation
-
-| Risk | Likelihood | Impact | Mitigation |
-|------|------------|--------|------------|
-| Schema validation fails on push | HIGH (if non-optional) | CRITICAL | Make visibility optional in Phase 1 |
-| Status pages show empty after fix | MEDIUM | HIGH (intentional) | This is fail-safe behavior. Provide UI to enable public. |
-| Missed a sensitive field in projection | LOW | CRITICAL | Type-safe projection, code review |
-| Migration incomplete before Phase 2 | LOW | MEDIUM | Monitor migration progress, don't deploy Phase 2 early |
-
----
-
-## Key Decisions
-
-### D1: Whitelist vs Blacklist
-**Decision**: Whitelist safe fields explicitly
-**Rationale**: New fields can't accidentally leak
-
-### D2: Default for EXISTING monitors
-**Decision**: `"private"` (fail-safe)
-**Rationale**: Current "public" behavior is the vulnerability. Don't preserve bugs.
-
-### D3: Default for NEW monitors  
-**Decision**: `"public"` (user is actively creating)
-**Rationale**: User creating monitor = informed consent. Friction-free for legitimate use.
-
-### D4: What to do with `getOpenIncidents`
-**Decision**: DELETE entirely
-**Rationale**: Cross-tenant leak, dead code (only in tests), YAGNI
-
-### D5: Error message + statusCode handling
-**Decision**: Redact both entirely
-**Rationale**: Status codes leak auth state (401/403/404). Error messages unpredictable.
-
-### D6: Remove `publicName` field
-**Decision**: Cut from scope (per Jobs review)
-**Rationale**: If monitor name is sensitive, fix the name. Don't add complexity for bad hygiene.
+15. Install @vercel/analytics and @vercel/speed-insights
+16. Add Analytics component to root layout
+17. Install semantic-release with changelog/git/github plugins
+18. Create .releaserc.json config
+19. Add release.yml GitHub workflow
+20. Add TruffleHog CI scan for leaked secrets (SEC4)
 
 ---
 
 ## Test Scenarios
 
-### Security Tests (Critical)
+### Lefthook
 
-- [ ] `getPublicMonitorsForProject` returns NO sensitive fields (url, headers, body, method, userId, timeout, expectedStatusCode, expectedBodyContains)
-- [ ] `getPublicMonitorsForProject` excludes `visibility: "private"` monitors
-- [ ] `getPublicMonitorsForProject` excludes monitors with `visibility: undefined` (during migration)
-- [ ] `getPublicChecksForMonitor` returns NO errorMessage, NO statusCode
-- [ ] `getPublicIncidentsForProject` returns NO description
-- [ ] `getOpenIncidents` query does not exist (deleted)
-- [ ] Cross-tenant: User A cannot see User B's monitors via any public query
+- [ ] Pre-commit runs on staged .ts/.tsx files only
+- [ ] Pre-commit fails on lint errors, succeeds after fix
+- [ ] Pre-push runs full test suite
+- [ ] Commit blocked with non-conventional message
+- [ ] `LEFTHOOK=0 git commit` bypasses hooks
 
-### Functional Tests
+### Sentry
 
-- [ ] Public status page renders correctly with new queries
-- [ ] Public status page shows only `visibility: "public"` monitors
-- [ ] Dashboard shows all user's monitors (public + private)
-- [ ] Dashboard can toggle monitor visibility
-- [ ] New monitors default to `visibility: "public"`
-- [ ] Migration sets existing monitors to `visibility: "private"`
+- [ ] Unhandled client error appears in Sentry dashboard
+- [ ] Server error in route handler appears with stack trace
+- [ ] Convex function error appears via integration
+- [ ] Source maps resolve to original TypeScript
 
-### Regression Tests
+### Logging
 
-- [ ] Authenticated queries (`list`, `get`, `create`, `update`, `remove`) unchanged
-- [ ] Uptime calculations correct with new query
-- [ ] Incident timeline displays correctly
+- [ ] Server logs appear in Vercel logs as parsed JSON
+- [ ] Client error logs arrive at /api/logs endpoint
+- [ ] Correlation ID traces request through client → server → Convex
+- [ ] Sensitive fields (password, token, apiKey) redacted
 
-### Edge Cases
+### Security (/api/logs)
 
-- [ ] Project slug with zero public monitors returns 404
-- [ ] Project slug with all private monitors returns 404
-- [ ] Monitor with `visibility: undefined` excluded from public queries
-- [ ] Monitor deletion cascades to checks and incidents
+- [ ] Rate limit rejects after 100 requests/min from same IP
+- [ ] Oversized payloads (>10KB) rejected with 413
+- [ ] Invalid origin rejected with 403
+- [ ] Invalid log schema rejected with 400
+- [ ] Pino redacts nested sensitive fields (\*.password, req.headers.authorization)
 
----
+### semantic-release
 
-## Files to Modify
-
-```
-convex/
-  schema.ts              # Add optional visibility field
-  monitors.ts            # Add getPublicMonitorsForProject, update create mutation
-  checks.ts              # Add getPublicChecksForMonitor, getPublicUptimeStats  
-  incidents.ts           # Add getPublicIncidentsForProject, DELETE getOpenIncidents
-  migrations.ts          # NEW: Backfill migration
-
-app/
-  s/[slug]/page.tsx      # Use new public query variants
-
-components/
-  MonitorSettingsModal.tsx  # Add visibility toggle (Phase 2)
-```
+- [ ] `feat:` commit triggers minor version bump
+- [ ] `fix:` commit triggers patch version bump
+- [ ] CHANGELOG.md updated with release notes
+- [ ] GitHub release created with assets
 
 ---
 
-## Summary
+## Dependencies & Assumptions
 
-This is a surgical security fix with three parts:
-1. **Projection**: Whitelist safe fields in typed projection functions
-2. **Visibility**: Filter by `visibility: "public"` at database level  
-3. **Cleanup**: Delete broken `getOpenIncidents`, add cascade deletes
+### External Systems
 
-**Simplified from original spec** (per Jobs review):
-- Removed `publicName` field
-- Removed Phase 3 password protection
-- Changed migration default to `private` (fail-safe)
+- **Sentry**: Requires Sentry project + DSN (auth token at ~/.secrets/sentry-auth-token)
+- **Vercel**: Deployment platform with built-in analytics
+- **GitHub**: Actions for CI/CD, Releases for semantic-release
+- **Convex**: Dashboard integration for Sentry (no code change)
 
-**Added hardening** (per Security review):
-- Redact statusCode (not just errorMessage)
-- Add cascade deletes
-- Add security headers
-- Add SSRF protection
+### Assumptions
 
-**Fixed migration** (per Data Integrity review):
-- Make visibility optional in Phase 1
-- Two-phase deployment
-- Monitor migration completion before Phase 2
+- Single-package repository (no monorepo)
+- Vercel deployment (not self-hosted)
+- Node.js 22 (current package.json engines)
+- Team follows conventional commits after setup
 
-**Complexity**: Low. Schema migration is simple, query changes are additive, projection is defensive.
+### Environment Variables Required
+
+```bash
+# Sentry (use SEPARATE projects for client/server)
+NEXT_PUBLIC_SENTRY_DSN=https://...@o123.ingest.sentry.io/client-project
+SENTRY_DSN=https://...@o123.ingest.sentry.io/server-project
+SENTRY_ORG=your-org
+SENTRY_PROJECT=heartbeat
+SENTRY_AUTH_TOKEN=sntrys_...
+
+# Upstash Redis (for /api/logs rate limiting)
+UPSTASH_REDIS_REST_URL=https://...
+UPSTASH_REDIS_REST_TOKEN=...
+
+# Existing (already configured)
+NEXT_PUBLIC_CONVEX_URL=...
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=...
+```
+
+---
+
+## Risks & Mitigation
+
+| Risk                                 | Likelihood | Impact | Mitigation                                                          |
+| ------------------------------------ | ---------- | ------ | ------------------------------------------------------------------- |
+| 80% coverage slows development       | Medium     | Medium | Exclude UI-heavy components (already done), focus on business logic |
+| Sentry noise from browser extensions | High       | Low    | beforeSend filter to ignore extension:// errors                     |
+| Client logs overwhelming server      | Low        | Medium | Rate limit /api/logs, batch client sends                            |
+| semantic-release breaks on edge case | Low        | High   | Test in dry-run mode first, document manual override                |
+| Lefthook slows VS Code               | Medium     | Low    | Keep pre-commit fast (<5s), move heavy checks to pre-push           |
+
+---
+
+## Key Decisions
+
+### D1: Lefthook over Husky
+
+- **What**: Use Lefthook for git hooks instead of Husky + lint-staged
+- **Alternatives**: Husky (JS-based, slower), simple-git-hooks (minimal)
+- **Rationale**: Native Go binary = faster, built-in parallel execution, `{staged_files}` support, better pnpm compatibility
+- **Tradeoff**: Less ecosystem adoption, but actively maintained by Evil Martians
+
+### D2: semantic-release over Changesets
+
+- **What**: Fully automated releases via semantic-release
+- **Alternatives**: Changesets (manual changeset files), release-please (Google)
+- **Rationale**: Single-package repo doesn't need Changesets' multi-package coordination; user preference for full automation
+- **Tradeoff**: Less control over release timing; mitigated by conventional commit discipline
+
+### D3: Pino over console.log/Winston
+
+- **What**: Pino for structured logging
+- **Alternatives**: Winston (feature-rich), Bunyan (JSON), console.log (simple)
+- **Rationale**: Fastest Node.js logger, native JSON, Vercel-optimized, built-in redaction
+- **Tradeoff**: Less feature-rich than Winston; sufficient for current needs
+
+### D4: 80% Coverage Threshold
+
+- **What**: Enforce 80% lines/branches/functions/statements
+- **Alternatives**: 60% (moderate), 40% (current), 90% (strict)
+- **Rationale**: User preference for high coverage; existing exclusions for UI components keep this achievable
+- **Tradeoff**: May slow feature development; worth it for production confidence
+
+---
+
+## File Changes Summary
+
+### New Files
+
+```
+lefthook.yml                    # Git hooks config
+commitlint.config.js            # Conventional commits rules
+.releaserc.json                 # semantic-release config
+sentry.client.config.ts         # Sentry client init
+sentry.server.config.ts         # Sentry server init
+sentry.edge.config.ts           # Sentry edge init
+instrumentation.ts              # Next.js 15+ server instrumentation
+app/global-error.tsx            # App Router error boundary
+lib/logger/server.ts            # Pino server logger
+lib/logger/client.ts            # Client logger with remote transport
+app/api/logs/route.ts           # Client log aggregation endpoint
+middleware.ts                   # Add correlation ID injection
+.github/workflows/release.yml   # semantic-release workflow
+```
+
+### Modified Files
+
+```
+package.json                    # Add dependencies, prepare script
+next.config.ts                  # Wrap with withSentryConfig
+app/layout.tsx                  # Add Analytics component
+app/providers.tsx               # Add Sentry ErrorBoundary
+vitest.config.ts                # Update coverage thresholds to 80%
+.github/workflows/test.yml      # Update coverage enforcement
+README.md                       # Add badges for coverage, version
+CLAUDE.md                       # Document new infrastructure
+```
+
+### Dependencies to Add
+
+```json
+{
+  "dependencies": {
+    "@sentry/nextjs": "^9.0.0",
+    "@vercel/analytics": "^1.4.0",
+    "@vercel/speed-insights": "^1.1.0",
+    "@upstash/ratelimit": "^2.0.0",
+    "@upstash/redis": "^1.37.0",
+    "pino": "^9.0.0",
+    "serialize-error": "^11.0.0",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "lefthook": "^1.10.0",
+    "@commitlint/cli": "^19.8.0",
+    "@commitlint/config-conventional": "^19.8.0",
+    "semantic-release": "^25.0.0",
+    "@semantic-release/changelog": "^6.0.0",
+    "@semantic-release/git": "^10.0.0",
+    "@semantic-release/github": "^11.0.0",
+    "pino-pretty": "^13.0.0"
+  }
+}
+```
+
+**Note**: Upstash Redis costs ~$10/month (free tier: 10K requests/day). Zod is already in the project via Convex dependencies.

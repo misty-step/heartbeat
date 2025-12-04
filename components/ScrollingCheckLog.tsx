@@ -33,9 +33,10 @@ export function ScrollingCheckLog() {
   const generateEntry = (): CheckLogEntry => {
     const endpoint = endpoints[Math.floor(Math.random() * endpoints.length)];
     const status = Math.random() > 0.05 ? "success" : "failure"; // 95% success rate
-    const responseTime = status === "success"
-      ? Math.floor(Math.random() * 200) + 50 // 50-250ms
-      : Math.floor(Math.random() * 3000) + 1000; // 1000-4000ms for failures
+    const responseTime =
+      status === "success"
+        ? Math.floor(Math.random() * 200) + 50 // 50-250ms
+        : Math.floor(Math.random() * 3000) + 1000; // 1000-4000ms for failures
 
     return {
       id: `${Date.now()}-${Math.random()}`,
@@ -62,6 +63,7 @@ export function ScrollingCheckLog() {
     }, 2000);
 
     return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- generateEntry is stable, generates random data
   }, []);
 
   const formatTime = (date: Date) => {
@@ -92,7 +94,11 @@ export function ScrollingCheckLog() {
             <span className="text-xs text-text-tertiary">
               {formatTime(entry.timestamp)}
             </span>
-            <span className={entry.status === "success" ? "text-accent" : "text-down"}>
+            <span
+              className={
+                entry.status === "success" ? "text-accent" : "text-down"
+              }
+            >
               {entry.status === "success" ? "✓" : "✗"}
             </span>
             <span className="text-text-secondary truncate max-w-[200px] sm:max-w-none">
