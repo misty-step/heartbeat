@@ -7,6 +7,7 @@ import { Id } from "../convex/_generated/dataModel";
 import { StatusIndicator } from "./StatusIndicator";
 import { UptimeBar } from "./UptimeBar";
 import { Settings, ChevronDown, ChevronUp } from "lucide-react";
+import { computeStatus, getStatusLabel } from "@/lib/domain";
 
 interface DashboardMonitorCardProps {
   monitor: {
@@ -21,28 +22,21 @@ interface DashboardMonitorCardProps {
   onEdit: () => void;
 }
 
-export function DashboardMonitorCard({ monitor, onEdit }: DashboardMonitorCardProps) {
+export function DashboardMonitorCard({
+  monitor,
+  onEdit,
+}: DashboardMonitorCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   // Fetch recent checks when expanded
   const recentChecks = useQuery(
     api.checks.getRecentForMonitor,
-    isExpanded ? { monitorId: monitor._id, limit: 10 } : "skip"
+    isExpanded ? { monitorId: monitor._id, limit: 10 } : "skip",
   );
 
-  const getStatus = () => {
-    if (monitor.consecutiveFailures === 0) return "up";
-    if (monitor.consecutiveFailures < 3) return "degraded";
-    return "down";
-  };
-
-  const getStatusText = () => {
-    if (monitor.consecutiveFailures === 0) return "Operational";
-    if (monitor.consecutiveFailures < 3) return "Degraded";
-    return "Down";
-  };
-
-  const status = getStatus();
+  // Use domain functions for status computation
+  const status = computeStatus(monitor.consecutiveFailures);
+  const statusText = getStatusLabel(status);
 
   return (
     <div className="group bg-background border border-foreground/10 hover:border-foreground/20 hover:shadow-sm transition-all duration-200">
@@ -84,7 +78,7 @@ export function DashboardMonitorCard({ monitor, onEdit }: DashboardMonitorCardPr
 
           {/* Status + Response time */}
           <div className="flex items-center justify-between text-sm">
-            <span className="text-foreground/60">{getStatusText()}</span>
+            <span className="text-foreground/60">{statusText}</span>
             {monitor.lastResponseTime !== undefined && (
               <span className="font-mono text-foreground/40 tabular-nums">
                 {monitor.lastResponseTime}ms
@@ -139,8 +133,8 @@ export function DashboardMonitorCard({ monitor, onEdit }: DashboardMonitorCardPr
                           check.status === "up"
                             ? "bg-foreground"
                             : check.status === "degraded"
-                            ? "bg-degraded"
-                            : "bg-down"
+                              ? "bg-degraded"
+                              : "bg-down"
                         }`}
                       />
                       <span className="text-foreground/60 text-xs">

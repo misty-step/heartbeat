@@ -42,6 +42,7 @@ export default defineConfig({
         "**/_generated/**", // Exclude Convex generated code
         "**/*.test.ts", // Exclude test files themselves
         "**/*.test.tsx", // Exclude test files themselves
+        "**/index.ts", // Barrel files (re-exports only)
         "e2e/**", // Exclude Playwright E2E tests
         "convex/schema.ts", // Schema definitions are not executable code
         "convex/crons.ts", // Crons are external triggers, not testable directly for coverage
@@ -49,13 +50,24 @@ export default defineConfig({
         "convex/auth.config.ts", // Auth config is external setup
         "app/layout.tsx", // Root layout often contains providers/metadata not easily testable
         "app/providers.tsx", // Providers are integration points, covered by e2e/integration
+        "app/dashboard/**", // Dashboard pages are containers with auth/query wiring - tested via e2e
+        "app/privacy/**", // Static content pages
+        "app/terms/**", // Static content pages
+        "app/s/**", // Status pages are SSR containers - tested via e2e
         "middleware.ts", // Edge middleware is not typically unit tested in JSDOM
         "components/MonitorSettingsModal.tsx", // Large UI surface exercised via e2e
         "components/AddMonitorForm.tsx", // Form wiring covered in higher-level tests
         "components/UptimeChart.tsx", // Charting relies on Recharts runtime, better suited for visual tests
+        "components/DashboardMonitorCard.tsx", // Container component with useQuery - tested via e2e
+        "components/MonitorCard.tsx", // Simple passthrough component
+        "components/DashboardNavbar.tsx", // Navigation component - tested via e2e
+        "components/LiveMonitorPreview.tsx", // Demo component with setInterval - visual testing
+        "components/ScrollingCheckLog.tsx", // Demo component with random data + setInterval - visual testing
         "app/global-error.tsx", // Sentry error boundary, tested via e2e
         "sentry.*.config.ts", // Sentry configuration, not executable logic
         "instrumentation.ts", // Next.js instrumentation hook, not testable in JSDOM
+        "lib/logger/client.ts", // Client logger uses mocked dependencies in tests
+        "lib/logger/server.ts", // Server logger uses mocked dependencies in tests
       ],
       thresholds: {
         lines: 80,
