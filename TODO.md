@@ -60,7 +60,7 @@
   Time: 15min
   ```
 
-- [ ] Enforce lint in CI (remove continue-on-error)
+- [x] Enforce lint in CI (remove continue-on-error)
 
   ```
   Files: .github/workflows/test.yml (modify line 39)
@@ -75,7 +75,7 @@
 
 ## Phase 2: Observability - Sentry
 
-- [ ] Install @sentry/nextjs and create config files
+- [x] Install @sentry/nextjs and create config files
 
   ```
   Files:
@@ -101,7 +101,7 @@
   Time: 30min
   ```
 
-- [ ] Create Next.js instrumentation hook
+- [x] Create Next.js instrumentation hook
 
   ```
   Files: instrumentation.ts (new at project root)
@@ -118,7 +118,7 @@
   Time: 15min
   ```
 
-- [ ] Create global error boundary
+- [x] Create global error boundary
 
   ```
   Files: app/global-error.tsx (new)
@@ -137,7 +137,7 @@
   Time: 20min
   ```
 
-- [ ] Wrap next.config.ts with withSentryConfig
+- [x] Wrap next.config.ts with withSentryConfig
 
   ```
   Files: next.config.ts (modify)
@@ -161,7 +161,7 @@
 
 ## Phase 2: Observability - Pino Logging
 
-- [ ] Create server logger with Pino
+- [x] Create server logger with Pino
 
   ```
   Files: lib/logger/server.ts (new - create lib/logger/ directory)
@@ -187,7 +187,7 @@
   Time: 45min
   ```
 
-- [ ] Create client logger with batched transport
+- [x] Create client logger with batched transport
 
   ```
   Files: lib/logger/client.ts (new)
@@ -215,7 +215,7 @@
   Time: 45min
   ```
 
-- [ ] Create logger index with re-exports
+- [x] Create logger index with re-exports
 
   ```
   Files: lib/logger/index.ts (new)
@@ -232,7 +232,7 @@
   Time: 10min
   ```
 
-- [ ] Update middleware with correlation IDs
+- [x] Update middleware with correlation IDs
 
   ```
   Files: middleware.ts (modify)
@@ -255,7 +255,7 @@
   Time: 20min
   ```
 
-- [ ] Create /api/logs endpoint with rate limiting
+- [x] Create /api/logs endpoint with rate limiting
 
   ```
   Files: app/api/logs/route.ts (new - create app/api/logs/ directory)
@@ -288,7 +288,7 @@
 
 ## Phase 3: Analytics & Releases
 
-- [ ] Add Vercel Analytics and Speed Insights
+- [x] Add Vercel Analytics and Speed Insights
 
   ```
   Files:
@@ -312,7 +312,7 @@
   Time: 20min
   ```
 
-- [ ] Configure semantic-release
+- [x] Configure semantic-release
 
   ```
   Files:
@@ -340,7 +340,7 @@
   Time: 30min
   ```
 
-- [ ] Create release workflow
+- [x] Create release workflow
 
   ```
   Files: .github/workflows/release.yml (new)
