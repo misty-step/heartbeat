@@ -1,29 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { NextRequest } from "next/server";
 
-// Shared mock state
-let mockLimitResult = {
-  success: true,
-  remaining: 99,
-  reset: Date.now() + 60000,
-};
-
-vi.mock("@upstash/ratelimit", () => {
-  class MockRatelimit {
-    static slidingWindow = vi.fn().mockReturnValue({});
-    async limit() {
-      return mockLimitResult;
-    }
-  }
-  return { Ratelimit: MockRatelimit };
-});
-
-vi.mock("@upstash/redis", () => ({
-  Redis: {
-    fromEnv: vi.fn().mockReturnValue({}),
-  },
-}));
-
 vi.mock("@/lib/logger/server", () => ({
   logger: {
     child: vi.fn().mockReturnValue({
@@ -74,12 +51,6 @@ function validLogEntry(overrides = {}) {
 describe("/api/logs route", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    // Reset rate limiter to success by default
-    mockLimitResult = {
-      success: true,
-      remaining: 99,
-      reset: Date.now() + 60000,
-    };
   });
 
   afterEach(() => {
@@ -137,48 +108,6 @@ describe("/api/logs route", () => {
 
       const response = await POST(request);
       expect(response.status).toBe(200);
-    });
-  });
-
-  describe("rate limiting", () => {
-    it("returns 429 when rate limited", async () => {
-      const resetTime = Date.now() + 30000;
-      mockLimitResult = {
-        success: false,
-        remaining: 0,
-        reset: resetTime,
-      };
-
-      const request = createRequest({
-        entries: [validLogEntry()],
-      });
-
-      const response = await POST(request);
-      expect(response.status).toBe(429);
-
-      const body = await response.json();
-      expect(body.error).toBe("Rate limit exceeded");
-    });
-
-    it("includes rate limit headers when rate limited", async () => {
-      const resetTime = Date.now() + 30000;
-      mockLimitResult = {
-        success: false,
-        remaining: 0,
-        reset: resetTime,
-      };
-
-      const request = createRequest({
-        entries: [validLogEntry()],
-      });
-
-      const response = await POST(request);
-
-      expect(response.headers.get("X-RateLimit-Remaining")).toBe("0");
-      expect(response.headers.get("X-RateLimit-Reset")).toBe(
-        resetTime.toString(),
-      );
-      expect(response.headers.get("Retry-After")).toBeDefined();
     });
   });
 

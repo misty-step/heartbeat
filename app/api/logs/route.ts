@@ -1,15 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Ratelimit } from "@upstash/ratelimit";
-import { Redis } from "@upstash/redis";
 import { z } from "zod/v4";
 import { logger } from "@/lib/logger/server";
 
-// Rate limiter: 100 requests per minute per IP
-const ratelimit = new Ratelimit({
-  redis: Redis.fromEnv(),
-  limiter: Ratelimit.slidingWindow(100, "1 m"),
-  analytics: true,
-});
+// Note: Rate limiting deferred - add Upstash Redis later for production
 
 // Schema validation
 const LogEntrySchema = z.object({
@@ -41,28 +34,11 @@ const ALLOWED_ORIGINS = [
 const MAX_PAYLOAD_SIZE = 10 * 1024; // 10KB
 
 export async function POST(request: NextRequest) {
-  // Get client IP for rate limiting
+  // Get client IP for logging
   const ip =
     request.headers.get("x-forwarded-for")?.split(",")[0] ??
     request.headers.get("x-real-ip") ??
     "unknown";
-
-  // Rate limit check
-  const { success, remaining, reset } = await ratelimit.limit(ip);
-
-  if (!success) {
-    return NextResponse.json(
-      { error: "Rate limit exceeded" },
-      {
-        status: 429,
-        headers: {
-          "X-RateLimit-Remaining": remaining.toString(),
-          "X-RateLimit-Reset": reset.toString(),
-          "Retry-After": Math.ceil((reset - Date.now()) / 1000).toString(),
-        },
-      },
-    );
-  }
 
   // Origin check
   const origin = request.headers.get("origin");
