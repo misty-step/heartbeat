@@ -365,7 +365,7 @@
 
 ## Phase 4: Testing (after implementation)
 
-- [ ] Write server logger tests
+- [x] Write server logger tests
 
   ```
   Files: lib/logger/__tests__/server.test.ts (new)
@@ -382,7 +382,7 @@
   Time: 30min
   ```
 
-- [ ] Write client logger tests
+- [x] Write client logger tests
 
   ```
   Files: lib/logger/__tests__/client.test.ts (new)
@@ -398,7 +398,7 @@
   Time: 30min
   ```
 
-- [ ] Write /api/logs endpoint tests
+- [x] Write /api/logs endpoint tests
 
   ```
   Files: app/api/logs/__tests__/route.test.ts (new)
