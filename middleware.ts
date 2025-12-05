@@ -9,7 +9,7 @@ const isPublicRoute = createRouteMatcher([
   "/s(.*)", // Public status pages at /s/[slug]
   "/sign-in(.*)",
   "/sign-up(.*)",
-  "/api/logs", // Public endpoint (has its own rate limiting)
+  "/api/logs", // Public endpoint for client log batching
 ]);
 
 export default clerkMiddleware(async (auth, request) => {

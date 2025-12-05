@@ -145,10 +145,11 @@ describe("/api/logs route", () => {
 
   describe("payload size validation", () => {
     it("returns 413 for oversized payload", async () => {
-      const request = createRequest(
-        { entries: [validLogEntry()] },
-        { contentLength: "20000" }, // 20KB > 10KB limit
-      );
+      // Create actually large payload > 10KB
+      const largeMessage = "x".repeat(15000);
+      const request = createRequest({
+        entries: [validLogEntry({ message: largeMessage })],
+      });
 
       const response = await POST(request);
       expect(response.status).toBe(413);
@@ -158,10 +159,10 @@ describe("/api/logs route", () => {
     });
 
     it("accepts payload within size limit", async () => {
-      const request = createRequest(
-        { entries: [validLogEntry()] },
-        { contentLength: "1000" }, // 1KB < 10KB limit
-      );
+      // Normal sized payload < 10KB
+      const request = createRequest({
+        entries: [validLogEntry()],
+      });
 
       const response = await POST(request);
       expect(response.status).toBe(200);

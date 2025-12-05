@@ -1,14 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod/v4";
+import { z } from "zod";
 import { logger } from "@/lib/logger/server";
-
-// Note: Rate limiting deferred - add Upstash Redis later for production
 
 // Schema validation
 const LogEntrySchema = z.object({
   level: z.enum(["debug", "info", "warn", "error"]),
   message: z.string().max(1000),
-  timestamp: z.iso.datetime(),
+  timestamp: z.string().datetime(),
   context: z.record(z.string(), z.unknown()).optional(),
   error: z
     .object({
@@ -17,7 +15,7 @@ const LogEntrySchema = z.object({
       stack: z.string().optional(),
     })
     .optional(),
-  url: z.url().optional(),
+  url: z.string().url().optional(),
   userAgent: z.string().max(500).optional(),
 });
 
@@ -46,14 +44,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid origin" }, { status: 403 });
   }
 
-  // Payload size check
-  const contentLength = request.headers.get("content-length");
-  if (contentLength && parseInt(contentLength) > MAX_PAYLOAD_SIZE) {
-    return NextResponse.json({ error: "Payload too large" }, { status: 413 });
-  }
-
   try {
-    const body = await request.json();
+    // Read raw body and enforce actual payload size limit
+    const bodyText = await request.text();
+    if (bodyText.length > MAX_PAYLOAD_SIZE) {
+      return NextResponse.json({ error: "Payload too large" }, { status: 413 });
+    }
+
+    const body = JSON.parse(bodyText);
 
     // Schema validation
     const result = RequestSchema.safeParse(body);

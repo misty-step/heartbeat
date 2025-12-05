@@ -106,4 +106,5 @@ class ClientLogger {
   }
 }
 
+export { ClientLogger };
 export const clientLogger = new ClientLogger();

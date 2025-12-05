@@ -13,6 +13,7 @@ Sentry.init({
   integrations: [
     Sentry.replayIntegration({
       maskAllText: false,
+      maskAllInputs: true, // Prevent PII leakage from form inputs
       blockAllMedia: false,
     }),
   ],

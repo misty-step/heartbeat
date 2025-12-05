@@ -115,6 +115,6 @@ describe("formatResponseTime", () => {
   it("returns seconds for values 1 second and over", () => {
     expect(formatResponseTime(1000)).toBe("1.00s");
     expect(formatResponseTime(1500)).toBe("1.50s");
-    expect(formatResponseTime(2345)).toBe("2.35s"); // Truncated, not rounded
+    expect(formatResponseTime(2345)).toBe("2.35s"); // Rounded to 2 decimal places
   });
 });
