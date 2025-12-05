@@ -36,6 +36,21 @@
 
   /* Primary action color */
   --color-primary: #1a1a1a;
+
+  /* Surface tokens for cards/panels */
+  --color-surface: #ffffff;
+  --color-surface-elevated: #faf9f7;
+
+  /* Border tokens */
+  --color-border: color-mix(in srgb, var(--color-foreground) 10%, transparent);
+  --color-border-strong: color-mix(
+    in srgb,
+    var(--color-foreground) 20%,
+    transparent
+  );
+
+  /* Accent color for interactive elements */
+  --color-accent: #0066cc;
 }
 
 /* Dark Mode - class-based for next-themes */
@@ -43,6 +58,9 @@
   --color-background: #0f0f0f;
   --color-foreground: #faf9f7;
   --color-primary: #faf9f7;
+  --color-surface: #1a1a1a;
+  --color-surface-elevated: #242424;
+  --color-accent: #4da6ff;
 }
 
 /* Base Styles */
@@ -317,4 +335,20 @@ body {
 
 .card-hover:hover {
   transform: translateY(-1px);
+}
+
+/* ===== TEXT UTILITIES ===== */
+
+/* Display text utility (editorial headlines) */
+.text-display {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+/* Mono text utility (technical values) */
+.text-mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
 }
