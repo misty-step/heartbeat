@@ -1,40 +1,43 @@
-import { test, expect, describe } from 'vitest';
-import { api, internal } from '../_generated/api';
-import { setupBackend } from '../../tests/convex';
+import { test, expect, describe } from "vitest";
+import { api, internal } from "../_generated/api";
+import { setupBackend } from "../../tests/convex";
 
 const user = { name: "Test", subject: "user_test", issuer: "clerk" };
 
 // Helper to create a monitor and return its ID
 async function createTestMonitor(t: ReturnType<typeof setupBackend>) {
-  return await t.withIdentity(user).mutation(api.monitors.create, {
-    name: 'Test Monitor',
-    url: 'https://example.com',
-    method: 'GET',
+  const monitor = await t.withIdentity(user).mutation(api.monitors.create, {
+    name: "Test Monitor",
+    url: "https://example.com",
+    method: "GET",
     interval: 60,
     timeout: 10000,
-    projectSlug: 'test-project',
+    projectSlug: "test-project",
   });
+  return monitor!._id;
 }
 
 // Helper to record a check
 async function recordCheck(
   t: ReturnType<typeof setupBackend>,
-  monitorId: ReturnType<typeof createTestMonitor> extends Promise<infer T> ? T : never,
-  status: 'up' | 'down' | 'degraded',
+  monitorId: ReturnType<typeof createTestMonitor> extends Promise<infer T>
+    ? T
+    : never,
+  status: "up" | "down" | "degraded",
   responseTime: number,
-  checkedAt?: number
+  checkedAt?: number,
 ) {
   await t.mutation(internal.monitoring.recordCheck, {
     monitorId,
     status,
-    statusCode: status === 'up' ? 200 : undefined,
+    statusCode: status === "up" ? 200 : undefined,
     responseTime,
     checkedAt: checkedAt ?? Date.now(),
   });
 }
 
-describe('getRecentForMonitor', () => {
-  test('returns empty array for monitor with no checks', async () => {
+describe("getRecentForMonitor", () => {
+  test("returns empty array for monitor with no checks", async () => {
     const t = setupBackend();
     const monitorId = await createTestMonitor(t);
 
@@ -42,37 +45,40 @@ describe('getRecentForMonitor', () => {
     expect(checks).toHaveLength(0);
   });
 
-  test('returns checks in descending order by checkedAt', async () => {
+  test("returns checks in descending order by checkedAt", async () => {
     const t = setupBackend();
     const monitorId = await createTestMonitor(t);
 
     const now = Date.now();
-    await recordCheck(t, monitorId, 'up', 100, now - 3000);
-    await recordCheck(t, monitorId, 'up', 150, now - 2000);
-    await recordCheck(t, monitorId, 'down', 0, now - 1000);
+    await recordCheck(t, monitorId, "up", 100, now - 3000);
+    await recordCheck(t, monitorId, "up", 150, now - 2000);
+    await recordCheck(t, monitorId, "down", 0, now - 1000);
 
     const checks = await t.query(api.checks.getRecentForMonitor, { monitorId });
     expect(checks).toHaveLength(3);
     // Most recent first
-    expect(checks[0].status).toBe('down');
+    expect(checks[0].status).toBe("down");
     expect(checks[1].responseTime).toBe(150);
     expect(checks[2].responseTime).toBe(100);
   });
 
-  test('respects limit parameter', async () => {
+  test("respects limit parameter", async () => {
     const t = setupBackend();
     const monitorId = await createTestMonitor(t);
 
     const now = Date.now();
     for (let i = 0; i < 5; i++) {
-      await recordCheck(t, monitorId, 'up', 100 + i * 10, now - i * 1000);
+      await recordCheck(t, monitorId, "up", 100 + i * 10, now - i * 1000);
     }
 
-    const checks = await t.query(api.checks.getRecentForMonitor, { monitorId, limit: 2 });
+    const checks = await t.query(api.checks.getRecentForMonitor, {
+      monitorId,
+      limit: 2,
+    });
     expect(checks).toHaveLength(2);
   });
 
-  test('defaults to 50 when no limit specified', async () => {
+  test("defaults to 50 when no limit specified", async () => {
     const t = setupBackend();
     const monitorId = await createTestMonitor(t);
 
@@ -83,8 +89,8 @@ describe('getRecentForMonitor', () => {
   });
 });
 
-describe('getUptimeStats', () => {
-  test('returns 100% uptime for monitor with no checks', async () => {
+describe("getUptimeStats", () => {
+  test("returns 100% uptime for monitor with no checks", async () => {
     const t = setupBackend();
     const monitorId = await createTestMonitor(t);
 
@@ -96,13 +102,13 @@ describe('getUptimeStats', () => {
     expect(stats.avgResponseTime).toBeNull();
   });
 
-  test('calculates correct uptime percentage with all successful checks', async () => {
+  test("calculates correct uptime percentage with all successful checks", async () => {
     const t = setupBackend();
     const monitorId = await createTestMonitor(t);
 
     const now = Date.now();
     for (let i = 0; i < 10; i++) {
-      await recordCheck(t, monitorId, 'up', 100, now - i * 1000);
+      await recordCheck(t, monitorId, "up", 100, now - i * 1000);
     }
 
     const stats = await t.query(api.checks.getUptimeStats, { monitorId });
@@ -112,17 +118,17 @@ describe('getUptimeStats', () => {
     expect(stats.failedChecks).toBe(0);
   });
 
-  test('calculates correct uptime percentage with mixed checks', async () => {
+  test("calculates correct uptime percentage with mixed checks", async () => {
     const t = setupBackend();
     const monitorId = await createTestMonitor(t);
 
     const now = Date.now();
     // 8 successful, 2 failed = 80% uptime
     for (let i = 0; i < 8; i++) {
-      await recordCheck(t, monitorId, 'up', 100, now - i * 1000);
+      await recordCheck(t, monitorId, "up", 100, now - i * 1000);
     }
-    await recordCheck(t, monitorId, 'down', 0, now - 8000);
-    await recordCheck(t, monitorId, 'down', 0, now - 9000);
+    await recordCheck(t, monitorId, "down", 0, now - 8000);
+    await recordCheck(t, monitorId, "down", 0, now - 9000);
 
     const stats = await t.query(api.checks.getUptimeStats, { monitorId });
     expect(stats.uptimePercentage).toBe(80);
@@ -131,21 +137,21 @@ describe('getUptimeStats', () => {
     expect(stats.failedChecks).toBe(2);
   });
 
-  test('calculates average response time correctly', async () => {
+  test("calculates average response time correctly", async () => {
     const t = setupBackend();
     const monitorId = await createTestMonitor(t);
 
     const now = Date.now();
     // 100, 200, 300 ms = avg 200ms
-    await recordCheck(t, monitorId, 'up', 100, now - 3000);
-    await recordCheck(t, monitorId, 'up', 200, now - 2000);
-    await recordCheck(t, monitorId, 'up', 300, now - 1000);
+    await recordCheck(t, monitorId, "up", 100, now - 3000);
+    await recordCheck(t, monitorId, "up", 200, now - 2000);
+    await recordCheck(t, monitorId, "up", 300, now - 1000);
 
     const stats = await t.query(api.checks.getUptimeStats, { monitorId });
     expect(stats.avgResponseTime).toBe(200);
   });
 
-  test('filters checks by days parameter', async () => {
+  test("filters checks by days parameter", async () => {
     const t = setupBackend();
     const monitorId = await createTestMonitor(t);
 
@@ -154,25 +160,28 @@ describe('getUptimeStats', () => {
     const twoDaysAgo = now - 2 * 24 * 60 * 60 * 1000;
 
     // Checks within 1 day
-    await recordCheck(t, monitorId, 'up', 100, now);
-    await recordCheck(t, monitorId, 'up', 100, oneDayAgo + 1000);
+    await recordCheck(t, monitorId, "up", 100, now);
+    await recordCheck(t, monitorId, "up", 100, oneDayAgo + 1000);
 
     // Check older than 1 day
-    await recordCheck(t, monitorId, 'down', 0, twoDaysAgo);
+    await recordCheck(t, monitorId, "down", 0, twoDaysAgo);
 
     // Query with 1 day filter - should only get 2 checks
-    const stats = await t.query(api.checks.getUptimeStats, { monitorId, days: 1 });
+    const stats = await t.query(api.checks.getUptimeStats, {
+      monitorId,
+      days: 1,
+    });
     expect(stats.totalChecks).toBe(2);
     expect(stats.uptimePercentage).toBe(100); // Only the 'up' checks
   });
 
-  test('handles all failed checks', async () => {
+  test("handles all failed checks", async () => {
     const t = setupBackend();
     const monitorId = await createTestMonitor(t);
 
     const now = Date.now();
     for (let i = 0; i < 5; i++) {
-      await recordCheck(t, monitorId, 'down', 0, now - i * 1000);
+      await recordCheck(t, monitorId, "down", 0, now - i * 1000);
     }
 
     const stats = await t.query(api.checks.getUptimeStats, { monitorId });

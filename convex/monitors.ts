@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { query, mutation, internalQuery } from "./_generated/server";
 import { toPublicMonitor } from "./publicTypes";
+import { generateUniqueStatusSlug } from "./slugs";
 
 const publicMonitorValidator = v.object({
   _id: v.id("monitors"),
@@ -53,12 +54,12 @@ export const getByProjectSlug = query({
   returns: v.array(publicMonitorValidator),
   handler: async (ctx, args) => {
     console.warn(
-      "[DEPRECATED] getByProjectSlug exposes sensitive fields. Use getPublicMonitorsForProject instead."
+      "[DEPRECATED] getByProjectSlug exposes sensitive fields. Use getPublicMonitorsForProject instead.",
     );
     const monitors = await ctx.db
       .query("monitors")
       .withIndex("by_project_slug_and_visibility", (q) =>
-        q.eq("projectSlug", args.projectSlug).eq("visibility", "public")
+        q.eq("projectSlug", args.projectSlug).eq("visibility", "public"),
       )
       .collect();
 
@@ -73,7 +74,7 @@ export const getPublicMonitorsForProject = query({
     const monitors = await ctx.db
       .query("monitors")
       .withIndex("by_project_slug_and_visibility", (q) =>
-        q.eq("projectSlug", args.projectSlug).eq("visibility", "public")
+        q.eq("projectSlug", args.projectSlug).eq("visibility", "public"),
       )
       .collect();
 
@@ -91,7 +92,7 @@ export const create = mutation({
       v.literal("HEAD"),
       v.literal("PUT"),
       v.literal("DELETE"),
-      v.literal("PATCH")
+      v.literal("PATCH"),
     ),
     interval: v.union(
       v.literal(60),
@@ -99,13 +100,15 @@ export const create = mutation({
       v.literal(300),
       v.literal(600),
       v.literal(1800),
-      v.literal(3600)
+      v.literal(3600),
     ),
     timeout: v.number(),
     projectSlug: v.string(),
     expectedStatusCode: v.optional(v.number()),
     expectedBodyContains: v.optional(v.string()),
-    headers: v.optional(v.array(v.object({ key: v.string(), value: v.string() }))),
+    headers: v.optional(
+      v.array(v.object({ key: v.string(), value: v.string() })),
+    ),
     body: v.optional(v.string()),
     visibility: v.optional(v.union(v.literal("public"), v.literal("private"))),
   },
@@ -116,9 +119,11 @@ export const create = mutation({
     }
 
     const now = Date.now();
+    const statusSlug = await generateUniqueStatusSlug(ctx);
 
-    return await ctx.db.insert("monitors", {
+    const id = await ctx.db.insert("monitors", {
       ...args,
+      statusSlug,
       visibility: args.visibility ?? "public",
       userId: identity.subject,
       enabled: true,
@@ -126,6 +131,9 @@ export const create = mutation({
       createdAt: now,
       updatedAt: now,
     });
+
+    // Return full document so client can display statusSlug immediately
+    return await ctx.db.get(id);
   },
 });
 
@@ -141,8 +149,8 @@ export const update = mutation({
         v.literal("HEAD"),
         v.literal("PUT"),
         v.literal("DELETE"),
-        v.literal("PATCH")
-      )
+        v.literal("PATCH"),
+      ),
     ),
     interval: v.optional(
       v.union(
@@ -151,13 +159,15 @@ export const update = mutation({
         v.literal(300),
         v.literal(600),
         v.literal(1800),
-        v.literal(3600)
-      )
+        v.literal(3600),
+      ),
     ),
     timeout: v.optional(v.number()),
     expectedStatusCode: v.optional(v.number()),
     expectedBodyContains: v.optional(v.string()),
-    headers: v.optional(v.array(v.object({ key: v.string(), value: v.string() }))),
+    headers: v.optional(
+      v.array(v.object({ key: v.string(), value: v.string() })),
+    ),
     body: v.optional(v.string()),
     enabled: v.optional(v.boolean()),
     visibility: v.optional(v.union(v.literal("public"), v.literal("private"))),
