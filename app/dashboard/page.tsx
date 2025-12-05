@@ -9,58 +9,40 @@ import { AddMonitorForm } from "../../components/AddMonitorForm";
 import { StatusIndicator } from "../../components/StatusIndicator";
 import { Id } from "../../convex/_generated/dataModel";
 import { Plus, Activity, Clock, X } from "lucide-react";
+import {
+  computeStatus,
+  aggregateStatuses,
+  formatRelativeTime,
+  getStatusHeadline,
+} from "@/lib/domain";
 
 export default function DashboardPage() {
   const { isAuthenticated, isLoading } = useConvexAuth();
   const monitors = useQuery(api.monitors.list, isAuthenticated ? {} : "skip");
-  const [editingMonitorId, setEditingMonitorId] = useState<Id<"monitors"> | null>(null);
+  const [editingMonitorId, setEditingMonitorId] =
+    useState<Id<"monitors"> | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
 
   const editingMonitor = monitors?.find((m) => m._id === editingMonitorId);
 
-  // Calculate aggregate status
+  // Calculate aggregate status using domain logic
   const aggregateStatus = useMemo(() => {
     if (!monitors || monitors.length === 0) return null;
-
-    const hasDown = monitors.some(m => m.consecutiveFailures >= 3);
-    const hasDegraded = monitors.some(m => m.consecutiveFailures > 0 && m.consecutiveFailures < 3);
-
-    if (hasDown) return "down";
-    if (hasDegraded) return "degraded";
-    return "up";
+    const statuses = monitors.map((m) => computeStatus(m.consecutiveFailures));
+    return aggregateStatuses(statuses);
   }, [monitors]);
 
   // Get last check time
   const lastCheckTime = useMemo(() => {
     if (!monitors || monitors.length === 0) return null;
     const times = monitors
-      .map(m => m.lastCheckAt)
+      .map((m) => m.lastCheckAt)
       .filter((t): t is number => t !== undefined);
     if (times.length === 0) return null;
     return Math.max(...times);
   }, [monitors]);
 
-  // Format relative time
-  const formatRelativeTime = (timestamp: number) => {
-    const diff = Date.now() - timestamp;
-    const minutes = Math.floor(diff / 60000);
-    if (minutes < 1) return "just now";
-    if (minutes === 1) return "1 minute ago";
-    if (minutes < 60) return `${minutes} minutes ago`;
-    const hours = Math.floor(minutes / 60);
-    if (hours === 1) return "1 hour ago";
-    return `${hours} hours ago`;
-  };
-
-  // Get status headline
-  const getStatusHeadline = () => {
-    switch (aggregateStatus) {
-      case "up": return "All Systems Operational";
-      case "degraded": return "Partial Degradation";
-      case "down": return "System Issues Detected";
-      default: return "Status Unknown";
-    }
-  };
+  // formatRelativeTime and getStatusHeadline imported from @/lib/domain
 
   // Loading state
   if (isLoading || monitors === undefined) {
@@ -111,13 +93,14 @@ export default function DashboardPage() {
               </div>
             )}
             <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl tracking-tight text-foreground leading-none">
-              {getStatusHeadline()}
+              {getStatusHeadline(aggregateStatus)}
             </h1>
           </div>
           <div className="flex items-center gap-6 text-sm text-foreground/50">
             <span className="inline-flex items-center gap-2">
               <Activity className="h-3.5 w-3.5" />
-              <span className="tabular-nums">{monitors.length}</span> {monitors.length === 1 ? "monitor" : "monitors"}
+              <span className="tabular-nums">{monitors.length}</span>{" "}
+              {monitors.length === 1 ? "monitor" : "monitors"}
             </span>
             {lastCheckTime && (
               <span className="inline-flex items-center gap-2">
@@ -130,9 +113,7 @@ export default function DashboardPage() {
 
         {/* Actions row */}
         <div className="flex items-center justify-between border-t border-foreground/10 pt-8">
-          <h2 className="font-serif text-xl text-foreground/70">
-            Monitors
-          </h2>
+          <h2 className="font-serif text-xl text-foreground/70">Monitors</h2>
           <button
             onClick={() => setShowAddForm(!showAddForm)}
             className={`flex items-center gap-2 px-4 py-2 font-medium transition-all ${

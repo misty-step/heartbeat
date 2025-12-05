@@ -36,7 +36,6 @@ jobs:
 
       - name: Lint
         run: pnpm lint
-        continue-on-error: true # Don't block for now, strict enforcement later
 
       - name: Type Check
         run: pnpm type-check

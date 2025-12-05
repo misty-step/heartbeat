@@ -15,8 +15,16 @@
 
   /* Semantic text hierarchy */
   --color-text-primary: var(--color-foreground);
-  --color-text-secondary: color-mix(in srgb, var(--color-foreground) 70%, transparent);
-  --color-text-tertiary: color-mix(in srgb, var(--color-foreground) 50%, transparent);
+  --color-text-secondary: color-mix(
+    in srgb,
+    var(--color-foreground) 70%,
+    transparent
+  );
+  --color-text-tertiary: color-mix(
+    in srgb,
+    var(--color-foreground) 50%,
+    transparent
+  );
 
   /* Status colors */
   --color-success: #10b981;
@@ -25,12 +33,16 @@
 
   /* Spacing */
   --spacing-page: clamp(1.5rem, 5vw, 6rem);
+
+  /* Primary action color */
+  --color-primary: #1a1a1a;
 }
 
 /* Dark Mode - class-based for next-themes */
 .dark {
   --color-background: #0f0f0f;
   --color-foreground: #faf9f7;
+  --color-primary: #faf9f7;
 }
 
 /* Base Styles */
@@ -159,14 +171,26 @@ body {
 }
 
 /* Status color classes */
-.bg-up { background-color: var(--color-up); }
-.bg-down { background-color: var(--color-down); }
-.bg-degraded { background-color: var(--color-degraded); }
-.bg-unknown { background-color: var(--color-unknown); }
+.bg-up {
+  background-color: var(--color-up);
+}
+.bg-down {
+  background-color: var(--color-down);
+}
+.bg-degraded {
+  background-color: var(--color-degraded);
+}
+.bg-unknown {
+  background-color: var(--color-unknown);
+}
+.bg-primary {
+  background-color: var(--color-primary);
+}
 
 /* Status indicator animations */
 @keyframes heartbeat {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
     opacity: 1;
   }
@@ -188,7 +212,8 @@ body {
 }
 
 @keyframes pulse-glow {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0.2;
     transform: scale(1);
   }
@@ -200,14 +225,20 @@ body {
 
 /* Dashboard grid - subtle, refined */
 .dashboard-grid {
-  background-image:
-    radial-gradient(circle at center, rgba(0, 0, 0, 0.04) 1px, transparent 1px);
+  background-image: radial-gradient(
+    circle at center,
+    rgba(0, 0, 0, 0.04) 1px,
+    transparent 1px
+  );
   background-size: 32px 32px;
 }
 
 .dark .dashboard-grid {
-  background-image:
-    radial-gradient(circle at center, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-image: radial-gradient(
+    circle at center,
+    rgba(255, 255, 255, 0.03) 1px,
+    transparent 1px
+  );
 }
 
 /* ===== ANIMATION UTILITIES ===== */
@@ -248,19 +279,40 @@ body {
 }
 
 /* Staggered animation delays for cards */
-.stagger-1 { animation-delay: 0ms; }
-.stagger-2 { animation-delay: 50ms; }
-.stagger-3 { animation-delay: 100ms; }
-.stagger-4 { animation-delay: 150ms; }
-.stagger-5 { animation-delay: 200ms; }
-.stagger-6 { animation-delay: 250ms; }
-.stagger-7 { animation-delay: 300ms; }
-.stagger-8 { animation-delay: 350ms; }
-.stagger-9 { animation-delay: 400ms; }
+.stagger-1 {
+  animation-delay: 0ms;
+}
+.stagger-2 {
+  animation-delay: 50ms;
+}
+.stagger-3 {
+  animation-delay: 100ms;
+}
+.stagger-4 {
+  animation-delay: 150ms;
+}
+.stagger-5 {
+  animation-delay: 200ms;
+}
+.stagger-6 {
+  animation-delay: 250ms;
+}
+.stagger-7 {
+  animation-delay: 300ms;
+}
+.stagger-8 {
+  animation-delay: 350ms;
+}
+.stagger-9 {
+  animation-delay: 400ms;
+}
 
 /* Card hover lift effect */
 .card-hover {
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .card-hover:hover {

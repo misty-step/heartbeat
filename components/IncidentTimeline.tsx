@@ -1,3 +1,5 @@
+import { formatTimestamp, calculateDuration } from "@/lib/domain";
+
 interface Incident {
   id: string;
   title: string;
@@ -38,26 +40,7 @@ export function IncidentTimeline({ incidents }: IncidentTimelineProps) {
     },
   };
 
-  const formatTimestamp = (date: Date) => {
-    return date.toLocaleString("en-US", {
-      month: "short",
-      day: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
-    });
-  };
-
-  const calculateDuration = (startedAt: Date, resolvedAt?: Date) => {
-    const end = resolvedAt || new Date();
-    const diffMs = end.getTime() - startedAt.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-
-    if (diffMins < 60) return `${diffMins}m`;
-
-    const hours = Math.floor(diffMins / 60);
-    const mins = diffMins % 60;
-    return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
-  };
+  // formatTimestamp and calculateDuration imported from @/lib/domain
 
   if (incidents.length === 0) {
     return (

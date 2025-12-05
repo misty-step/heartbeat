@@ -5,6 +5,7 @@ import { useMutation } from "convex/react";
 import { api } from "../convex/_generated/api";
 import { Id } from "../convex/_generated/dataModel";
 import { X } from "lucide-react";
+import { validateMonitorForm, type ValidationErrors } from "@/lib/domain";
 
 interface Monitor {
   _id: Id<"monitors">;
@@ -21,7 +22,7 @@ interface MonitorSettingsModalProps {
   onClose: () => void;
 }
 
-type FormErrors = Partial<Record<string, string>>;
+// FormErrors type imported from @/lib/domain as ValidationErrors
 
 type IntervalValue = 60 | 120 | 300 | 600 | 1800 | 3600;
 
@@ -44,27 +45,17 @@ export function MonitorSettingsModal({
     visibility: monitor.visibility,
   });
 
-  const [errors, setErrors] = useState<FormErrors>({});
+  const [errors, setErrors] = useState<ValidationErrors>({});
 
+  // Use domain validation function
   const validateForm = (): boolean => {
-    const newErrors: FormErrors = {};
-
-    if (!formData.url) newErrors.url = "URL is required";
-    else if (!/^https?:\/\/.+/.test(formData.url))
-      newErrors.url = "URL must start with http:// or https://";
-
-    if (!formData.name) newErrors.name = "Name is required";
-
-    if (
-      formData.expectedStatusCode &&
-      (Number(formData.expectedStatusCode) < 100 ||
-        Number(formData.expectedStatusCode) > 599)
-    ) {
-      newErrors.expectedStatusCode = "Must be 100-599";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    const result = validateMonitorForm({
+      url: formData.url,
+      name: formData.name,
+      expectedStatusCode: formData.expectedStatusCode,
+    });
+    setErrors(result.errors);
+    return result.valid;
   };
 
   const handleSubmit = async (e: FormEvent) => {
@@ -98,7 +89,7 @@ export function MonitorSettingsModal({
   const handleDeleteClick = async () => {
     if (
       !confirm(
-        `Delete ${monitor.name}? This will permanently delete all check history. This action cannot be undone.`
+        `Delete ${monitor.name}? This will permanently delete all check history. This action cannot be undone.`,
       )
     ) {
       return;
@@ -171,7 +162,11 @@ export function MonitorSettingsModal({
                 errors.name ? "border-red-500" : "border-foreground/20"
               } text-foreground focus:outline-none focus:border-foreground/50 transition-colors`}
             />
-            {errors.name && <p className="text-sm text-red-600 dark:text-red-400">{errors.name}</p>}
+            {errors.name && (
+              <p className="text-sm text-red-600 dark:text-red-400">
+                {errors.name}
+              </p>
+            )}
           </div>
 
           {/* URL field */}
@@ -193,7 +188,11 @@ export function MonitorSettingsModal({
                 errors.url ? "border-red-500" : "border-foreground/20"
               } text-foreground focus:outline-none focus:border-foreground/50 transition-colors`}
             />
-            {errors.url && <p className="text-sm text-red-600 dark:text-red-400">{errors.url}</p>}
+            {errors.url && (
+              <p className="text-sm text-red-600 dark:text-red-400">
+                {errors.url}
+              </p>
+            )}
           </div>
 
           {/* Check Interval field */}
@@ -208,7 +207,10 @@ export function MonitorSettingsModal({
               id="interval"
               value={formData.interval}
               onChange={(e) =>
-                setFormData({ ...formData, interval: Number(e.target.value) as IntervalValue })
+                setFormData({
+                  ...formData,
+                  interval: Number(e.target.value) as IntervalValue,
+                })
               }
               className="w-full px-4 py-3 bg-transparent border border-foreground/20 text-foreground focus:outline-none focus:border-foreground/50 transition-colors"
             >
@@ -266,11 +268,15 @@ export function MonitorSettingsModal({
               }
               placeholder="200"
               className={`w-full px-4 py-3 bg-transparent border ${
-                errors.expectedStatusCode ? "border-red-500" : "border-foreground/20"
+                errors.expectedStatusCode
+                  ? "border-red-500"
+                  : "border-foreground/20"
               } text-foreground placeholder:text-foreground/30 focus:outline-none focus:border-foreground/50 transition-colors`}
             />
             {errors.expectedStatusCode && (
-              <p className="text-sm text-red-600 dark:text-red-400">{errors.expectedStatusCode}</p>
+              <p className="text-sm text-red-600 dark:text-red-400">
+                {errors.expectedStatusCode}
+              </p>
             )}
             <p className="text-xs text-foreground/40">
               Leave empty to accept any 2xx or 3xx status

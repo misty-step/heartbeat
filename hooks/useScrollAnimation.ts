@@ -13,7 +13,7 @@ import { useEffect, useRef, useState } from "react";
  */
 export function useScrollAnimation(
   threshold: number = 0.1,
-  rootMargin: string = "0px"
+  rootMargin: string = "0px",
 ) {
   const elementRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
@@ -34,16 +34,17 @@ export function useScrollAnimation(
       {
         threshold,
         rootMargin,
-      }
+      },
     );
 
-    if (elementRef.current) {
-      observer.observe(elementRef.current);
+    const element = elementRef.current;
+    if (element) {
+      observer.observe(element);
     }
 
     return () => {
-      if (elementRef.current) {
-        observer.unobserve(elementRef.current);
+      if (element) {
+        observer.unobserve(element);
       }
     };
   }, [threshold, rootMargin, isVisible]);

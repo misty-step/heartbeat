@@ -3,6 +3,7 @@
 import { useState, FormEvent } from "react";
 import { useMutation } from "convex/react";
 import { api } from "../convex/_generated/api";
+import { validateUrl, generateSlug, extractNameFromUrl } from "@/lib/domain";
 
 export function AddMonitorForm({ onSuccess }: { onSuccess?: () => void }) {
   const createMonitor = useMutation(api.monitors.create);
@@ -11,38 +12,16 @@ export function AddMonitorForm({ onSuccess }: { onSuccess?: () => void }) {
   const [name, setName] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  // Auto-generate project slug from name
-  const generateSlug = (text: string): string => {
-    return text
-      .toLowerCase()
-      .trim()
-      .replace(/[^\w\s-]/g, "")
-      .replace(/[\s-]+/g, "-")
-      .replace(/^-|-$/g, "") || "monitor";
-  };
-
-  // Extract name from URL if not provided
-  const extractNameFromUrl = (urlString: string): string => {
-    try {
-      const parsed = new URL(urlString);
-      return parsed.hostname.replace(/^www\./, "");
-    } catch {
-      return "";
-    }
-  };
+  // generateSlug and extractNameFromUrl imported from @/lib/domain
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
 
-    // Validation
-    if (!url) {
-      setError("URL is required");
-      return;
-    }
-
-    if (!/^https?:\/\/.+/.test(url)) {
-      setError("URL must start with http:// or https://");
+    // Validation using domain function
+    const urlError = validateUrl(url);
+    if (urlError) {
+      setError(urlError);
       return;
     }
 
@@ -83,7 +62,10 @@ export function AddMonitorForm({ onSuccess }: { onSuccess?: () => void }) {
 
       {/* URL field - primary */}
       <div className="space-y-2">
-        <label htmlFor="url" className="block text-sm font-medium text-foreground/70">
+        <label
+          htmlFor="url"
+          className="block text-sm font-medium text-foreground/70"
+        >
           URL
         </label>
         <input
@@ -99,7 +81,10 @@ export function AddMonitorForm({ onSuccess }: { onSuccess?: () => void }) {
 
       {/* Name field - secondary */}
       <div className="space-y-2">
-        <label htmlFor="name" className="block text-sm font-medium text-foreground/70">
+        <label
+          htmlFor="name"
+          className="block text-sm font-medium text-foreground/70"
+        >
           Name
           <span className="ml-2 text-foreground/40 font-normal">optional</span>
         </label>
