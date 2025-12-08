@@ -82,6 +82,23 @@ export const getPublicMonitorsForProject = query({
   },
 });
 
+export const getPublicMonitorByStatusSlug = query({
+  args: { statusSlug: v.string() },
+  returns: v.union(publicMonitorValidator, v.null()),
+  handler: async (ctx, args) => {
+    const monitor = await ctx.db
+      .query("monitors")
+      .withIndex("by_status_slug", (q) => q.eq("statusSlug", args.statusSlug))
+      .first();
+
+    if (!monitor || monitor.visibility !== "public") {
+      return null;
+    }
+
+    return toPublicMonitor(monitor);
+  },
+});
+
 export const create = mutation({
   args: {
     name: v.string(),

@@ -213,3 +213,50 @@ describe("getOpenIncidents - deleted", () => {
     expect(incidentQueryNames).not.toContain("getOpenIncidents");
   });
 });
+
+describe("getPublicMonitorByStatusSlug", () => {
+  test("returns monitor by statusSlug for public monitor", async () => {
+    const t = setupBackend();
+    const monitorId = await createMonitor(t, { visibility: "public" });
+
+    // Get the monitor to retrieve its statusSlug
+    const fullMonitor = await t
+      .withIdentity(user)
+      .query(api.monitors.get, { id: monitorId });
+
+    const result = await t.query(api.monitors.getPublicMonitorByStatusSlug, {
+      statusSlug: fullMonitor.statusSlug!,
+    });
+
+    expect(result).not.toBeNull();
+    expect(result!._id).toEqual(monitorId);
+    expect(result!.name).toBe("API");
+    expect(result).not.toHaveProperty("url");
+    expect(result).not.toHaveProperty("headers");
+  });
+
+  test("returns null for private monitor", async () => {
+    const t = setupBackend();
+    const monitorId = await createMonitor(t, { visibility: "private" });
+
+    const fullMonitor = await t
+      .withIdentity(user)
+      .query(api.monitors.get, { id: monitorId });
+
+    const result = await t.query(api.monitors.getPublicMonitorByStatusSlug, {
+      statusSlug: fullMonitor.statusSlug!,
+    });
+
+    expect(result).toBeNull();
+  });
+
+  test("returns null for non-existent statusSlug", async () => {
+    const t = setupBackend();
+
+    const result = await t.query(api.monitors.getPublicMonitorByStatusSlug, {
+      statusSlug: "non-existent-slug",
+    });
+
+    expect(result).toBeNull();
+  });
+});
