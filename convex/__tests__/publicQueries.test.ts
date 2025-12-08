@@ -214,6 +214,44 @@ describe("getOpenIncidents - deleted", () => {
   });
 });
 
+describe("getPublicIncidentsForMonitor", () => {
+  test("returns incidents for public monitor", async () => {
+    const t = setupBackend();
+    const monitorId = await createMonitor(t, { visibility: "public" });
+
+    await t.mutation(internal.monitoring.openIncident, { monitorId });
+
+    const incidents = await t.query(
+      api.incidents.getPublicIncidentsForMonitor,
+      {
+        monitorId,
+        limit: 10,
+      },
+    );
+
+    expect(incidents).toHaveLength(1);
+    expect(incidents[0]).not.toHaveProperty("description");
+    expect(incidents[0]).not.toHaveProperty("monitorId");
+  });
+
+  test("returns empty array for private monitor", async () => {
+    const t = setupBackend();
+    const monitorId = await createMonitor(t, { visibility: "private" });
+
+    await t.mutation(internal.monitoring.openIncident, { monitorId });
+
+    const incidents = await t.query(
+      api.incidents.getPublicIncidentsForMonitor,
+      {
+        monitorId,
+        limit: 10,
+      },
+    );
+
+    expect(incidents).toHaveLength(0);
+  });
+});
+
 describe("getPublicMonitorByStatusSlug", () => {
   test("returns monitor by statusSlug for public monitor", async () => {
     const t = setupBackend();
