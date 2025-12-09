@@ -14,7 +14,7 @@ interface Monitor {
   interval: number;
   timeout: number;
   expectedStatusCode?: number;
-  visibility: "public" | "private";
+  visibility?: "public" | "private";
 }
 
 interface MonitorSettingsModalProps {
