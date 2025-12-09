@@ -6,7 +6,7 @@ import { api } from "../convex/_generated/api";
 import { Id } from "../convex/_generated/dataModel";
 import { StatusIndicator } from "./StatusIndicator";
 import { UptimeBar } from "./UptimeBar";
-import { Settings, ChevronDown, ChevronUp } from "lucide-react";
+import { Settings, ChevronDown, ChevronUp, ExternalLink } from "lucide-react";
 import { computeStatus, getStatusLabel } from "@/lib/domain";
 
 interface DashboardMonitorCardProps {
@@ -15,6 +15,7 @@ interface DashboardMonitorCardProps {
     name: string;
     url: string;
     projectSlug: string;
+    statusSlug?: string;
     consecutiveFailures: number;
     lastResponseTime?: number;
     lastCheckAt?: number;
@@ -60,17 +61,31 @@ export function DashboardMonitorCard({
               </p>
             </div>
 
-            {/* Settings button - hover reveal */}
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onEdit();
-              }}
-              className="p-2 text-foreground/20 opacity-0 group-hover:opacity-100 hover:text-foreground hover:bg-foreground/5 transition-all duration-150"
-              title="Settings"
-            >
-              <Settings className="h-4 w-4" />
-            </button>
+            {/* Action buttons - hover reveal */}
+            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+              {monitor.statusSlug && (
+                <a
+                  href={`/status/${monitor.statusSlug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="p-2 text-foreground/20 hover:text-foreground hover:bg-foreground/5 transition-all duration-150"
+                  title="View Status Page"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                </a>
+              )}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit();
+                }}
+                className="p-2 text-foreground/20 hover:text-foreground hover:bg-foreground/5 transition-all duration-150"
+                title="Settings"
+              >
+                <Settings className="h-4 w-4" />
+              </button>
+            </div>
           </div>
 
           {/* Uptime visualization */}
