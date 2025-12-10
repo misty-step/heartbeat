@@ -3,7 +3,8 @@ pre-commit:
   commands:
     lint:
       glob: "*.{ts,tsx}"
-      run: pnpm eslint {staged_files} --max-warnings 0
+      exclude: "_generated"
+      run: pnpm eslint {staged_files} --max-warnings 0 --no-warn-ignored
     format:
       glob: "*.{ts,tsx,json,md,css}"
       run: pnpm prettier --write {staged_files}

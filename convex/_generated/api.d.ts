@@ -15,6 +15,7 @@ import type * as migrations from "../migrations.js";
 import type * as monitoring from "../monitoring.js";
 import type * as monitors from "../monitors.js";
 import type * as publicTypes from "../publicTypes.js";
+import type * as slugs from "../slugs.js";
 
 import type {
   ApiFromModules,
@@ -30,6 +31,7 @@ declare const fullApi: ApiFromModules<{
   monitoring: typeof monitoring;
   monitors: typeof monitors;
   publicTypes: typeof publicTypes;
+  slugs: typeof slugs;
 }>;
 
 /**

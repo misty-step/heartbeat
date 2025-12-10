@@ -30,8 +30,8 @@ export default defineSchema({
     body: v.optional(v.string()),
     enabled: v.boolean(),
     projectSlug: v.string(),
-    statusSlug: v.optional(v.string()), // e.g., "silver-mountain-echo" — unique per monitor
-    visibility: v.optional(v.union(v.literal("public"), v.literal("private"))),
+    statusSlug: v.string(), // e.g., "silver-mountain-echo" — unique per monitor
+    visibility: v.union(v.literal("public"), v.literal("private")),
     userId: v.string(),
     consecutiveFailures: v.number(),
     lastCheckAt: v.optional(v.number()),

@@ -15,7 +15,8 @@ interface DashboardMonitorCardProps {
     name: string;
     url: string;
     projectSlug: string;
-    statusSlug?: string;
+    statusSlug: string;
+    visibility: "public" | "private";
     consecutiveFailures: number;
     lastResponseTime?: number;
     lastCheckAt?: number;
@@ -63,7 +64,7 @@ export function DashboardMonitorCard({
 
             {/* Action buttons - hover reveal */}
             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
-              {monitor.statusSlug && (
+              {monitor.visibility === "public" && (
                 <a
                   href={`/status/${monitor.statusSlug}`}
                   target="_blank"
