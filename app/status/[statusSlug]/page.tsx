@@ -1,9 +1,8 @@
 import { notFound } from "next/navigation";
 import { fetchQuery } from "convex/nextjs";
 import { api } from "@/convex/_generated/api";
-import { StatusPageHero } from "@/components/StatusPageHero";
-import { UptimeChart } from "@/components/UptimeChart";
-import { IncidentTimeline } from "@/components/IncidentTimeline";
+import { ZenStatusHero } from "@/components/ZenStatusHero";
+import { StatusPageDetails } from "@/components/StatusPageDetails";
 
 // ISR Configuration
 export const revalidate = 60; // Revalidate every 60 seconds
@@ -66,33 +65,24 @@ export default async function IndividualStatusPage({ params }: PageProps) {
     updates: [],
   }));
 
+  // Calculate average response time from recent checks
+  const avgResponseTime =
+    recentChecks.length > 0
+      ? recentChecks.reduce((sum, c) => sum + c.responseTime, 0) /
+        recentChecks.length
+      : 0;
+
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-4xl mx-auto">
-        <StatusPageHero
-          status={monitor.status}
-          monitorName={monitor.name}
-          lastCheckAt={monitor.lastCheckAt}
-          uptimePercentage={uptimeStats.uptimePercentage}
-        />
+      <ZenStatusHero status={monitor.status} monitorName={monitor.name} />
 
-        <main className="px-6 sm:px-8 lg:px-12 pb-16 space-y-12">
-          {/* Uptime Chart Section */}
-          {chartData.length > 0 && (
-            <section className="space-y-4">
-              <UptimeChart
-                data={chartData}
-                uptimePercentage={uptimeStats.uptimePercentage}
-              />
-            </section>
-          )}
-
-          {/* Incident Timeline Section */}
-          <section>
-            <IncidentTimeline incidents={incidents} />
-          </section>
-        </main>
-      </div>
+      <StatusPageDetails
+        chartData={chartData}
+        uptimePercentage={uptimeStats.uptimePercentage}
+        avgResponseTime={avgResponseTime}
+        lastCheckAt={monitor.lastCheckAt}
+        incidents={incidents}
+      />
     </div>
   );
 }

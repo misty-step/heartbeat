@@ -201,6 +201,9 @@ body {
 .bg-unknown {
   background-color: var(--color-unknown);
 }
+.bg-up-glow {
+  background-color: var(--color-up-glow);
+}
 .bg-primary {
   background-color: var(--color-primary);
 }
@@ -239,6 +242,99 @@ body {
     opacity: 0.4;
     transform: scale(1.1);
   }
+}
+
+/* ===== ZEN STATUS PAGE ANIMATIONS ===== */
+/* Meditative breathing for status indicators */
+
+@keyframes zen-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.85;
+    box-shadow: 0 0 0 0 var(--color-up-glow);
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 1;
+    box-shadow: 0 0 20px 4px var(--color-up-glow);
+  }
+}
+
+@keyframes zen-breathe-fast {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.8;
+    box-shadow: 0 0 0 0 currentColor;
+  }
+  50% {
+    transform: scale(1.12);
+    opacity: 1;
+    box-shadow: 0 0 8px 1px currentColor;
+  }
+}
+
+@keyframes zen-hint-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(4px);
+  }
+}
+
+@keyframes zen-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-zen-breathe {
+  animation: zen-breathe 6s ease-in-out infinite;
+}
+
+.animate-zen-breathe-fast {
+  animation: zen-breathe-fast 4s ease-in-out infinite;
+}
+
+.animate-zen-hint {
+  animation:
+    zen-fade-in 0.5s ease-out 2s forwards,
+    zen-hint-bob 2s ease-in-out 2.5s infinite;
+  opacity: 0;
+}
+
+.animate-zen-fade-in {
+  animation: zen-fade-in 0.8s ease-out forwards;
+}
+
+/* Zen dot matrix background - technical but calm */
+.zen-dot-matrix {
+  position: relative;
+}
+
+.zen-dot-matrix::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(
+    circle at center,
+    var(--color-foreground) 0.5px,
+    transparent 0.5px
+  );
+  background-size: 24px 24px;
+  background-position: center center;
+  opacity: 0.04;
+  pointer-events: none;
+}
+
+.dark .zen-dot-matrix::before {
+  opacity: 0.03;
 }
 
 /* Dashboard grid - subtle, refined */
