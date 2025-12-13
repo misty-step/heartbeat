@@ -1,13 +1,13 @@
 interface StatusIndicatorProps {
   status: "up" | "down" | "degraded" | "unknown";
-  size?: "sm" | "md" | "lg" | "xl";
+  size?: "sm" | "md" | "lg" | "xl" | "2xl";
   cinematic?: boolean; // Enable extra ring layers for dramatic effect
 }
 
 export function StatusIndicator({
   status,
   size = "md",
-  cinematic = false
+  cinematic = false,
 }: StatusIndicatorProps) {
   // Size variants - larger for more visual impact
   const sizeClasses = {
@@ -15,27 +15,32 @@ export function StatusIndicator({
     md: "w-4 h-4",
     lg: "w-5 h-5",
     xl: "w-6 h-6",
+    "2xl": "w-8 h-8",
   };
 
   // Revolutionary: "up" uses black/white (theme-aware) with cyan glow
   // Other statuses use semantic colors
   const colorMap = {
-    up: "bg-up",              // Black (light) / White (dark) - distinctive!
-    degraded: "bg-degraded",   // Orange
-    down: "bg-down",           // Red
-    unknown: "bg-unknown",     // Gray
+    up: "bg-up", // Black (light) / White (dark) - distinctive!
+    degraded: "bg-degraded", // Orange
+    down: "bg-down", // Red
+    unknown: "bg-unknown", // Gray
   };
 
   const dotColor = colorMap[status];
   const shouldHeartbeat = status === "up";
 
   return (
-    <div className={`relative flex items-center justify-center ${sizeClasses[size]}`}>
+    <div
+      className={`relative flex items-center justify-center ${sizeClasses[size]}`}
+    >
       {/* Main status dot */}
       <div
         className={`relative z-10 rounded-full ${sizeClasses[size]} ${dotColor}`}
         style={{
-          animation: shouldHeartbeat ? "heartbeat 2s ease-in-out infinite" : "none",
+          animation: shouldHeartbeat
+            ? "heartbeat 2s ease-in-out infinite"
+            : "none",
           willChange: shouldHeartbeat ? "transform, opacity" : "auto",
         }}
       />
@@ -81,7 +86,8 @@ export function StatusIndicator({
                 className="absolute rounded-full"
                 style={{
                   inset: "-50%",
-                  background: "radial-gradient(circle, var(--color-up-glow) 0%, transparent 70%)",
+                  background:
+                    "radial-gradient(circle, var(--color-up-glow) 0%, transparent 70%)",
                   animation: "pulse-glow 2s ease-in-out infinite",
                   opacity: 0.2,
                 }}
@@ -110,7 +116,7 @@ export function StatusIndicator({
               className="absolute rounded-full bg-down"
               style={{
                 inset: "-50%",
-                animation: "pulse-glow 1s ease-in-out infinite",
+                animation: "pulse-glow 3s ease-in-out infinite",
                 opacity: 0.15,
                 filter: "blur(12px)",
               }}

@@ -9,10 +9,25 @@ interface UptimeBarProps {
   days?: number;
 }
 
-export function UptimeBar({ monitorId, days = 30 }: UptimeBarProps) {
-  const uptimeStats = useQuery(api.checks.getUptimeStats, { monitorId, days });
+type DayStatus = "up" | "degraded" | "down";
 
-  if (!uptimeStats) {
+const getBarColor = (status: DayStatus | "unknown") => {
+  switch (status) {
+    case "up":
+      return "bg-foreground";
+    case "degraded":
+      return "bg-degraded";
+    case "down":
+      return "bg-down";
+    default:
+      return "bg-foreground/10";
+  }
+};
+
+export function UptimeBar({ monitorId, days = 30 }: UptimeBarProps) {
+  const dailyStatus = useQuery(api.checks.getDailyStatus, { monitorId, days });
+
+  if (!dailyStatus) {
     // Loading state - show placeholder bars
     return (
       <div className="flex gap-[2px]">
@@ -27,34 +42,28 @@ export function UptimeBar({ monitorId, days = 30 }: UptimeBarProps) {
     );
   }
 
-  // Generate day-by-day status from checks data
-  // For now, use uptime percentage to determine overall status
-  const overallStatus = uptimeStats.uptimePercentage >= 99 ? "up"
-    : uptimeStats.uptimePercentage >= 90 ? "degraded"
-    : "down";
+  // Build a map of date -> status for quick lookup
+  const statusByDate = new Map(dailyStatus.map((d) => [d.date, d.status]));
 
-  // Simple visualization: all bars same color based on overall status
-  // In a real implementation, you'd have daily stats
-  const getBarColor = (status: string) => {
-    switch (status) {
-      case "up": return "bg-foreground";
-      case "degraded": return "bg-degraded";
-      case "down": return "bg-down";
-      default: return "bg-foreground/10";
-    }
-  };
+  // Generate array of dates for the past N days
+  const today = new Date();
+  const dateRange: string[] = [];
+  for (let i = days - 1; i >= 0; i--) {
+    const date = new Date(today);
+    date.setDate(date.getDate() - i);
+    dateRange.push(date.toISOString().split("T")[0]);
+  }
 
   return (
     <div className="space-y-2">
       <div className="flex gap-[2px]">
-        {Array.from({ length: days }).map((_, i) => {
-          // Simulate some variation - most recent days are operational
-          const dayStatus = i < days - uptimeStats.failedChecks ? "up" : "down";
+        {dateRange.map((date, i) => {
+          const status = statusByDate.get(date) ?? "unknown";
           return (
             <div
-              key={i}
-              className={`flex-1 h-6 transition-all hover:opacity-70 ${getBarColor(dayStatus)}`}
-              title={`Day ${days - i}`}
+              key={date}
+              className={`flex-1 h-6 transition-all hover:opacity-70 ${getBarColor(status)}`}
+              title={date}
             />
           );
         })}
@@ -70,7 +79,7 @@ export function UptimeBar({ monitorId, days = 30 }: UptimeBarProps) {
 // Simple version without API call - for cases where we have the data
 export function UptimeBarSimple({
   percentage,
-  days = 30
+  days = 30,
 }: {
   percentage: number;
   days?: number;

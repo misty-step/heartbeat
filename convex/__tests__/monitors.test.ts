@@ -1,64 +1,67 @@
-import { test, expect, describe } from 'vitest';
-import { api } from '../_generated/api';
-import { setupBackend } from '../../tests/convex';
+import { test, expect, describe } from "vitest";
+import { api } from "../_generated/api";
+import { setupBackend } from "../../tests/convex";
 
 const user = { name: "Test", subject: "user_123", issuer: "clerk" };
 const otherUser = { name: "Other", subject: "user_456", issuer: "clerk" };
 
-// Helper to create a monitor
+// Helper to create a monitor and return its ID
 async function createMonitor(
   t: ReturnType<typeof setupBackend>,
   identity = user,
-  overrides = {}
+  overrides = {},
 ) {
-  return await t.withIdentity(identity).mutation(api.monitors.create, {
-    name: 'Test Monitor',
-    url: 'https://example.com',
-    method: 'GET',
+  const monitor = await t.withIdentity(identity).mutation(api.monitors.create, {
+    name: "Test Monitor",
+    url: "https://example.com",
+    method: "GET",
     interval: 60,
     timeout: 10000,
-    projectSlug: 'test-project',
+    projectSlug: "test-project",
     ...overrides,
   });
+  return monitor!._id;
 }
 
-describe('create', () => {
-  test('creates monitor successfully', async () => {
+describe("create", () => {
+  test("creates monitor successfully", async () => {
     const t = setupBackend();
-    
+
     await t.withIdentity(user).mutation(api.monitors.create, {
-      name: 'Test Monitor',
-      url: 'https://example.com',
-      method: 'GET',
+      name: "Test Monitor",
+      url: "https://example.com",
+      method: "GET",
       interval: 60,
       timeout: 10,
-      projectSlug: 'test-project',
+      projectSlug: "test-project",
     });
 
     const monitors = await t.withIdentity(user).query(api.monitors.list);
     expect(monitors).toHaveLength(1);
     expect(monitors[0]).toMatchObject({
-      name: 'Test Monitor',
-      url: 'https://example.com',
+      name: "Test Monitor",
+      url: "https://example.com",
       interval: 60,
-      projectSlug: 'test-project',
+      projectSlug: "test-project",
     });
   });
 
-  test('requires auth', async () => {
+  test("requires auth", async () => {
     const t = setupBackend();
-    
-    await expect(t.mutation(api.monitors.create, {
-      name: 'Test Monitor',
-      url: 'https://example.com',
-      method: 'GET',
-      interval: 60,
-      timeout: 10,
-      projectSlug: 'test-project',
-    })).rejects.toThrow("Unauthorized");
+
+    await expect(
+      t.mutation(api.monitors.create, {
+        name: "Test Monitor",
+        url: "https://example.com",
+        method: "GET",
+        interval: 60,
+        timeout: 10,
+        projectSlug: "test-project",
+      }),
+    ).rejects.toThrow("Unauthorized");
   });
 
-  test('sets default fields correctly', async () => {
+  test("sets default fields correctly", async () => {
     const t = setupBackend();
     await createMonitor(t);
 
@@ -69,88 +72,124 @@ describe('create', () => {
     expect(monitors[0].updatedAt).toBeDefined();
   });
 
-  test('defaults visibility to public', async () => {
+  test("defaults visibility to public", async () => {
     const t = setupBackend();
     const monitorId = await createMonitor(t);
 
-    const monitor = await t.withIdentity(user).query(api.monitors.get, { id: monitorId });
+    const monitor = await t
+      .withIdentity(user)
+      .query(api.monitors.get, { id: monitorId });
     expect(monitor.visibility).toBe("public");
   });
 
-  test('can set visibility to private on create', async () => {
+  test("can set visibility to private on create", async () => {
     const t = setupBackend();
     const monitorId = await createMonitor(t, user, { visibility: "private" });
 
-    const monitor = await t.withIdentity(user).query(api.monitors.get, { id: monitorId });
+    const monitor = await t
+      .withIdentity(user)
+      .query(api.monitors.get, { id: monitorId });
     expect(monitor.visibility).toBe("private");
+  });
+
+  test("generates statusSlug on create", async () => {
+    const t = setupBackend();
+    const monitorId = await createMonitor(t);
+
+    const monitor = await t
+      .withIdentity(user)
+      .query(api.monitors.get, { id: monitorId });
+    expect(monitor.statusSlug).toBeDefined();
+    expect(monitor.statusSlug).toMatch(/^[a-z]+-[a-z]+-[a-z]+$/);
+  });
+
+  test("statusSlug is unique across monitors", async () => {
+    const t = setupBackend();
+    const id1 = await createMonitor(t, user, { name: "Monitor 1" });
+    const id2 = await createMonitor(t, user, { name: "Monitor 2" });
+
+    const monitor1 = await t
+      .withIdentity(user)
+      .query(api.monitors.get, { id: id1 });
+    const monitor2 = await t
+      .withIdentity(user)
+      .query(api.monitors.get, { id: id2 });
+
+    expect(monitor1.statusSlug).not.toBe(monitor2.statusSlug);
   });
 });
 
-describe('get', () => {
-  test('returns monitor for owner', async () => {
+describe("get", () => {
+  test("returns monitor for owner", async () => {
     const t = setupBackend();
     const monitorId = await createMonitor(t);
 
-    const monitor = await t.withIdentity(user).query(api.monitors.get, { id: monitorId });
-    expect(monitor.name).toBe('Test Monitor');
-    expect(monitor.url).toBe('https://example.com');
+    const monitor = await t
+      .withIdentity(user)
+      .query(api.monitors.get, { id: monitorId });
+    expect(monitor.name).toBe("Test Monitor");
+    expect(monitor.url).toBe("https://example.com");
   });
 
-  test('requires auth', async () => {
+  test("requires auth", async () => {
+    const t = setupBackend();
+    const monitorId = await createMonitor(t);
+
+    await expect(t.query(api.monitors.get, { id: monitorId })).rejects.toThrow(
+      "Unauthorized",
+    );
+  });
+
+  test("throws for non-owner", async () => {
     const t = setupBackend();
     const monitorId = await createMonitor(t);
 
     await expect(
-      t.query(api.monitors.get, { id: monitorId })
-    ).rejects.toThrow("Unauthorized");
-  });
-
-  test('throws for non-owner', async () => {
-    const t = setupBackend();
-    const monitorId = await createMonitor(t);
-
-    await expect(
-      t.withIdentity(otherUser).query(api.monitors.get, { id: monitorId })
+      t.withIdentity(otherUser).query(api.monitors.get, { id: monitorId }),
     ).rejects.toThrow("Monitor not found");
   });
 });
 
-describe('update', () => {
-  test('updates monitor fields', async () => {
+describe("update", () => {
+  test("updates monitor fields", async () => {
     const t = setupBackend();
     const monitorId = await createMonitor(t);
 
     await t.withIdentity(user).mutation(api.monitors.update, {
       id: monitorId,
-      name: 'Updated Name',
+      name: "Updated Name",
       interval: 300,
     });
 
-    const monitor = await t.withIdentity(user).query(api.monitors.get, { id: monitorId });
-    expect(monitor.name).toBe('Updated Name');
+    const monitor = await t
+      .withIdentity(user)
+      .query(api.monitors.get, { id: monitorId });
+    expect(monitor.name).toBe("Updated Name");
     expect(monitor.interval).toBe(300);
-    expect(monitor.url).toBe('https://example.com'); // unchanged
+    expect(monitor.url).toBe("https://example.com"); // unchanged
   });
 
-  test('requires auth', async () => {
+  test("requires auth", async () => {
     const t = setupBackend();
     const monitorId = await createMonitor(t);
 
     await expect(
-      t.mutation(api.monitors.update, { id: monitorId, name: 'New Name' })
+      t.mutation(api.monitors.update, { id: monitorId, name: "New Name" }),
     ).rejects.toThrow("Unauthorized");
   });
 
-  test('throws for non-owner', async () => {
+  test("throws for non-owner", async () => {
     const t = setupBackend();
     const monitorId = await createMonitor(t);
 
     await expect(
-      t.withIdentity(otherUser).mutation(api.monitors.update, { id: monitorId, name: 'New' })
+      t
+        .withIdentity(otherUser)
+        .mutation(api.monitors.update, { id: monitorId, name: "New" }),
     ).rejects.toThrow("Monitor not found");
   });
 
-  test('can disable monitor', async () => {
+  test("can disable monitor", async () => {
     const t = setupBackend();
     const monitorId = await createMonitor(t);
 
@@ -159,11 +198,13 @@ describe('update', () => {
       enabled: false,
     });
 
-    const monitor = await t.withIdentity(user).query(api.monitors.get, { id: monitorId });
+    const monitor = await t
+      .withIdentity(user)
+      .query(api.monitors.get, { id: monitorId });
     expect(monitor.enabled).toBe(false);
   });
 
-  test('can update visibility', async () => {
+  test("can update visibility", async () => {
     const t = setupBackend();
     const monitorId = await createMonitor(t);
 
@@ -172,13 +213,15 @@ describe('update', () => {
       visibility: "private",
     });
 
-    const monitor = await t.withIdentity(user).query(api.monitors.get, { id: monitorId });
+    const monitor = await t
+      .withIdentity(user)
+      .query(api.monitors.get, { id: monitorId });
     expect(monitor.visibility).toBe("private");
   });
 });
 
-describe('remove', () => {
-  test('deletes monitor', async () => {
+describe("remove", () => {
+  test("deletes monitor", async () => {
     const t = setupBackend();
     const monitorId = await createMonitor(t);
 
@@ -188,60 +231,70 @@ describe('remove', () => {
     expect(monitors).toHaveLength(0);
   });
 
-  test('requires auth', async () => {
+  test("requires auth", async () => {
     const t = setupBackend();
     const monitorId = await createMonitor(t);
 
     await expect(
-      t.mutation(api.monitors.remove, { id: monitorId })
+      t.mutation(api.monitors.remove, { id: monitorId }),
     ).rejects.toThrow("Unauthorized");
   });
 
-  test('throws for non-owner', async () => {
+  test("throws for non-owner", async () => {
     const t = setupBackend();
     const monitorId = await createMonitor(t);
 
     await expect(
-      t.withIdentity(otherUser).mutation(api.monitors.remove, { id: monitorId })
+      t
+        .withIdentity(otherUser)
+        .mutation(api.monitors.remove, { id: monitorId }),
     ).rejects.toThrow("Monitor not found");
   });
 });
 
-describe('getByProjectSlug', () => {
-  test('returns only public monitors and redacts sensitive fields', async () => {
+describe("getByProjectSlug", () => {
+  test("returns only public monitors and redacts sensitive fields", async () => {
     const t = setupBackend();
-    await createMonitor(t, user, { projectSlug: 'my-project' });
-    await createMonitor(t, user, { projectSlug: 'my-project', name: 'Second', visibility: "private" });
-    await createMonitor(t, user, { projectSlug: 'other-project' });
+    await createMonitor(t, user, { projectSlug: "my-project" });
+    await createMonitor(t, user, {
+      projectSlug: "my-project",
+      name: "Second",
+      visibility: "private",
+    });
+    await createMonitor(t, user, { projectSlug: "other-project" });
 
-    const monitors = await t.query(api.monitors.getByProjectSlug, { projectSlug: 'my-project' });
+    const monitors = await t.query(api.monitors.getByProjectSlug, {
+      projectSlug: "my-project",
+    });
     expect(monitors).toHaveLength(1);
-    expect(monitors[0]).toMatchObject({ name: 'Test Monitor', status: 'up' });
-    expect(monitors[0]).not.toHaveProperty('url');
-    expect(monitors[0]).not.toHaveProperty('headers');
+    expect(monitors[0]).toMatchObject({ name: "Test Monitor", status: "up" });
+    expect(monitors[0]).not.toHaveProperty("url");
+    expect(monitors[0]).not.toHaveProperty("headers");
   });
 
-  test('returns empty array for non-existent project', async () => {
+  test("returns empty array for non-existent project", async () => {
     const t = setupBackend();
 
-    const monitors = await t.query(api.monitors.getByProjectSlug, { projectSlug: 'nonexistent' });
+    const monitors = await t.query(api.monitors.getByProjectSlug, {
+      projectSlug: "nonexistent",
+    });
     expect(monitors).toHaveLength(0);
   });
 });
 
-describe('list', () => {
-  test('only returns user monitors', async () => {
+describe("list", () => {
+  test("only returns user monitors", async () => {
     const t = setupBackend();
-    
-    await createMonitor(t, user, { name: 'My Monitor' });
-    await createMonitor(t, otherUser, { name: 'Not My Monitor' });
-    
+
+    await createMonitor(t, user, { name: "My Monitor" });
+    await createMonitor(t, otherUser, { name: "Not My Monitor" });
+
     const monitors = await t.withIdentity(user).query(api.monitors.list);
     expect(monitors).toHaveLength(1);
-    expect(monitors[0].name).toBe('My Monitor');
+    expect(monitors[0].name).toBe("My Monitor");
   });
 
-  test('requires auth', async () => {
+  test("requires auth", async () => {
     const t = setupBackend();
 
     await expect(t.query(api.monitors.list)).rejects.toThrow("Unauthorized");

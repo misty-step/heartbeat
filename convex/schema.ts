@@ -11,7 +11,7 @@ export default defineSchema({
       v.literal("HEAD"),
       v.literal("PUT"),
       v.literal("DELETE"),
-      v.literal("PATCH")
+      v.literal("PATCH"),
     ),
     interval: v.union(
       v.literal(60),
@@ -19,15 +19,18 @@ export default defineSchema({
       v.literal(300),
       v.literal(600),
       v.literal(1800),
-      v.literal(3600)
+      v.literal(3600),
     ),
     timeout: v.number(),
     expectedStatusCode: v.optional(v.number()),
     expectedBodyContains: v.optional(v.string()),
-    headers: v.optional(v.array(v.object({ key: v.string(), value: v.string() }))),
+    headers: v.optional(
+      v.array(v.object({ key: v.string(), value: v.string() })),
+    ),
     body: v.optional(v.string()),
     enabled: v.boolean(),
     projectSlug: v.string(),
+    statusSlug: v.string(), // e.g., "silver-mountain-echo" — unique per monitor
     visibility: v.union(v.literal("public"), v.literal("private")),
     userId: v.string(),
     consecutiveFailures: v.number(),
@@ -39,6 +42,7 @@ export default defineSchema({
     .index("by_user", ["userId"])
     .index("by_project_slug", ["projectSlug"])
     .index("by_project_slug_and_visibility", ["projectSlug", "visibility"])
+    .index("by_status_slug", ["statusSlug"])
     .index("by_enabled", ["enabled"]),
 
   checks: defineTable({
@@ -54,7 +58,11 @@ export default defineSchema({
 
   incidents: defineTable({
     monitorId: v.id("monitors"),
-    status: v.union(v.literal("investigating"), v.literal("identified"), v.literal("resolved")),
+    status: v.union(
+      v.literal("investigating"),
+      v.literal("identified"),
+      v.literal("resolved"),
+    ),
     startedAt: v.number(),
     resolvedAt: v.optional(v.number()),
     title: v.string(),

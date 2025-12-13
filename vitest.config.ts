@@ -54,6 +54,7 @@ export default defineConfig({
         "app/privacy/**", // Static content pages
         "app/terms/**", // Static content pages
         "app/s/**", // Status pages are SSR containers - tested via e2e
+        "app/status/**", // Individual status pages (ISR) - async server components
         "middleware.ts", // Edge middleware is not typically unit tested in JSDOM
         "components/MonitorSettingsModal.tsx", // Large UI surface exercised via e2e
         "components/AddMonitorForm.tsx", // Form wiring covered in higher-level tests

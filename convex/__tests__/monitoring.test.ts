@@ -1,6 +1,6 @@
-import { test, expect, describe, vi, beforeEach, afterEach } from 'vitest';
-import { api, internal } from '../_generated/api';
-import { setupBackend } from '../../tests/convex';
+import { test, expect, describe, vi, beforeEach, afterEach } from "vitest";
+import { api, internal } from "../_generated/api";
+import { setupBackend } from "../../tests/convex";
 
 const user = { name: "Test", subject: "user_test", issuer: "clerk" };
 
@@ -18,19 +18,19 @@ afterEach(() => {
 
 // Helper to create a monitor and return its ID
 async function createTestMonitor(t: ReturnType<typeof setupBackend>) {
-  const monitorId = await t.withIdentity(user).mutation(api.monitors.create, {
-    name: 'Test Monitor',
-    url: 'https://example.com',
-    method: 'GET',
+  const monitor = await t.withIdentity(user).mutation(api.monitors.create, {
+    name: "Test Monitor",
+    url: "https://example.com",
+    method: "GET",
     interval: 60,
     timeout: 10000,
-    projectSlug: 'test-project',
+    projectSlug: "test-project",
   });
-  return monitorId;
+  return monitor!._id;
 }
 
-describe('updateMonitorStatus', () => {
-  test('successful check resets failure counter to 0', async () => {
+describe("updateMonitorStatus", () => {
+  test("successful check resets failure counter to 0", async () => {
     const t = setupBackend();
     const monitorId = await createTestMonitor(t);
 
@@ -42,13 +42,15 @@ describe('updateMonitorStatus', () => {
     });
 
     // Verify monitor state
-    const monitor = await t.withIdentity(user).query(api.monitors.get, { id: monitorId });
+    const monitor = await t
+      .withIdentity(user)
+      .query(api.monitors.get, { id: monitorId });
     expect(monitor.consecutiveFailures).toBe(0);
     expect(monitor.lastResponseTime).toBe(150);
     expect(monitor.lastCheckAt).toBeDefined();
   });
 
-  test('failed check increments failure counter', async () => {
+  test("failed check increments failure counter", async () => {
     const t = setupBackend();
     const monitorId = await createTestMonitor(t);
 
@@ -60,11 +62,13 @@ describe('updateMonitorStatus', () => {
     });
 
     // Verify failure count increased
-    const monitor = await t.withIdentity(user).query(api.monitors.get, { id: monitorId });
+    const monitor = await t
+      .withIdentity(user)
+      .query(api.monitors.get, { id: monitorId });
     expect(monitor.consecutiveFailures).toBe(1);
   });
 
-  test('second failure increments counter without triggering incident', async () => {
+  test("second failure increments counter without triggering incident", async () => {
     const t = setupBackend();
     const monitorId = await createTestMonitor(t);
 
@@ -80,7 +84,9 @@ describe('updateMonitorStatus', () => {
       responseTime: 0,
     });
 
-    const monitor = await t.withIdentity(user).query(api.monitors.get, { id: monitorId });
+    const monitor = await t
+      .withIdentity(user)
+      .query(api.monitors.get, { id: monitorId });
     expect(monitor.consecutiveFailures).toBe(2);
 
     // No incident should exist yet (openIncident not directly called)
@@ -88,7 +94,7 @@ describe('updateMonitorStatus', () => {
     expect(incidents).toHaveLength(0);
   });
 
-  test('third failure sets counter to 3', async () => {
+  test("third failure sets counter to 3", async () => {
     const t = setupBackend();
     const monitorId = await createTestMonitor(t);
 
@@ -103,11 +109,13 @@ describe('updateMonitorStatus', () => {
     // Run scheduled openIncident triggered by 3rd failure
     await t.finishAllScheduledFunctions(advanceTimers);
 
-    const monitor = await t.withIdentity(user).query(api.monitors.get, { id: monitorId });
+    const monitor = await t
+      .withIdentity(user)
+      .query(api.monitors.get, { id: monitorId });
     expect(monitor.consecutiveFailures).toBe(3);
   });
 
-  test('success resets failures even from high count', async () => {
+  test("success resets failures even from high count", async () => {
     const t = setupBackend();
     const monitorId = await createTestMonitor(t);
 
@@ -130,12 +138,14 @@ describe('updateMonitorStatus', () => {
     await t.finishAllScheduledFunctions(advanceTimers);
 
     // Verify recovery
-    const monitor = await t.withIdentity(user).query(api.monitors.get, { id: monitorId });
+    const monitor = await t
+      .withIdentity(user)
+      .query(api.monitors.get, { id: monitorId });
     expect(monitor.consecutiveFailures).toBe(0);
     expect(monitor.lastResponseTime).toBe(200);
   });
 
-  test('throws error for non-existent monitor', async () => {
+  test("throws error for non-existent monitor", async () => {
     const t = setupBackend();
 
     // Create and immediately delete a monitor to get an invalid ID
@@ -147,13 +157,13 @@ describe('updateMonitorStatus', () => {
         monitorId,
         success: true,
         responseTime: 100,
-      })
-    ).rejects.toThrow('not found');
+      }),
+    ).rejects.toThrow("not found");
   });
 });
 
-describe('openIncident', () => {
-  test('creates incident with correct title and description', async () => {
+describe("openIncident", () => {
+  test("creates incident with correct title and description", async () => {
     const t = setupBackend();
     const monitorId = await createTestMonitor(t);
 
@@ -168,12 +178,12 @@ describe('openIncident', () => {
 
     const incidents = await t.query(api.incidents.getForMonitor, { monitorId });
     expect(incidents).toHaveLength(1);
-    expect(incidents[0].status).toBe('investigating');
-    expect(incidents[0].title).toBe('Test Monitor is down');
+    expect(incidents[0].status).toBe("investigating");
+    expect(incidents[0].title).toBe("Test Monitor is down");
     expect(incidents[0].startedAt).toBeDefined();
   });
 
-  test('does not create duplicate incident if one already exists', async () => {
+  test("does not create duplicate incident if one already exists", async () => {
     const t = setupBackend();
     const monitorId = await createTestMonitor(t);
 
@@ -188,7 +198,7 @@ describe('openIncident', () => {
     expect(incidents).toHaveLength(1);
   });
 
-  test('can create new incident after previous one is resolved', async () => {
+  test("can create new incident after previous one is resolved", async () => {
     const t = setupBackend();
     const monitorId = await createTestMonitor(t);
 
@@ -201,12 +211,14 @@ describe('openIncident', () => {
 
     const incidents = await t.query(api.incidents.getForMonitor, { monitorId });
     expect(incidents).toHaveLength(2);
-    expect(incidents.filter(i => i.status === 'investigating')).toHaveLength(1);
+    expect(incidents.filter((i) => i.status === "investigating")).toHaveLength(
+      1,
+    );
   });
 });
 
-describe('resolveIncident', () => {
-  test('resolves open incident', async () => {
+describe("resolveIncident", () => {
+  test("resolves open incident", async () => {
     const t = setupBackend();
     const monitorId = await createTestMonitor(t);
 
@@ -214,11 +226,11 @@ describe('resolveIncident', () => {
     await t.mutation(internal.monitoring.resolveIncident, { monitorId });
 
     const incidents = await t.query(api.incidents.getForMonitor, { monitorId });
-    expect(incidents[0].status).toBe('resolved');
+    expect(incidents[0].status).toBe("resolved");
     expect(incidents[0].resolvedAt).toBeDefined();
   });
 
-  test('no-op if no open incident exists', async () => {
+  test("no-op if no open incident exists", async () => {
     const t = setupBackend();
     const monitorId = await createTestMonitor(t);
 
@@ -230,15 +242,15 @@ describe('resolveIncident', () => {
   });
 });
 
-describe('recordCheck', () => {
-  test('records check with all fields', async () => {
+describe("recordCheck", () => {
+  test("records check with all fields", async () => {
     const t = setupBackend();
     const monitorId = await createTestMonitor(t);
     const now = Date.now();
 
     await t.mutation(internal.monitoring.recordCheck, {
       monitorId,
-      status: 'up',
+      status: "up",
       statusCode: 200,
       responseTime: 150,
       checkedAt: now,
@@ -248,33 +260,33 @@ describe('recordCheck', () => {
     expect(checks).toHaveLength(1);
     expect(checks[0]).toMatchObject({
       monitorId,
-      status: 'up',
+      status: "up",
       statusCode: 200,
       responseTime: 150,
     });
   });
 
-  test('records check with error message', async () => {
+  test("records check with error message", async () => {
     const t = setupBackend();
     const monitorId = await createTestMonitor(t);
     const now = Date.now();
 
     await t.mutation(internal.monitoring.recordCheck, {
       monitorId,
-      status: 'down',
+      status: "down",
       responseTime: 5000,
-      errorMessage: 'Connection timeout',
+      errorMessage: "Connection timeout",
       checkedAt: now,
     });
 
     const checks = await t.query(api.checks.getRecentForMonitor, { monitorId });
-    expect(checks[0].errorMessage).toBe('Connection timeout');
-    expect(checks[0].status).toBe('down');
+    expect(checks[0].errorMessage).toBe("Connection timeout");
+    expect(checks[0].status).toBe("down");
   });
 });
 
-describe('getDueMonitors', () => {
-  test('returns never-checked monitors as due', async () => {
+describe("getDueMonitors", () => {
+  test("returns never-checked monitors as due", async () => {
     const t = setupBackend();
     await createTestMonitor(t);
 
@@ -282,7 +294,7 @@ describe('getDueMonitors', () => {
     expect(dueMonitors).toHaveLength(1);
   });
 
-  test('excludes recently checked monitors', async () => {
+  test("excludes recently checked monitors", async () => {
     const t = setupBackend();
     const monitorId = await createTestMonitor(t);
 
@@ -297,7 +309,7 @@ describe('getDueMonitors', () => {
     expect(dueMonitors).toHaveLength(0);
   });
 
-  test('excludes disabled monitors', async () => {
+  test("excludes disabled monitors", async () => {
     const t = setupBackend();
     const monitorId = await createTestMonitor(t);
 

@@ -4,6 +4,7 @@ import { useState, FormEvent } from "react";
 import { useMutation } from "convex/react";
 import { api } from "../convex/_generated/api";
 import { validateUrl, generateSlug, extractNameFromUrl } from "@/lib/domain";
+import { Check, Copy, ExternalLink } from "lucide-react";
 
 export function AddMonitorForm({ onSuccess }: { onSuccess?: () => void }) {
   const createMonitor = useMutation(api.monitors.create);
@@ -11,6 +12,10 @@ export function AddMonitorForm({ onSuccess }: { onSuccess?: () => void }) {
   const [url, setUrl] = useState("");
   const [name, setName] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [createdStatusSlug, setCreatedStatusSlug] = useState<string | null>(
+    null,
+  );
+  const [copied, setCopied] = useState(false);
 
   // generateSlug and extractNameFromUrl imported from @/lib/domain
 
@@ -33,7 +38,7 @@ export function AddMonitorForm({ onSuccess }: { onSuccess?: () => void }) {
 
     setIsSubmitting(true);
     try {
-      await createMonitor({
+      const monitor = await createMonitor({
         name: monitorName,
         url: url,
         projectSlug: generateSlug(monitorName),
@@ -42,10 +47,15 @@ export function AddMonitorForm({ onSuccess }: { onSuccess?: () => void }) {
         timeout: 30000,
       });
 
-      // Reset form
-      setUrl("");
-      setName("");
-      onSuccess?.();
+      // Show success state with status page URL
+      if (monitor?.statusSlug) {
+        setCreatedStatusSlug(monitor.statusSlug);
+      } else {
+        // Fallback: reset and call onSuccess
+        setUrl("");
+        setName("");
+        onSuccess?.();
+      }
     } catch (err) {
       console.error("Failed to create monitor:", err);
       setError("Failed to create monitor. Please try again.");
@@ -53,6 +63,71 @@ export function AddMonitorForm({ onSuccess }: { onSuccess?: () => void }) {
       setIsSubmitting(false);
     }
   };
+
+  const statusPageUrl = createdStatusSlug
+    ? `${typeof window !== "undefined" ? window.location.origin : ""}/status/${createdStatusSlug}`
+    : null;
+
+  const copyToClipboard = async () => {
+    if (!statusPageUrl) return;
+    await navigator.clipboard.writeText(statusPageUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleDone = () => {
+    setCreatedStatusSlug(null);
+    setUrl("");
+    setName("");
+    setCopied(false);
+    onSuccess?.();
+  };
+
+  // Success state - show status page URL
+  if (createdStatusSlug && statusPageUrl) {
+    return (
+      <div className="space-y-6">
+        <div className="space-y-2">
+          <p className="text-sm font-medium text-foreground/70">
+            Monitor created! Share your status page:
+          </p>
+          <div className="flex items-center gap-2">
+            <code className="flex-1 px-4 py-3 bg-foreground/5 border border-foreground/10 text-foreground/80 font-mono text-sm truncate">
+              {statusPageUrl}
+            </code>
+            <button
+              type="button"
+              onClick={copyToClipboard}
+              className="p-3 border border-foreground/20 hover:bg-foreground/5 transition-colors"
+              title="Copy URL"
+            >
+              {copied ? (
+                <Check className="h-4 w-4 text-green-600" />
+              ) : (
+                <Copy className="h-4 w-4 text-foreground/60" />
+              )}
+            </button>
+            <a
+              href={statusPageUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-3 border border-foreground/20 hover:bg-foreground/5 transition-colors"
+              title="Open status page"
+            >
+              <ExternalLink className="h-4 w-4 text-foreground/60" />
+            </a>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={handleDone}
+          className="w-full px-6 py-3 bg-foreground text-background font-medium transition-opacity hover:opacity-80"
+        >
+          Done
+        </button>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">

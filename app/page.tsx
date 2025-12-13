@@ -11,7 +11,7 @@ export default function HomePage() {
       </div>
 
       {/* Hero - Clean, focused */}
-      <main className="flex-1 flex items-center px-6 sm:px-12 lg:px-24">
+      <main className="min-h-screen flex items-center px-6 sm:px-12 lg:px-24">
         <div className="max-w-2xl">
           <h1 className="font-serif text-5xl sm:text-6xl lg:text-7xl leading-[1.1] tracking-tight text-foreground">
             Your infrastructure,

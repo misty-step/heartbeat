@@ -19,12 +19,15 @@ const baseMonitorArgs = {
 
 const createMonitor = async (
   t: ReturnType<typeof setupBackend>,
-  overrides: Partial<typeof baseMonitorArgs> & { visibility?: "public" | "private" } = {}
+  overrides: Partial<typeof baseMonitorArgs> & {
+    visibility?: "public" | "private";
+  } = {},
 ) => {
-  return await t.withIdentity(user).mutation(api.monitors.create, {
+  const monitor = await t.withIdentity(user).mutation(api.monitors.create, {
     ...baseMonitorArgs,
     ...overrides,
   });
+  return monitor!._id;
 };
 
 const recordCheck = async (
@@ -32,7 +35,11 @@ const recordCheck = async (
   monitorId: string,
   status: "up" | "down" | "degraded",
   responseTime: number,
-  extra: { statusCode?: number; errorMessage?: string; checkedAt?: number } = {}
+  extra: {
+    statusCode?: number;
+    errorMessage?: string;
+    checkedAt?: number;
+  } = {},
 ) => {
   await t.mutation(internal.monitoring.recordCheck, {
     monitorId,
@@ -62,7 +69,7 @@ describe("getPublicMonitorsForProject", () => {
       expect.objectContaining({
         name: "API",
         status: expect.stringMatching(/up|degraded|down/),
-      })
+      }),
     );
     expect(monitor).not.toHaveProperty("url");
     expect(monitor).not.toHaveProperty("headers");
@@ -76,7 +83,10 @@ describe("getPublicMonitorsForProject", () => {
 
   test("excludes private monitors", async () => {
     const t = setupBackend();
-    const publicMonitor = await createMonitor(t, { name: "Public", visibility: "public" });
+    const publicMonitor = await createMonitor(t, {
+      name: "Public",
+      visibility: "public",
+    });
     await createMonitor(t, { name: "Private", visibility: "private" });
 
     const monitors = await t.query(api.monitors.getPublicMonitorsForProject, {
@@ -135,7 +145,10 @@ describe("getPublicUptimeStats", () => {
     await recordCheck(t, monitorId, "up", 100, { checkedAt: Date.now() });
     await recordCheck(t, monitorId, "down", 200, { checkedAt: Date.now() });
 
-    const stats = await t.query(api.checks.getPublicUptimeStats, { monitorId, days: 7 });
+    const stats = await t.query(api.checks.getPublicUptimeStats, {
+      monitorId,
+      days: 7,
+    });
 
     expect(stats.totalChecks).toBe(2);
     expect(stats.uptimePercentage).toBe(50);
@@ -149,23 +162,40 @@ describe("getPublicUptimeStats", () => {
 
     const stats = await t.query(api.checks.getPublicUptimeStats, { monitorId });
 
-    expect(stats).toEqual({ uptimePercentage: 100, totalChecks: 0, avgResponseTime: null });
+    expect(stats).toEqual({
+      uptimePercentage: 100,
+      totalChecks: 0,
+      avgResponseTime: null,
+    });
   });
 });
 
 describe("getPublicIncidentsForProject", () => {
   test("returns incidents only for public monitors without sensitive fields", async () => {
     const t = setupBackend();
-    const publicMonitor = await createMonitor(t, { name: "Public Monitor", visibility: "public" });
-    const privateMonitor = await createMonitor(t, { name: "Private Monitor", visibility: "private" });
-
-    await t.mutation(internal.monitoring.openIncident, { monitorId: publicMonitor });
-    await t.mutation(internal.monitoring.openIncident, { monitorId: privateMonitor });
-
-    const incidents = await t.query(api.incidents.getPublicIncidentsForProject, {
-      projectSlug: baseMonitorArgs.projectSlug,
-      limit: 10,
+    const publicMonitor = await createMonitor(t, {
+      name: "Public Monitor",
+      visibility: "public",
     });
+    const privateMonitor = await createMonitor(t, {
+      name: "Private Monitor",
+      visibility: "private",
+    });
+
+    await t.mutation(internal.monitoring.openIncident, {
+      monitorId: publicMonitor,
+    });
+    await t.mutation(internal.monitoring.openIncident, {
+      monitorId: privateMonitor,
+    });
+
+    const incidents = await t.query(
+      api.incidents.getPublicIncidentsForProject,
+      {
+        projectSlug: baseMonitorArgs.projectSlug,
+        limit: 10,
+      },
+    );
 
     expect(incidents).toHaveLength(1);
     const incident = incidents[0];
@@ -181,5 +211,90 @@ describe("getOpenIncidents - deleted", () => {
     // Check that getOpenIncidents was removed from the API (security fix)
     const incidentQueryNames = Object.keys(api.incidents);
     expect(incidentQueryNames).not.toContain("getOpenIncidents");
+  });
+});
+
+describe("getPublicIncidentsForMonitor", () => {
+  test("returns incidents for public monitor", async () => {
+    const t = setupBackend();
+    const monitorId = await createMonitor(t, { visibility: "public" });
+
+    await t.mutation(internal.monitoring.openIncident, { monitorId });
+
+    const incidents = await t.query(
+      api.incidents.getPublicIncidentsForMonitor,
+      {
+        monitorId,
+        limit: 10,
+      },
+    );
+
+    expect(incidents).toHaveLength(1);
+    expect(incidents[0]).not.toHaveProperty("description");
+    expect(incidents[0]).not.toHaveProperty("monitorId");
+  });
+
+  test("returns empty array for private monitor", async () => {
+    const t = setupBackend();
+    const monitorId = await createMonitor(t, { visibility: "private" });
+
+    await t.mutation(internal.monitoring.openIncident, { monitorId });
+
+    const incidents = await t.query(
+      api.incidents.getPublicIncidentsForMonitor,
+      {
+        monitorId,
+        limit: 10,
+      },
+    );
+
+    expect(incidents).toHaveLength(0);
+  });
+});
+
+describe("getPublicMonitorByStatusSlug", () => {
+  test("returns monitor by statusSlug for public monitor", async () => {
+    const t = setupBackend();
+    const monitorId = await createMonitor(t, { visibility: "public" });
+
+    // Get the monitor to retrieve its statusSlug
+    const fullMonitor = await t
+      .withIdentity(user)
+      .query(api.monitors.get, { id: monitorId });
+
+    const result = await t.query(api.monitors.getPublicMonitorByStatusSlug, {
+      statusSlug: fullMonitor.statusSlug!,
+    });
+
+    expect(result).not.toBeNull();
+    expect(result!._id).toEqual(monitorId);
+    expect(result!.name).toBe("API");
+    expect(result).not.toHaveProperty("url");
+    expect(result).not.toHaveProperty("headers");
+  });
+
+  test("returns null for private monitor", async () => {
+    const t = setupBackend();
+    const monitorId = await createMonitor(t, { visibility: "private" });
+
+    const fullMonitor = await t
+      .withIdentity(user)
+      .query(api.monitors.get, { id: monitorId });
+
+    const result = await t.query(api.monitors.getPublicMonitorByStatusSlug, {
+      statusSlug: fullMonitor.statusSlug!,
+    });
+
+    expect(result).toBeNull();
+  });
+
+  test("returns null for non-existent statusSlug", async () => {
+    const t = setupBackend();
+
+    const result = await t.query(api.monitors.getPublicMonitorByStatusSlug, {
+      statusSlug: "non-existent-slug",
+    });
+
+    expect(result).toBeNull();
   });
 });

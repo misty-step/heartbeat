@@ -36,6 +36,21 @@
 
   /* Primary action color */
   --color-primary: #1a1a1a;
+
+  /* Surface tokens for cards/panels */
+  --color-surface: #ffffff;
+  --color-surface-elevated: #faf9f7;
+
+  /* Border tokens */
+  --color-border: color-mix(in srgb, var(--color-foreground) 10%, transparent);
+  --color-border-strong: color-mix(
+    in srgb,
+    var(--color-foreground) 20%,
+    transparent
+  );
+
+  /* Accent color for interactive elements */
+  --color-accent: #0066cc;
 }
 
 /* Dark Mode - class-based for next-themes */
@@ -43,6 +58,9 @@
   --color-background: #0f0f0f;
   --color-foreground: #faf9f7;
   --color-primary: #faf9f7;
+  --color-surface: #1a1a1a;
+  --color-surface-elevated: #242424;
+  --color-accent: #4da6ff;
 }
 
 /* Base Styles */
@@ -183,6 +201,9 @@ body {
 .bg-unknown {
   background-color: var(--color-unknown);
 }
+.bg-up-glow {
+  background-color: var(--color-up-glow);
+}
 .bg-primary {
   background-color: var(--color-primary);
 }
@@ -221,6 +242,99 @@ body {
     opacity: 0.4;
     transform: scale(1.1);
   }
+}
+
+/* ===== ZEN STATUS PAGE ANIMATIONS ===== */
+/* Meditative breathing for status indicators */
+
+@keyframes zen-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.85;
+    box-shadow: 0 0 0 0 var(--color-up-glow);
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 1;
+    box-shadow: 0 0 20px 4px var(--color-up-glow);
+  }
+}
+
+@keyframes zen-breathe-fast {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.8;
+    box-shadow: 0 0 0 0 currentColor;
+  }
+  50% {
+    transform: scale(1.12);
+    opacity: 1;
+    box-shadow: 0 0 8px 1px currentColor;
+  }
+}
+
+@keyframes zen-hint-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(4px);
+  }
+}
+
+@keyframes zen-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-zen-breathe {
+  animation: zen-breathe 6s ease-in-out infinite;
+}
+
+.animate-zen-breathe-fast {
+  animation: zen-breathe-fast 4s ease-in-out infinite;
+}
+
+.animate-zen-hint {
+  animation:
+    zen-fade-in 0.5s ease-out 2s forwards,
+    zen-hint-bob 2s ease-in-out 2.5s infinite;
+  opacity: 0;
+}
+
+.animate-zen-fade-in {
+  animation: zen-fade-in 0.8s ease-out forwards;
+}
+
+/* Zen dot matrix background - technical but calm */
+.zen-dot-matrix {
+  position: relative;
+}
+
+.zen-dot-matrix::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(
+    circle at center,
+    var(--color-foreground) 0.5px,
+    transparent 0.5px
+  );
+  background-size: 24px 24px;
+  background-position: center center;
+  opacity: 0.04;
+  pointer-events: none;
+}
+
+.dark .zen-dot-matrix::before {
+  opacity: 0.03;
 }
 
 /* Dashboard grid - subtle, refined */
@@ -317,4 +431,25 @@ body {
 
 .card-hover:hover {
   transform: translateY(-1px);
+}
+
+/* ===== TEXT UTILITIES ===== */
+
+/* Display text utility (editorial headlines) */
+.text-display {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+/* Mono text utility (technical values) */
+.text-mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Premium glass noise texture overlay */
+.noise-texture {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
 }
