@@ -64,10 +64,6 @@ export default defineConfig({
         "components/DashboardNavbar.tsx", // Navigation component - tested via e2e
         "components/LiveMonitorPreview.tsx", // Demo component with setInterval - visual testing
         "components/ScrollingCheckLog.tsx", // Demo component with random data + setInterval - visual testing
-        "components/StatusPageDetails.tsx", // Zen details container - complex UI composition tested via e2e
-        "components/ZenStatusHero.tsx", // Full-viewport hero - visual presentation tested via e2e
-        "components/ZenStatusIndicator.tsx", // Animated status indicator - visual testing
-        "components/ZenUptimeChart.tsx", // Chart component relies on Recharts runtime - visual testing
         "app/global-error.tsx", // Sentry error boundary, tested via e2e
         "sentry.*.config.ts", // Sentry configuration, not executable logic
         "instrumentation.ts", // Next.js instrumentation hook, not testable in JSDOM
