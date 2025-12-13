@@ -1,3 +1,9 @@
+# [1.1.0](https://github.com/misty-step/heartbeat/compare/v1.0.0...v1.1.0) (2025-12-13)
+
+### Features
+
+- individual monitor status pages ([#5](https://github.com/misty-step/heartbeat/issues/5)) ([444ef27](https://github.com/misty-step/heartbeat/commit/444ef2779ade238118d889eb2967a235cbcd619f))
+
 # 1.0.0 (2025-12-05)
 
 ### Bug Fixes
