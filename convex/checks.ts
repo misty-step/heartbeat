@@ -67,9 +67,7 @@ export const getUptimeStats = query({
       totalChecks: checks.length,
       successfulChecks,
       failedChecks,
-      avgResponseTime: avgResponseTime
-        ? Math.round(avgResponseTime)
-        : null,
+      avgResponseTime: avgResponseTime ? Math.round(avgResponseTime) : null,
     };
   },
 });
@@ -139,5 +137,63 @@ export const getPublicUptimeStats = query({
       totalChecks: checks.length,
       avgResponseTime: avgResponseTime ? Math.round(avgResponseTime) : null,
     };
+  },
+});
+
+/**
+ * Get daily aggregated status for uptime bar visualization.
+ * Returns one status per day based on uptime percentage thresholds.
+ */
+export const getDailyStatus = query({
+  args: {
+    monitorId: v.id("monitors"),
+    days: v.optional(v.number()),
+  },
+  returns: v.array(
+    v.object({
+      date: v.string(),
+      status: v.union(
+        v.literal("up"),
+        v.literal("degraded"),
+        v.literal("down"),
+      ),
+    }),
+  ),
+  handler: async (ctx, args) => {
+    const days = args.days ?? 30;
+    const startTime = Date.now() - days * 24 * 60 * 60 * 1000;
+
+    const checks = await ctx.db
+      .query("checks")
+      .withIndex("by_monitor", (q) => q.eq("monitorId", args.monitorId))
+      .filter((q) => q.gte(q.field("checkedAt"), startTime))
+      .collect();
+
+    if (checks.length === 0) {
+      return [];
+    }
+
+    // Group by day and compute status per day
+    const dailyMap = new Map<string, { up: number; total: number }>();
+    for (const check of checks) {
+      const day = new Date(check.checkedAt).toISOString().split("T")[0];
+      const entry = dailyMap.get(day) || { up: 0, total: 0 };
+      entry.total++;
+      if (check.status === "up") entry.up++;
+      dailyMap.set(day, entry);
+    }
+
+    // Return ordered array of daily statuses
+    return Array.from(dailyMap.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([date, stats]) => ({
+        date,
+        status:
+          stats.up / stats.total >= 0.99
+            ? ("up" as const)
+            : stats.up / stats.total >= 0.95
+              ? ("degraded" as const)
+              : ("down" as const),
+      }));
   },
 });

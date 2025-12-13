@@ -77,6 +77,7 @@ export default async function IndividualStatusPage({ params }: PageProps) {
       <ZenStatusHero status={monitor.status} monitorName={monitor.name} />
 
       <StatusPageDetails
+        status={monitor.status}
         chartData={chartData}
         uptimePercentage={uptimeStats.uptimePercentage}
         avgResponseTime={avgResponseTime}

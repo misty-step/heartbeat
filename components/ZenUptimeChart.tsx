@@ -28,7 +28,7 @@ interface ZenUptimeChartProps {
 export function ZenUptimeChart({
   data,
   width = 400,
-  height = 80,
+  height = 128,
 }: ZenUptimeChartProps) {
   const pathRef = useRef<SVGPathElement>(null);
   const [pathLength, setPathLength] = useState(0);
