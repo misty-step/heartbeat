@@ -1,3 +1,9 @@
+## [1.1.1](https://github.com/misty-step/heartbeat/compare/v1.1.0...v1.1.1) (2025-12-15)
+
+### Bug Fixes
+
+- make status slug optional to unblock production deployment ([83ad384](https://github.com/misty-step/heartbeat/commit/83ad3846f188323fbb01900014f65d015633f0d8))
+
 # [1.1.0](https://github.com/misty-step/heartbeat/compare/v1.0.0...v1.1.0) (2025-12-13)
 
 ### Features
