@@ -40,6 +40,12 @@ jobs:
       - name: Type Check
         run: pnpm type-check
 
+      - name: Validate Convex Schema (Production)
+        if: env.CONVEX_DEPLOY_KEY != ''
+        run: npx convex deploy --dry-run
+        env:
+          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
+
       - name: Unit & Integration Tests
         run: pnpm vitest run --coverage
 

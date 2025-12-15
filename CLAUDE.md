@@ -20,6 +20,7 @@ pnpm type-check       # TypeScript check
 ## Architecture
 
 ### Tech Stack
+
 - **Frontend**: Next.js 16 (App Router), React 19, Tailwind CSS 4
 - **Backend**: Convex (realtime database + serverless functions)
 - **Auth**: Clerk (integrated via ConvexProviderWithClerk)
@@ -66,9 +67,34 @@ middleware.ts       # Clerk auth, public routes config
 ### Environment Variables
 
 Required for development:
+
 - `NEXT_PUBLIC_CONVEX_URL` - Convex deployment URL
 - `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` - Clerk public key
 - `CLERK_SECRET_KEY` - Clerk secret (for middleware)
+
+## Convex Schema Migrations
+
+Schema changes require coordination with production data. **New required fields break deployment if existing documents lack them.**
+
+### Migration Workflow
+
+1. **Add new fields as optional** (`v.optional(v.string())`)
+2. **Enforce at application layer** — mutations always set the field for new documents
+3. **Deploy** — schema validates against existing data
+4. **Run backfill**: `npx convex run migrations:<backfillFn> --prod`
+5. **Verify**: `npx convex run migrations:<checkFn> --prod`
+6. **Tighten schema** — remove `v.optional()` after backfill completes
+
+### Available Migrations (`convex/migrations.ts`)
+
+| Field        | Backfill              | Check                           |
+| ------------ | --------------------- | ------------------------------- |
+| `visibility` | `backfillVisibility`  | `isMigrationComplete`           |
+| `statusSlug` | `backfillStatusSlugs` | `isStatusSlugMigrationComplete` |
+
+### CI Schema Validation
+
+The `test.yml` workflow runs `npx convex deploy --dry-run` if `CONVEX_DEPLOY_KEY` is set. Add this secret to GitHub to catch schema incompatibilities before Vercel deploys.
 
 ## Conventions
 

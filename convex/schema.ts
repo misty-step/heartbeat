@@ -30,7 +30,7 @@ export default defineSchema({
     body: v.optional(v.string()),
     enabled: v.boolean(),
     projectSlug: v.string(),
-    statusSlug: v.string(), // e.g., "silver-mountain-echo" — unique per monitor
+    statusSlug: v.optional(v.string()), // optional during migration; enforce in application layer
     visibility: v.union(v.literal("public"), v.literal("private")),
     userId: v.string(),
     consecutiveFailures: v.number(),
