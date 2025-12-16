@@ -1,3 +1,9 @@
+## [1.1.3](https://github.com/misty-step/heartbeat/compare/v1.1.2...v1.1.3) (2025-12-16)
+
+### Bug Fixes
+
+- centralize visibility checks with type guard helper ([3eed9ec](https://github.com/misty-step/heartbeat/commit/3eed9ecfeac81a3e480c7dc0902b23af3e04a0e5))
+
 ## [1.1.2](https://github.com/misty-step/heartbeat/compare/v1.1.1...v1.1.2) (2025-12-16)
 
 ### Bug Fixes
