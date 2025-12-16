@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { query } from "./_generated/server";
 import { toPublicCheck } from "./publicTypes";
+import { isPubliclyVisible } from "./lib/visibility";
 
 const publicCheckValidator = v.object({
   _id: v.id("checks"),
@@ -80,7 +81,7 @@ export const getPublicChecksForMonitor = query({
   returns: v.array(publicCheckValidator),
   handler: async (ctx, args) => {
     const monitor = await ctx.db.get(args.monitorId);
-    if (!monitor || monitor.visibility !== "public") {
+    if (!isPubliclyVisible(monitor)) {
       return [];
     }
 
@@ -107,7 +108,7 @@ export const getPublicUptimeStats = query({
   }),
   handler: async (ctx, args) => {
     const monitor = await ctx.db.get(args.monitorId);
-    if (!monitor || monitor.visibility !== "public") {
+    if (!isPubliclyVisible(monitor)) {
       return { uptimePercentage: 100, totalChecks: 0, avgResponseTime: null };
     }
 

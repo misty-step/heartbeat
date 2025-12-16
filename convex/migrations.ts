@@ -135,3 +135,39 @@ export const isStatusSlugMigrationComplete = internalQuery({
     };
   },
 });
+
+// ============================================================================
+// Restore Public Visibility (Undo Security Migration)
+// ============================================================================
+
+/**
+ * Restore monitors to public visibility.
+ *
+ * The backfillVisibility migration set all monitors to "private" for security,
+ * but this broke existing public status pages. This migration restores the
+ * original behavior by setting all monitors to "public".
+ *
+ * Run via: npx convex run migrations:restorePublicVisibility
+ */
+export const restorePublicVisibility = internalMutation({
+  args: {
+    batchSize: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const batchSize = args.batchSize ?? BATCH_SIZE;
+
+    const monitors = await ctx.db.query("monitors").collect();
+    const privateMonitors = monitors.filter((m) => m.visibility === "private");
+
+    const batch = privateMonitors.slice(0, batchSize);
+
+    for (const monitor of batch) {
+      await ctx.db.patch(monitor._id, { visibility: "public" as const });
+    }
+
+    return {
+      processed: batch.length,
+      remaining: privateMonitors.length - batch.length,
+    };
+  },
+});

@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { query } from "./_generated/server";
 import { toPublicIncident } from "./publicTypes";
+import { isPubliclyVisible } from "./lib/visibility";
 
 const publicIncidentValidator = v.object({
   _id: v.id("incidents"),
@@ -91,7 +92,7 @@ export const getPublicIncidentsForMonitor = query({
     const limit = args.limit ?? 20;
 
     const monitor = await ctx.db.get(args.monitorId);
-    if (!monitor || monitor.visibility !== "public") {
+    if (!isPubliclyVisible(monitor)) {
       return [];
     }
 

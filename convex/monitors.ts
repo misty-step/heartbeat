@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import { query, mutation, internalQuery } from "./_generated/server";
 import { toPublicMonitor } from "./publicTypes";
 import { generateUniqueStatusSlug } from "./slugs";
+import { isPubliclyVisible } from "./lib/visibility";
 
 const publicMonitorValidator = v.object({
   _id: v.id("monitors"),
@@ -91,7 +92,7 @@ export const getPublicMonitorByStatusSlug = query({
       .withIndex("by_status_slug", (q) => q.eq("statusSlug", args.statusSlug))
       .first();
 
-    if (!monitor || monitor.visibility !== "public") {
+    if (!isPubliclyVisible(monitor)) {
       return null;
     }
 

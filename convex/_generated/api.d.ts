@@ -11,6 +11,7 @@
 import type * as checks from "../checks.js";
 import type * as crons from "../crons.js";
 import type * as incidents from "../incidents.js";
+import type * as lib_visibility from "../lib/visibility.js";
 import type * as migrations from "../migrations.js";
 import type * as monitoring from "../monitoring.js";
 import type * as monitors from "../monitors.js";
@@ -27,6 +28,7 @@ declare const fullApi: ApiFromModules<{
   checks: typeof checks;
   crons: typeof crons;
   incidents: typeof incidents;
+  "lib/visibility": typeof lib_visibility;
   migrations: typeof migrations;
   monitoring: typeof monitoring;
   monitors: typeof monitors;
