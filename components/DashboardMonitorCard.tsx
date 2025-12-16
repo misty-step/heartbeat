@@ -16,7 +16,7 @@ interface DashboardMonitorCardProps {
     url: string;
     projectSlug: string;
     statusSlug?: string; // optional during migration
-    visibility: "public" | "private";
+    visibility?: "public" | "private"; // optional during migration
     consecutiveFailures: number;
     lastResponseTime?: number;
     lastCheckAt?: number;
