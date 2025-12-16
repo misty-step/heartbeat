@@ -171,3 +171,21 @@ export const restorePublicVisibility = internalMutation({
     };
   },
 });
+
+/**
+ * Diagnostic query to list all monitors with visibility and statusSlug.
+ * Used for debugging status page issues.
+ */
+export const listMonitorDiagnostics = internalQuery({
+  args: {},
+  handler: async (ctx) => {
+    const monitors = await ctx.db.query("monitors").collect();
+    return monitors.map((m) => ({
+      _id: m._id,
+      name: m.name,
+      projectSlug: m.projectSlug,
+      statusSlug: m.statusSlug,
+      visibility: m.visibility,
+    }));
+  },
+});
