@@ -1,3 +1,9 @@
+## [1.1.2](https://github.com/misty-step/heartbeat/compare/v1.1.1...v1.1.2) (2025-12-16)
+
+### Bug Fixes
+
+- make visibility optional to complete migration fix ([549b636](https://github.com/misty-step/heartbeat/commit/549b636b8f05017a1c0646719943a172e0acf0b0))
+
 ## [1.1.1](https://github.com/misty-step/heartbeat/compare/v1.1.0...v1.1.1) (2025-12-15)
 
 ### Bug Fixes
