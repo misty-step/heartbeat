@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { fetchQuery } from "convex/nextjs";
+import { fetchPublicQuery } from "@/lib/convex-public";
 import { api } from "@/convex/_generated/api";
 import { ZenStatusHero } from "@/components/ZenStatusHero";
 import { StatusPageDetails } from "@/components/StatusPageDetails";
@@ -20,25 +20,31 @@ export async function generateStaticParams() {
 export default async function IndividualStatusPage({ params }: PageProps) {
   const { statusSlug } = await params;
 
-  const monitor = await fetchQuery(api.monitors.getPublicMonitorByStatusSlug, {
-    statusSlug,
-  });
+  const monitor = await fetchPublicQuery(
+    api.monitors.getPublicMonitorByStatusSlug,
+    {
+      statusSlug,
+    },
+  );
 
   if (!monitor) {
     notFound();
   }
 
   // Fetch uptime stats
-  const uptimeStats = await fetchQuery(api.checks.getPublicUptimeStats, {
+  const uptimeStats = await fetchPublicQuery(api.checks.getPublicUptimeStats, {
     monitorId: monitor._id,
     days: 90, // 90-day history per TASK.md
   });
 
   // Fetch recent checks for chart
-  const recentChecks = await fetchQuery(api.checks.getPublicChecksForMonitor, {
-    monitorId: monitor._id,
-    limit: 90,
-  });
+  const recentChecks = await fetchPublicQuery(
+    api.checks.getPublicChecksForMonitor,
+    {
+      monitorId: monitor._id,
+      limit: 90,
+    },
+  );
 
   // Transform checks into chart data format
   const chartData = recentChecks.reverse().map((check) => ({
@@ -48,7 +54,7 @@ export default async function IndividualStatusPage({ params }: PageProps) {
   }));
 
   // Fetch incidents for this monitor
-  const incidentsResponse = await fetchQuery(
+  const incidentsResponse = await fetchPublicQuery(
     api.incidents.getPublicIncidentsForMonitor,
     {
       monitorId: monitor._id,
