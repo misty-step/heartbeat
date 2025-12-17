@@ -1,3 +1,9 @@
+## [1.1.4](https://github.com/misty-step/heartbeat/compare/v1.1.3...v1.1.4) (2025-12-17)
+
+### Bug Fixes
+
+- Use ConvexHttpClient for ISR-compatible public queries ([35d91f7](https://github.com/misty-step/heartbeat/commit/35d91f73c5e992766ea46c77cb3b2cb31fb7314f))
+
 ## [1.1.3](https://github.com/misty-step/heartbeat/compare/v1.1.2...v1.1.3) (2025-12-16)
 
 ### Bug Fixes
