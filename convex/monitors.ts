@@ -45,29 +45,6 @@ export const get = query({
   },
 });
 
-/**
- * @deprecated Use getPublicMonitorsForProject for public status pages.
- * This query returns ALL monitors including sensitive fields.
- * Will be removed in next major version.
- */
-export const getByProjectSlug = query({
-  args: { projectSlug: v.string() },
-  returns: v.array(publicMonitorValidator),
-  handler: async (ctx, args) => {
-    console.warn(
-      "[DEPRECATED] getByProjectSlug exposes sensitive fields. Use getPublicMonitorsForProject instead.",
-    );
-    const monitors = await ctx.db
-      .query("monitors")
-      .withIndex("by_project_slug_and_visibility", (q) =>
-        q.eq("projectSlug", args.projectSlug).eq("visibility", "public"),
-      )
-      .collect();
-
-    return monitors.map(toPublicMonitor);
-  },
-});
-
 export const getPublicMonitorsForProject = query({
   args: { projectSlug: v.string() },
   returns: v.array(publicMonitorValidator),

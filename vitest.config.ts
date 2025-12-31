@@ -60,10 +60,8 @@ export default defineConfig({
         "components/AddMonitorForm.tsx", // Form wiring covered in higher-level tests
         "components/UptimeChart.tsx", // Charting relies on Recharts runtime, better suited for visual tests
         "components/DashboardMonitorCard.tsx", // Container component with useQuery - tested via e2e
-        "components/MonitorCard.tsx", // Simple passthrough component
         "components/DashboardNavbar.tsx", // Navigation component - tested via e2e
         "components/LiveMonitorPreview.tsx", // Demo component with setInterval - visual testing
-        "components/ScrollingCheckLog.tsx", // Demo component with random data + setInterval - visual testing
         "app/global-error.tsx", // Sentry error boundary, tested via e2e
         "sentry.*.config.ts", // Sentry configuration, not executable logic
         "instrumentation.ts", // Next.js instrumentation hook, not testable in JSDOM

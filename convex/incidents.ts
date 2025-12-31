@@ -31,57 +31,6 @@ export const getForMonitor = query({
   },
 });
 
-export const getForProject = query({
-  args: {
-    projectSlug: v.string(),
-    limit: v.optional(v.number()),
-    statusFilter: v.optional(
-      v.union(
-        v.literal("investigating"),
-        v.literal("identified"),
-        v.literal("resolved"),
-      ),
-    ),
-  },
-  handler: async (ctx, args) => {
-    const limit = args.limit || 50;
-
-    // Get all monitors for this project slug first
-    const monitors = await ctx.db
-      .query("monitors")
-      .withIndex("by_project_slug", (q) =>
-        q.eq("projectSlug", args.projectSlug),
-      )
-      .collect();
-
-    if (monitors.length === 0) {
-      return [];
-    }
-
-    // Get incidents for all monitors in this project
-    const allIncidents = await Promise.all(
-      monitors.map((monitor) =>
-        ctx.db
-          .query("incidents")
-          .withIndex("by_monitor", (q) => q.eq("monitorId", monitor._id))
-          .order("desc")
-          .collect(),
-      ),
-    );
-
-    // Flatten, filter, and sort
-    let incidents = allIncidents
-      .flat()
-      .sort((a, b) => b.startedAt - a.startedAt);
-
-    if (args.statusFilter) {
-      incidents = incidents.filter((i) => i.status === args.statusFilter);
-    }
-
-    return incidents.slice(0, limit);
-  },
-});
-
 export const getPublicIncidentsForMonitor = query({
   args: {
     monitorId: v.id("monitors"),
