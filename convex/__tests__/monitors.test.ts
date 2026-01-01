@@ -103,6 +103,69 @@ describe("create", () => {
     expect(monitor.statusSlug).toMatch(/^[a-z]+-[a-z]+-[a-z]+$/);
   });
 
+  describe("SSRF protection", () => {
+    test("rejects localhost URLs", async () => {
+      const t = setupBackend();
+
+      await expect(
+        t.withIdentity(user).mutation(api.monitors.create, {
+          name: "SSRF Test",
+          url: "http://localhost:3000",
+          method: "GET",
+          interval: 60,
+          timeout: 10000,
+          projectSlug: "test-project",
+        }),
+      ).rejects.toThrow("URL cannot target internal networks");
+    });
+
+    test("rejects private IP ranges", async () => {
+      const t = setupBackend();
+
+      await expect(
+        t.withIdentity(user).mutation(api.monitors.create, {
+          name: "SSRF Test",
+          url: "http://192.168.1.1",
+          method: "GET",
+          interval: 60,
+          timeout: 10000,
+          projectSlug: "test-project",
+        }),
+      ).rejects.toThrow("URL cannot target internal networks");
+    });
+
+    test("rejects cloud metadata IP", async () => {
+      const t = setupBackend();
+
+      await expect(
+        t.withIdentity(user).mutation(api.monitors.create, {
+          name: "SSRF Test",
+          url: "http://169.254.169.254/latest/meta-data/",
+          method: "GET",
+          interval: 60,
+          timeout: 10000,
+          projectSlug: "test-project",
+        }),
+      ).rejects.toThrow("URL cannot target internal networks");
+    });
+
+    test("allows public URLs", async () => {
+      const t = setupBackend();
+
+      const monitor = await t.withIdentity(user).mutation(api.monitors.create, {
+        name: "Public URL Test",
+        url: "https://api.github.com",
+        method: "GET",
+        interval: 60,
+        timeout: 10000,
+        projectSlug: "test-project",
+      });
+
+      expect(monitor).toBeDefined();
+      expect(monitor!.url).toBe("https://api.github.com");
+    });
+  });
+
   test("statusSlug is unique across monitors", async () => {
     const t = setupBackend();
     const id1 = await createMonitor(t, user, { name: "Monitor 1" });
@@ -217,6 +280,47 @@ describe("update", () => {
       .withIdentity(user)
       .query(api.monitors.get, { id: monitorId });
     expect(monitor.visibility).toBe("private");
+  });
+
+  describe("SSRF protection", () => {
+    test("rejects updating URL to localhost", async () => {
+      const t = setupBackend();
+      const monitorId = await createMonitor(t);
+
+      await expect(
+        t.withIdentity(user).mutation(api.monitors.update, {
+          id: monitorId,
+          url: "http://localhost:8080",
+        }),
+      ).rejects.toThrow("URL cannot target internal networks");
+    });
+
+    test("rejects updating URL to private IP", async () => {
+      const t = setupBackend();
+      const monitorId = await createMonitor(t);
+
+      await expect(
+        t.withIdentity(user).mutation(api.monitors.update, {
+          id: monitorId,
+          url: "http://10.0.0.1",
+        }),
+      ).rejects.toThrow("URL cannot target internal networks");
+    });
+
+    test("allows updating to public URL", async () => {
+      const t = setupBackend();
+      const monitorId = await createMonitor(t);
+
+      await t.withIdentity(user).mutation(api.monitors.update, {
+        id: monitorId,
+        url: "https://new-domain.com",
+      });
+
+      const monitor = await t
+        .withIdentity(user)
+        .query(api.monitors.get, { id: monitorId });
+      expect(monitor.url).toBe("https://new-domain.com");
+    });
   });
 });
 
