@@ -47,6 +47,7 @@ export default defineConfig({
         "convex/schema.ts", // Schema definitions are not executable code
         "convex/crons.ts", // Crons are external triggers, not testable directly for coverage
         "convex/migrations.ts", // Manual backfill script, covered via integration when executed
+        "convex/monitoring.ts", // Action-based HTTP monitoring - requires runtime, tested via e2e
         "convex/auth.config.ts", // Auth config is external setup
         "app/layout.tsx", // Root layout often contains providers/metadata not easily testable
         "app/providers.tsx", // Providers are integration points, covered by e2e/integration
@@ -67,6 +68,7 @@ export default defineConfig({
         "instrumentation.ts", // Next.js instrumentation hook, not testable in JSDOM
         "lib/logger/client.ts", // Client logger uses mocked dependencies in tests
         "lib/logger/server.ts", // Server logger uses mocked dependencies in tests
+        "lib/convex-public.ts", // ISR infrastructure wrapper - integration tested via e2e
       ],
       thresholds: {
         lines: 80,
