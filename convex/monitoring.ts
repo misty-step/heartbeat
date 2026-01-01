@@ -1,6 +1,11 @@
 import { v } from "convex/values";
-import { internalQuery, internalMutation, internalAction } from "./_generated/server";
+import {
+  internalQuery,
+  internalMutation,
+  internalAction,
+} from "./_generated/server";
 import { internal } from "./_generated/api";
+import { isInternalHostname } from "./lib/urlValidation";
 
 /**
  * Get monitors that are due for checking based on their interval.
@@ -200,6 +205,20 @@ export const checkMonitor = internalAction({
       return;
     }
 
+    // Defense-in-depth: validate URL is not internal before fetch
+    try {
+      const parsed = new URL(monitor.url);
+      if (isInternalHostname(parsed.hostname)) {
+        console.error(
+          `[Monitor:${args.monitorId}] Blocked SSRF attempt to ${parsed.hostname}`,
+        );
+        return;
+      }
+    } catch {
+      console.error(`[Monitor:${args.monitorId}] Invalid URL: ${monitor.url}`);
+      return;
+    }
+
     const startTime = Date.now();
     let success = false;
     let statusCode: number | undefined;
@@ -246,7 +265,7 @@ export const checkMonitor = internalAction({
       }
 
       console.log(
-        `[Monitor:${args.monitorId}] Checked ${monitor.url} -> ${statusCode} (${responseTime}ms) ${success ? "✓" : "✗"}`
+        `[Monitor:${args.monitorId}] Checked ${monitor.url} -> ${statusCode} (${responseTime}ms) ${success ? "✓" : "✗"}`,
       );
 
       // Record check result
@@ -276,7 +295,7 @@ export const checkMonitor = internalAction({
       }
 
       console.error(
-        `[Monitor:${args.monitorId}] Failed to check ${monitor.url}: ${errorMessage}`
+        `[Monitor:${args.monitorId}] Failed to check ${monitor.url}: ${errorMessage}`,
       );
 
       // Record failed check
@@ -310,7 +329,9 @@ export const runHeartbeat = internalAction({
 
     const dueMonitors = await ctx.runQuery(internal.monitoring.getDueMonitors);
 
-    console.log(`[Heartbeat] Found ${dueMonitors.length} monitors due for checking`);
+    console.log(
+      `[Heartbeat] Found ${dueMonitors.length} monitors due for checking`,
+    );
 
     if (dueMonitors.length === 0) {
       return;
@@ -321,15 +342,15 @@ export const runHeartbeat = internalAction({
       dueMonitors.map((monitor) =>
         ctx.runAction(internal.monitoring.checkMonitor, {
           monitorId: monitor._id,
-        })
-      )
+        }),
+      ),
     );
 
     const successful = results.filter((r) => r.status === "fulfilled").length;
     const failed = results.filter((r) => r.status === "rejected").length;
 
     console.log(
-      `[Heartbeat] Completed: ${successful} successful, ${failed} failed`
+      `[Heartbeat] Completed: ${successful} successful, ${failed} failed`,
     );
   },
 });

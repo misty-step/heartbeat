@@ -7,6 +7,7 @@ import {
   generateSlug,
   extractNameFromUrl,
   isValidUrl,
+  isInternalHostname,
 } from "../validation";
 
 describe("validateUrl", () => {
@@ -25,12 +26,98 @@ describe("validateUrl", () => {
 
   it("returns null for valid HTTP URL", () => {
     expect(validateUrl("http://example.com")).toBeNull();
-    expect(validateUrl("http://localhost:3000")).toBeNull();
   });
 
   it("returns null for valid HTTPS URL", () => {
     expect(validateUrl("https://example.com")).toBeNull();
     expect(validateUrl("https://api.example.com/health")).toBeNull();
+  });
+
+  it("blocks localhost URLs (SSRF protection)", () => {
+    expect(validateUrl("http://localhost")).toBe(
+      "URL cannot target internal networks",
+    );
+    expect(validateUrl("http://localhost:3000")).toBe(
+      "URL cannot target internal networks",
+    );
+    expect(validateUrl("https://localhost/path")).toBe(
+      "URL cannot target internal networks",
+    );
+  });
+
+  it("blocks loopback IPs (SSRF protection)", () => {
+    expect(validateUrl("http://127.0.0.1")).toBe(
+      "URL cannot target internal networks",
+    );
+    expect(validateUrl("http://127.0.0.1:8080")).toBe(
+      "URL cannot target internal networks",
+    );
+    expect(validateUrl("http://127.255.255.255")).toBe(
+      "URL cannot target internal networks",
+    );
+  });
+
+  it("blocks private network IPs (SSRF protection)", () => {
+    // 10.x.x.x range
+    expect(validateUrl("http://10.0.0.1")).toBe(
+      "URL cannot target internal networks",
+    );
+    expect(validateUrl("http://10.255.255.255")).toBe(
+      "URL cannot target internal networks",
+    );
+
+    // 172.16-31.x.x range
+    expect(validateUrl("http://172.16.0.1")).toBe(
+      "URL cannot target internal networks",
+    );
+    expect(validateUrl("http://172.31.255.255")).toBe(
+      "URL cannot target internal networks",
+    );
+
+    // 192.168.x.x range
+    expect(validateUrl("http://192.168.0.1")).toBe(
+      "URL cannot target internal networks",
+    );
+    expect(validateUrl("http://192.168.255.255")).toBe(
+      "URL cannot target internal networks",
+    );
+  });
+
+  it("blocks cloud metadata IPs (SSRF protection)", () => {
+    expect(validateUrl("http://169.254.169.254")).toBe(
+      "URL cannot target internal networks",
+    );
+    expect(validateUrl("http://169.254.169.254/latest/meta-data/")).toBe(
+      "URL cannot target internal networks",
+    );
+  });
+
+  it("blocks special internal hostnames (SSRF protection)", () => {
+    expect(validateUrl("http://0.0.0.0")).toBe(
+      "URL cannot target internal networks",
+    );
+    expect(validateUrl("http://internal.local")).toBe(
+      "URL cannot target internal networks",
+    );
+    expect(validateUrl("http://api.internal")).toBe(
+      "URL cannot target internal networks",
+    );
+    expect(validateUrl("http://test.localhost")).toBe(
+      "URL cannot target internal networks",
+    );
+  });
+
+  it("allows valid public IPs", () => {
+    expect(validateUrl("http://8.8.8.8")).toBeNull();
+    expect(validateUrl("http://1.1.1.1")).toBeNull();
+    expect(validateUrl("https://142.250.80.46")).toBeNull();
+  });
+
+  it("allows 172.x.x.x outside private range", () => {
+    // 172.15.x.x is NOT private
+    expect(validateUrl("http://172.15.0.1")).toBeNull();
+    // 172.32.x.x is NOT private
+    expect(validateUrl("http://172.32.0.1")).toBeNull();
   });
 });
 
@@ -171,12 +258,67 @@ describe("extractNameFromUrl", () => {
 describe("isValidUrl", () => {
   it("returns true for valid URLs", () => {
     expect(isValidUrl("https://example.com")).toBe(true);
-    expect(isValidUrl("http://localhost:3000")).toBe(true);
+    expect(isValidUrl("http://api.example.com")).toBe(true);
   });
 
   it("returns false for invalid URLs", () => {
     expect(isValidUrl("")).toBe(false);
     expect(isValidUrl("example.com")).toBe(false);
     expect(isValidUrl("ftp://example.com")).toBe(false);
+  });
+
+  it("returns false for internal network URLs", () => {
+    expect(isValidUrl("http://localhost:3000")).toBe(false);
+    expect(isValidUrl("http://127.0.0.1")).toBe(false);
+    expect(isValidUrl("http://192.168.1.1")).toBe(false);
+  });
+});
+
+describe("isInternalHostname", () => {
+  it("identifies localhost variants", () => {
+    expect(isInternalHostname("localhost")).toBe(true);
+    expect(isInternalHostname("LOCALHOST")).toBe(true);
+    expect(isInternalHostname("test.localhost")).toBe(true);
+  });
+
+  it("identifies loopback addresses", () => {
+    expect(isInternalHostname("127.0.0.1")).toBe(true);
+    expect(isInternalHostname("127.255.255.255")).toBe(true);
+  });
+
+  it("identifies private 10.x.x.x range", () => {
+    expect(isInternalHostname("10.0.0.1")).toBe(true);
+    expect(isInternalHostname("10.255.255.255")).toBe(true);
+  });
+
+  it("identifies private 172.16-31.x.x range", () => {
+    expect(isInternalHostname("172.16.0.1")).toBe(true);
+    expect(isInternalHostname("172.31.255.255")).toBe(true);
+  });
+
+  it("does not block 172.x.x.x outside private range", () => {
+    expect(isInternalHostname("172.15.0.1")).toBe(false);
+    expect(isInternalHostname("172.32.0.1")).toBe(false);
+  });
+
+  it("identifies private 192.168.x.x range", () => {
+    expect(isInternalHostname("192.168.0.1")).toBe(true);
+    expect(isInternalHostname("192.168.255.255")).toBe(true);
+  });
+
+  it("identifies cloud metadata IP", () => {
+    expect(isInternalHostname("169.254.169.254")).toBe(true);
+  });
+
+  it("identifies special internal TLDs", () => {
+    expect(isInternalHostname("service.local")).toBe(true);
+    expect(isInternalHostname("api.internal")).toBe(true);
+    expect(isInternalHostname("app.localhost")).toBe(true);
+  });
+
+  it("allows public hostnames", () => {
+    expect(isInternalHostname("example.com")).toBe(false);
+    expect(isInternalHostname("api.github.com")).toBe(false);
+    expect(isInternalHostname("8.8.8.8")).toBe(false);
   });
 });

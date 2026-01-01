@@ -3,6 +3,7 @@ import { query, mutation, internalQuery } from "./_generated/server";
 import { toPublicMonitor } from "./publicTypes";
 import { generateUniqueStatusSlug } from "./slugs";
 import { isPubliclyVisible } from "./lib/visibility";
+import { validateMonitorUrl } from "./lib/urlValidation";
 
 const publicMonitorValidator = v.object({
   _id: v.id("monitors"),
@@ -113,6 +114,12 @@ export const create = mutation({
       throw new Error("Unauthorized");
     }
 
+    // Validate URL to prevent SSRF attacks
+    const urlError = validateMonitorUrl(args.url);
+    if (urlError) {
+      throw new Error(urlError);
+    }
+
     const now = Date.now();
     const statusSlug = await generateUniqueStatusSlug(ctx);
 
@@ -171,6 +178,14 @@ export const update = mutation({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) {
       throw new Error("Unauthorized");
+    }
+
+    // Validate URL to prevent SSRF attacks (if URL is being updated)
+    if (args.url) {
+      const urlError = validateMonitorUrl(args.url);
+      if (urlError) {
+        throw new Error(urlError);
+      }
     }
 
     const { id, ...updates } = args;
