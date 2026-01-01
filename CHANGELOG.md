@@ -1,3 +1,9 @@
+## [1.1.5](https://github.com/misty-step/heartbeat/compare/v1.1.4...v1.1.5) (2026-01-01)
+
+### Bug Fixes
+
+- Block internal network URLs to prevent SSRF attacks ([#27](https://github.com/misty-step/heartbeat/issues/27)) ([16b8f45](https://github.com/misty-step/heartbeat/commit/16b8f45b1c3c6eaa4421749401d9766b3491669f)), closes [#15](https://github.com/misty-step/heartbeat/issues/15)
+
 ## [1.1.4](https://github.com/misty-step/heartbeat/compare/v1.1.3...v1.1.4) (2025-12-17)
 
 ### Bug Fixes
