@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { UserButton } from "@clerk/nextjs";
 import { ThemeToggle } from "./ThemeToggle";
+import { Settings } from "lucide-react";
 
 export function DashboardNavbar() {
   return (
@@ -16,16 +17,24 @@ export function DashboardNavbar() {
           Heartbeat
         </Link>
 
-        {/* Right side: Theme toggle + User menu */}
+        {/* Right side: Settings + Theme toggle + User menu */}
         <div className="flex items-center gap-4">
+          <Link
+            href="/dashboard/settings"
+            className="p-2 text-foreground/50 hover:text-foreground hover:bg-foreground/5 transition-colors rounded-md"
+            title="Notification Settings"
+          >
+            <Settings className="h-5 w-5" />
+          </Link>
           <ThemeToggle />
           <UserButton
             afterSignOutUrl="/"
             appearance={{
               elements: {
                 avatarBox: "w-8 h-8",
-                userButtonTrigger: "focus:shadow-none focus:ring-2 focus:ring-foreground/20 rounded-full"
-              }
+                userButtonTrigger:
+                  "focus:shadow-none focus:ring-2 focus:ring-foreground/20 rounded-full",
+              },
             }}
           />
         </div>

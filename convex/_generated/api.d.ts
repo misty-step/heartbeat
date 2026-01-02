@@ -11,12 +11,16 @@
 import type * as checks from "../checks.js";
 import type * as crons from "../crons.js";
 import type * as incidents from "../incidents.js";
+import type * as lib_email from "../lib/email.js";
+import type * as lib_urlValidation from "../lib/urlValidation.js";
 import type * as lib_visibility from "../lib/visibility.js";
 import type * as migrations from "../migrations.js";
 import type * as monitoring from "../monitoring.js";
 import type * as monitors from "../monitors.js";
+import type * as notifications from "../notifications.js";
 import type * as publicTypes from "../publicTypes.js";
 import type * as slugs from "../slugs.js";
+import type * as userSettings from "../userSettings.js";
 
 import type {
   ApiFromModules,
@@ -28,12 +32,16 @@ declare const fullApi: ApiFromModules<{
   checks: typeof checks;
   crons: typeof crons;
   incidents: typeof incidents;
+  "lib/email": typeof lib_email;
+  "lib/urlValidation": typeof lib_urlValidation;
   "lib/visibility": typeof lib_visibility;
   migrations: typeof migrations;
   monitoring: typeof monitoring;
   monitors: typeof monitors;
+  notifications: typeof notifications;
   publicTypes: typeof publicTypes;
   slugs: typeof slugs;
+  userSettings: typeof userSettings;
 }>;
 
 /**
