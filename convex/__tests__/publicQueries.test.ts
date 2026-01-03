@@ -1,8 +1,17 @@
-import { describe, expect, test } from "vitest";
+import { describe, expect, test, vi, beforeEach, afterEach } from "vitest";
 import { api, internal } from "../_generated/api";
 import { setupBackend } from "../../tests/convex";
 
 const user = { name: "Test", subject: "user_123", issuer: "clerk" };
+
+// Use fake timers for tests that trigger the scheduler (via openIncident)
+beforeEach(() => {
+  vi.useFakeTimers();
+});
+
+afterEach(() => {
+  vi.useRealTimers();
+});
 
 const baseMonitorArgs = {
   name: "API",

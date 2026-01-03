@@ -1,8 +1,20 @@
-import { test, expect, describe } from "vitest";
+import { test, expect, describe, vi, beforeEach, afterEach } from "vitest";
 import { api, internal } from "../_generated/api";
 import { setupBackend } from "../../tests/convex";
 
 const user = { name: "Test", subject: "user_test", issuer: "clerk" };
+
+// Function to advance fake timers (used by convex-test's finishAllScheduledFunctions)
+const advanceTimers = () => vi.advanceTimersByTime(1);
+
+// Use fake timers for tests that trigger the scheduler
+beforeEach(() => {
+  vi.useFakeTimers();
+});
+
+afterEach(() => {
+  vi.useRealTimers();
+});
 
 // Helper to create a monitor and return its ID
 async function createTestMonitor(
