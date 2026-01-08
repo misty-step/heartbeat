@@ -69,6 +69,10 @@ export default defineConfig({
         "lib/logger/client.ts", // Client logger uses mocked dependencies in tests
         "lib/logger/server.ts", // Server logger uses mocked dependencies in tests
         "lib/convex-public.ts", // ISR infrastructure wrapper - integration tested via e2e
+        "convex/notifications.ts", // Email/webhook notifications - requires external services, tested via e2e
+        "convex/userSettings.ts", // User settings CRUD - UI integration tested via e2e
+        "convex/lib/email.ts", // Resend email client - requires API key, tested via e2e
+        "app/dashboard/settings/**", // Settings page - UI container tested via e2e
       ],
       thresholds: {
         lines: 80,
