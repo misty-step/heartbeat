@@ -48,6 +48,7 @@ describe("getForMonitor", () => {
 
     // Create an incident
     await t.mutation(internal.monitoring.openIncident, { monitorId });
+    await t.finishAllScheduledFunctions(advanceTimers);
 
     const incidents = await t.query(api.incidents.getForMonitor, { monitorId });
     expect(incidents).toHaveLength(1);
@@ -60,10 +61,13 @@ describe("getForMonitor", () => {
 
     // Create and resolve first incident
     await t.mutation(internal.monitoring.openIncident, { monitorId });
+    await t.finishAllScheduledFunctions(advanceTimers);
     await t.mutation(internal.monitoring.resolveIncident, { monitorId });
+    await t.finishAllScheduledFunctions(advanceTimers);
 
     // Create second incident
     await t.mutation(internal.monitoring.openIncident, { monitorId });
+    await t.finishAllScheduledFunctions(advanceTimers);
 
     const incidents = await t.query(api.incidents.getForMonitor, { monitorId });
     expect(incidents).toHaveLength(2);
@@ -79,7 +83,9 @@ describe("getForMonitor", () => {
     // Create multiple incidents
     for (let i = 0; i < 5; i++) {
       await t.mutation(internal.monitoring.openIncident, { monitorId });
+      await t.finishAllScheduledFunctions(advanceTimers);
       await t.mutation(internal.monitoring.resolveIncident, { monitorId });
+      await t.finishAllScheduledFunctions(advanceTimers);
     }
 
     const incidents = await t.query(api.incidents.getForMonitor, {
