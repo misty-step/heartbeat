@@ -29,7 +29,7 @@ export async function sendEmail(opts: EmailOptions): Promise<EmailResult> {
 
   try {
     const result = await resend.emails.send({
-      from: "Heartbeat <notifications@heartbeat.dev>",
+      from: "Heartbeat <notifications@mistystep.io>",
       to: opts.to,
       subject: opts.subject,
       text: opts.text,
