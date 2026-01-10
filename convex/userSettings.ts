@@ -107,13 +107,14 @@ export const update = mutation({
 
     // Validate webhook URL if provided
     if (args.webhookUrl !== undefined && args.webhookUrl !== "") {
+      let url: URL;
       try {
-        const url = new URL(args.webhookUrl);
-        if (url.protocol !== "https:") {
-          throw new Error("Webhook URL must use HTTPS");
-        }
+        url = new URL(args.webhookUrl);
       } catch {
         throw new Error("Invalid webhook URL");
+      }
+      if (url.protocol !== "https:") {
+        throw new Error("Webhook URL must use HTTPS");
       }
     }
 
