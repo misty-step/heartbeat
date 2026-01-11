@@ -3,6 +3,7 @@ import { api, internal } from "../_generated/api";
 import { setupBackend } from "../../tests/convex";
 
 const user = { name: "Test", subject: "user_test", issuer: "clerk" };
+const otherUser = { name: "Other", subject: "user_other", issuer: "clerk" };
 
 // Function to advance fake timers (used by convex-test's finishAllScheduledFunctions)
 const advanceTimers = () => vi.advanceTimersByTime(1);
@@ -38,7 +39,9 @@ describe("getForMonitor", () => {
     const t = setupBackend();
     const monitorId = await createTestMonitor(t);
 
-    const incidents = await t.query(api.incidents.getForMonitor, { monitorId });
+    const incidents = await t
+      .withIdentity(user)
+      .query(api.incidents.getForMonitor, { monitorId });
     expect(incidents).toHaveLength(0);
   });
 
@@ -50,7 +53,9 @@ describe("getForMonitor", () => {
     await t.mutation(internal.monitoring.openIncident, { monitorId });
     await t.finishAllScheduledFunctions(advanceTimers);
 
-    const incidents = await t.query(api.incidents.getForMonitor, { monitorId });
+    const incidents = await t
+      .withIdentity(user)
+      .query(api.incidents.getForMonitor, { monitorId });
     expect(incidents).toHaveLength(1);
     expect(incidents[0].status).toBe("investigating");
   });
@@ -69,7 +74,9 @@ describe("getForMonitor", () => {
     await t.mutation(internal.monitoring.openIncident, { monitorId });
     await t.finishAllScheduledFunctions(advanceTimers);
 
-    const incidents = await t.query(api.incidents.getForMonitor, { monitorId });
+    const incidents = await t
+      .withIdentity(user)
+      .query(api.incidents.getForMonitor, { monitorId });
     expect(incidents).toHaveLength(2);
     // Most recent (investigating) first
     expect(incidents[0].status).toBe("investigating");
@@ -88,10 +95,32 @@ describe("getForMonitor", () => {
       await t.finishAllScheduledFunctions(advanceTimers);
     }
 
-    const incidents = await t.query(api.incidents.getForMonitor, {
-      monitorId,
-      limit: 2,
-    });
+    const incidents = await t
+      .withIdentity(user)
+      .query(api.incidents.getForMonitor, {
+        monitorId,
+        limit: 2,
+      });
     expect(incidents).toHaveLength(2);
+  });
+
+  test("throws Unauthorized when called without authentication", async () => {
+    const t = setupBackend();
+    const monitorId = await createTestMonitor(t);
+
+    await expect(
+      t.query(api.incidents.getForMonitor, { monitorId }),
+    ).rejects.toThrow("Unauthorized");
+  });
+
+  test("throws Monitor not found when called by different user", async () => {
+    const t = setupBackend();
+    const monitorId = await createTestMonitor(t);
+
+    await expect(
+      t
+        .withIdentity(otherUser)
+        .query(api.incidents.getForMonitor, { monitorId }),
+    ).rejects.toThrow("Monitor not found");
   });
 });

@@ -90,7 +90,9 @@ describe("updateMonitorStatus", () => {
     expect(monitor.consecutiveFailures).toBe(2);
 
     // No incident should exist yet (openIncident not directly called)
-    const incidents = await t.query(api.incidents.getForMonitor, { monitorId });
+    const incidents = await t
+      .withIdentity(user)
+      .query(api.incidents.getForMonitor, { monitorId });
     expect(incidents).toHaveLength(0);
   });
 
@@ -176,7 +178,9 @@ describe("openIncident", () => {
 
     await t.mutation(internal.monitoring.openIncident, { monitorId });
 
-    const incidents = await t.query(api.incidents.getForMonitor, { monitorId });
+    const incidents = await t
+      .withIdentity(user)
+      .query(api.incidents.getForMonitor, { monitorId });
     expect(incidents).toHaveLength(1);
     expect(incidents[0].status).toBe("investigating");
     expect(incidents[0].title).toBe("Test Monitor is down");
@@ -194,7 +198,9 @@ describe("openIncident", () => {
     await t.mutation(internal.monitoring.openIncident, { monitorId });
 
     // Should still only have one
-    const incidents = await t.query(api.incidents.getForMonitor, { monitorId });
+    const incidents = await t
+      .withIdentity(user)
+      .query(api.incidents.getForMonitor, { monitorId });
     expect(incidents).toHaveLength(1);
   });
 
@@ -209,7 +215,9 @@ describe("openIncident", () => {
     // Open second incident
     await t.mutation(internal.monitoring.openIncident, { monitorId });
 
-    const incidents = await t.query(api.incidents.getForMonitor, { monitorId });
+    const incidents = await t
+      .withIdentity(user)
+      .query(api.incidents.getForMonitor, { monitorId });
     expect(incidents).toHaveLength(2);
     expect(incidents.filter((i) => i.status === "investigating")).toHaveLength(
       1,
@@ -225,7 +233,9 @@ describe("resolveIncident", () => {
     await t.mutation(internal.monitoring.openIncident, { monitorId });
     await t.mutation(internal.monitoring.resolveIncident, { monitorId });
 
-    const incidents = await t.query(api.incidents.getForMonitor, { monitorId });
+    const incidents = await t
+      .withIdentity(user)
+      .query(api.incidents.getForMonitor, { monitorId });
     expect(incidents[0].status).toBe("resolved");
     expect(incidents[0].resolvedAt).toBeDefined();
   });
@@ -237,7 +247,9 @@ describe("resolveIncident", () => {
     // Should not throw
     await t.mutation(internal.monitoring.resolveIncident, { monitorId });
 
-    const incidents = await t.query(api.incidents.getForMonitor, { monitorId });
+    const incidents = await t
+      .withIdentity(user)
+      .query(api.incidents.getForMonitor, { monitorId });
     expect(incidents).toHaveLength(0);
   });
 });
