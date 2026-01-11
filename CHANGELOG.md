@@ -1,3 +1,9 @@
+## [1.2.1](https://github.com/misty-step/heartbeat/compare/v1.2.0...v1.2.1) (2026-01-11)
+
+### Bug Fixes
+
+- **security:** Add auth checks to checks.ts query functions ([#60](https://github.com/misty-step/heartbeat/issues/60)) ([e7070d9](https://github.com/misty-step/heartbeat/commit/e7070d97abe0e700db089b38d4f82990857dd61f)), closes [#30](https://github.com/misty-step/heartbeat/issues/30)
+
 # [1.2.0](https://github.com/misty-step/heartbeat/compare/v1.1.5...v1.2.0) (2026-01-11)
 
 ### Features
