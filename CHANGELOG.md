@@ -1,3 +1,9 @@
+# [1.2.0](https://github.com/misty-step/heartbeat/compare/v1.1.5...v1.2.0) (2026-01-11)
+
+### Features
+
+- Add email notifications for incidents ([#28](https://github.com/misty-step/heartbeat/issues/28)) ([458c810](https://github.com/misty-step/heartbeat/commit/458c810084f25640c0a58a6caf273b601ec69955))
+
 ## [1.1.5](https://github.com/misty-step/heartbeat/compare/v1.1.4...v1.1.5) (2026-01-01)
 
 ### Bug Fixes
