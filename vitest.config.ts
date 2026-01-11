@@ -48,6 +48,8 @@ export default defineConfig({
         "convex/crons.ts", // Crons are external triggers, not testable directly for coverage
         "convex/migrations.ts", // Manual backfill script, covered via integration when executed
         "convex/monitoring.ts", // Action-based HTTP monitoring - requires runtime, tested via e2e
+        "convex/notifications.ts", // Action-based notification sending - external API (Resend), tested via e2e
+        "convex/lib/email.ts", // Email sending requires Resend runtime - tested via e2e
         "convex/auth.config.ts", // Auth config is external setup
         "app/layout.tsx", // Root layout often contains providers/metadata not easily testable
         "app/providers.tsx", // Providers are integration points, covered by e2e/integration

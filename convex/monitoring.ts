@@ -121,6 +121,7 @@ export const updateMonitorStatus = internalMutation({
 /**
  * Open a new incident for a monitor that has gone down.
  * Only creates incident if one doesn't already exist.
+ * Schedules notification after incident creation.
  */
 export const openIncident = internalMutation({
   args: {
@@ -146,7 +147,7 @@ export const openIncident = internalMutation({
 
     const now = Date.now();
 
-    await ctx.db.insert("incidents", {
+    const incidentId = await ctx.db.insert("incidents", {
       monitorId: args.monitorId,
       status: "investigating",
       startedAt: now,
@@ -154,11 +155,22 @@ export const openIncident = internalMutation({
       description: `Monitor has failed ${monitor.consecutiveFailures} consecutive checks.`,
       notifiedAt: undefined,
     });
+
+    // Schedule notification
+    await ctx.scheduler.runAfter(
+      0,
+      internal.notifications.sendIncidentNotification,
+      {
+        incidentId,
+        type: "opened",
+      },
+    );
   },
 });
 
 /**
  * Resolve an open incident when monitor comes back up.
+ * Schedules notification after incident resolution.
  */
 export const resolveIncident = internalMutation({
   args: {
@@ -183,6 +195,16 @@ export const resolveIncident = internalMutation({
       status: "resolved",
       resolvedAt: now,
     });
+
+    // Schedule notification
+    await ctx.scheduler.runAfter(
+      0,
+      internal.notifications.sendIncidentNotification,
+      {
+        incidentId: incident._id,
+        type: "resolved",
+      },
+    );
   },
 });
 

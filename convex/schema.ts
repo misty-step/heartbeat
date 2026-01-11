@@ -71,4 +71,16 @@ export default defineSchema({
   })
     .index("by_monitor", ["monitorId", "startedAt"])
     .index("by_status", ["status"]),
+
+  userSettings: defineTable({
+    userId: v.string(),
+    email: v.string(),
+    emailNotifications: v.boolean(),
+    notifyOnDown: v.boolean(),
+    notifyOnRecovery: v.boolean(),
+    webhookUrl: v.optional(v.string()),
+    throttleMinutes: v.number(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index("by_user", ["userId"]),
 });
