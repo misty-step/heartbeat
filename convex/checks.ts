@@ -16,6 +16,16 @@ export const getRecentForMonitor = query({
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Unauthorized");
+    }
+
+    const monitor = await ctx.db.get(args.monitorId);
+    if (!monitor || monitor.userId !== identity.subject) {
+      throw new Error("Monitor not found");
+    }
+
     const limit = args.limit || 50;
 
     return await ctx.db
@@ -32,6 +42,16 @@ export const getUptimeStats = query({
     days: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Unauthorized");
+    }
+
+    const monitor = await ctx.db.get(args.monitorId);
+    if (!monitor || monitor.userId !== identity.subject) {
+      throw new Error("Monitor not found");
+    }
+
     const days = args.days || 30;
     const startTime = Date.now() - days * 24 * 60 * 60 * 1000;
 
@@ -161,6 +181,16 @@ export const getDailyStatus = query({
     }),
   ),
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Unauthorized");
+    }
+
+    const monitor = await ctx.db.get(args.monitorId);
+    if (!monitor || monitor.userId !== identity.subject) {
+      throw new Error("Monitor not found");
+    }
+
     const days = args.days ?? 30;
     const startTime = Date.now() - days * 24 * 60 * 60 * 1000;
 

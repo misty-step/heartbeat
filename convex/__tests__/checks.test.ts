@@ -41,7 +41,9 @@ describe("getRecentForMonitor", () => {
     const t = setupBackend();
     const monitorId = await createTestMonitor(t);
 
-    const checks = await t.query(api.checks.getRecentForMonitor, { monitorId });
+    const checks = await t
+      .withIdentity(user)
+      .query(api.checks.getRecentForMonitor, { monitorId });
     expect(checks).toHaveLength(0);
   });
 
@@ -54,7 +56,9 @@ describe("getRecentForMonitor", () => {
     await recordCheck(t, monitorId, "up", 150, now - 2000);
     await recordCheck(t, monitorId, "down", 0, now - 1000);
 
-    const checks = await t.query(api.checks.getRecentForMonitor, { monitorId });
+    const checks = await t
+      .withIdentity(user)
+      .query(api.checks.getRecentForMonitor, { monitorId });
     expect(checks).toHaveLength(3);
     // Most recent first
     expect(checks[0].status).toBe("down");
@@ -71,10 +75,12 @@ describe("getRecentForMonitor", () => {
       await recordCheck(t, monitorId, "up", 100 + i * 10, now - i * 1000);
     }
 
-    const checks = await t.query(api.checks.getRecentForMonitor, {
-      monitorId,
-      limit: 2,
-    });
+    const checks = await t
+      .withIdentity(user)
+      .query(api.checks.getRecentForMonitor, {
+        monitorId,
+        limit: 2,
+      });
     expect(checks).toHaveLength(2);
   });
 
@@ -84,8 +90,31 @@ describe("getRecentForMonitor", () => {
 
     // This test just verifies the function works without limit
     // We don't create 50+ checks to save time
-    const checks = await t.query(api.checks.getRecentForMonitor, { monitorId });
+    const checks = await t
+      .withIdentity(user)
+      .query(api.checks.getRecentForMonitor, { monitorId });
     expect(Array.isArray(checks)).toBe(true);
+  });
+
+  test("throws Unauthorized for unauthenticated requests", async () => {
+    const t = setupBackend();
+    const monitorId = await createTestMonitor(t);
+
+    await expect(
+      t.query(api.checks.getRecentForMonitor, { monitorId }),
+    ).rejects.toThrow("Unauthorized");
+  });
+
+  test("throws Monitor not found for wrong user", async () => {
+    const t = setupBackend();
+    const monitorId = await createTestMonitor(t);
+    const otherUser = { name: "Other", subject: "user_other", issuer: "clerk" };
+
+    await expect(
+      t.withIdentity(otherUser).query(api.checks.getRecentForMonitor, {
+        monitorId,
+      }),
+    ).rejects.toThrow("Monitor not found");
   });
 });
 
@@ -94,7 +123,9 @@ describe("getUptimeStats", () => {
     const t = setupBackend();
     const monitorId = await createTestMonitor(t);
 
-    const stats = await t.query(api.checks.getUptimeStats, { monitorId });
+    const stats = await t
+      .withIdentity(user)
+      .query(api.checks.getUptimeStats, { monitorId });
     expect(stats.uptimePercentage).toBe(100);
     expect(stats.totalChecks).toBe(0);
     expect(stats.successfulChecks).toBe(0);
@@ -111,7 +142,9 @@ describe("getUptimeStats", () => {
       await recordCheck(t, monitorId, "up", 100, now - i * 1000);
     }
 
-    const stats = await t.query(api.checks.getUptimeStats, { monitorId });
+    const stats = await t
+      .withIdentity(user)
+      .query(api.checks.getUptimeStats, { monitorId });
     expect(stats.uptimePercentage).toBe(100);
     expect(stats.totalChecks).toBe(10);
     expect(stats.successfulChecks).toBe(10);
@@ -130,7 +163,9 @@ describe("getUptimeStats", () => {
     await recordCheck(t, monitorId, "down", 0, now - 8000);
     await recordCheck(t, monitorId, "down", 0, now - 9000);
 
-    const stats = await t.query(api.checks.getUptimeStats, { monitorId });
+    const stats = await t
+      .withIdentity(user)
+      .query(api.checks.getUptimeStats, { monitorId });
     expect(stats.uptimePercentage).toBe(80);
     expect(stats.totalChecks).toBe(10);
     expect(stats.successfulChecks).toBe(8);
@@ -147,7 +182,9 @@ describe("getUptimeStats", () => {
     await recordCheck(t, monitorId, "up", 200, now - 2000);
     await recordCheck(t, monitorId, "up", 300, now - 1000);
 
-    const stats = await t.query(api.checks.getUptimeStats, { monitorId });
+    const stats = await t
+      .withIdentity(user)
+      .query(api.checks.getUptimeStats, { monitorId });
     expect(stats.avgResponseTime).toBe(200);
   });
 
@@ -167,7 +204,7 @@ describe("getUptimeStats", () => {
     await recordCheck(t, monitorId, "down", 0, twoDaysAgo);
 
     // Query with 1 day filter - should only get 2 checks
-    const stats = await t.query(api.checks.getUptimeStats, {
+    const stats = await t.withIdentity(user).query(api.checks.getUptimeStats, {
       monitorId,
       days: 1,
     });
@@ -184,9 +221,61 @@ describe("getUptimeStats", () => {
       await recordCheck(t, monitorId, "down", 0, now - i * 1000);
     }
 
-    const stats = await t.query(api.checks.getUptimeStats, { monitorId });
+    const stats = await t
+      .withIdentity(user)
+      .query(api.checks.getUptimeStats, { monitorId });
     expect(stats.uptimePercentage).toBe(0);
     expect(stats.failedChecks).toBe(5);
     expect(stats.successfulChecks).toBe(0);
+  });
+
+  test("throws Unauthorized for unauthenticated requests", async () => {
+    const t = setupBackend();
+    const monitorId = await createTestMonitor(t);
+
+    await expect(
+      t.query(api.checks.getUptimeStats, { monitorId }),
+    ).rejects.toThrow("Unauthorized");
+  });
+
+  test("throws Monitor not found for wrong user", async () => {
+    const t = setupBackend();
+    const monitorId = await createTestMonitor(t);
+    const otherUser = { name: "Other", subject: "user_other", issuer: "clerk" };
+
+    await expect(
+      t.withIdentity(otherUser).query(api.checks.getUptimeStats, { monitorId }),
+    ).rejects.toThrow("Monitor not found");
+  });
+});
+
+describe("getDailyStatus", () => {
+  test("returns empty array for monitor with no checks", async () => {
+    const t = setupBackend();
+    const monitorId = await createTestMonitor(t);
+
+    const status = await t
+      .withIdentity(user)
+      .query(api.checks.getDailyStatus, { monitorId });
+    expect(status).toHaveLength(0);
+  });
+
+  test("throws Unauthorized for unauthenticated requests", async () => {
+    const t = setupBackend();
+    const monitorId = await createTestMonitor(t);
+
+    await expect(
+      t.query(api.checks.getDailyStatus, { monitorId }),
+    ).rejects.toThrow("Unauthorized");
+  });
+
+  test("throws Monitor not found for wrong user", async () => {
+    const t = setupBackend();
+    const monitorId = await createTestMonitor(t);
+    const otherUser = { name: "Other", subject: "user_other", issuer: "clerk" };
+
+    await expect(
+      t.withIdentity(otherUser).query(api.checks.getDailyStatus, { monitorId }),
+    ).rejects.toThrow("Monitor not found");
   });
 });

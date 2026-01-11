@@ -256,7 +256,9 @@ describe("recordCheck", () => {
       checkedAt: now,
     });
 
-    const checks = await t.query(api.checks.getRecentForMonitor, { monitorId });
+    const checks = await t
+      .withIdentity(user)
+      .query(api.checks.getRecentForMonitor, { monitorId });
     expect(checks).toHaveLength(1);
     expect(checks[0]).toMatchObject({
       monitorId,
@@ -279,7 +281,9 @@ describe("recordCheck", () => {
       checkedAt: now,
     });
 
-    const checks = await t.query(api.checks.getRecentForMonitor, { monitorId });
+    const checks = await t
+      .withIdentity(user)
+      .query(api.checks.getRecentForMonitor, { monitorId });
     expect(checks[0].errorMessage).toBe("Connection timeout");
     expect(checks[0].status).toBe("down");
   });
