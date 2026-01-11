@@ -1,3 +1,9 @@
+## [1.2.2](https://github.com/misty-step/heartbeat/compare/v1.2.1...v1.2.2) (2026-01-11)
+
+### Bug Fixes
+
+- **security:** Add auth check to incidents.getForMonitor query ([#62](https://github.com/misty-step/heartbeat/issues/62)) ([1832e83](https://github.com/misty-step/heartbeat/commit/1832e83036817a2b192712732b6446fb52b9fbc3)), closes [#31](https://github.com/misty-step/heartbeat/issues/31)
+
 ## [1.2.1](https://github.com/misty-step/heartbeat/compare/v1.2.0...v1.2.1) (2026-01-11)
 
 ### Bug Fixes
