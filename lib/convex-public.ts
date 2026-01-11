@@ -16,7 +16,15 @@ import type {
   FunctionReturnType,
 } from "convex/server";
 
-const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL!;
+const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
+if (!convexUrl) {
+  throw new Error(
+    "NEXT_PUBLIC_CONVEX_URL environment variable is required for public queries",
+  );
+}
+
+// Module-level singleton - reused across all queries to avoid connection overhead
+const client = new ConvexHttpClient(convexUrl);
 
 /**
  * Fetch a public Convex query without triggering dynamic server usage.
@@ -25,6 +33,5 @@ const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL!;
 export async function fetchPublicQuery<
   Query extends FunctionReference<"query">,
 >(query: Query, args: FunctionArgs<Query>): Promise<FunctionReturnType<Query>> {
-  const client = new ConvexHttpClient(convexUrl);
   return client.query(query, args);
 }
