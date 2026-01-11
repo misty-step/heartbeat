@@ -1,3 +1,9 @@
+## [1.2.3](https://github.com/misty-step/heartbeat/compare/v1.2.2...v1.2.3) (2026-01-11)
+
+### Performance Improvements
+
+- Use singleton ConvexHttpClient for public queries ([#63](https://github.com/misty-step/heartbeat/issues/63)) ([d507837](https://github.com/misty-step/heartbeat/commit/d50783715179535061a1e8ff033cce726f1beae5)), closes [#35](https://github.com/misty-step/heartbeat/issues/35)
+
 ## [1.2.2](https://github.com/misty-step/heartbeat/compare/v1.2.1...v1.2.2) (2026-01-11)
 
 ### Bug Fixes
