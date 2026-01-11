@@ -18,6 +18,9 @@ import type {
 
 const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL!;
 
+// Module-level singleton - reused across all queries to avoid connection overhead
+const client = new ConvexHttpClient(convexUrl);
+
 /**
  * Fetch a public Convex query without triggering dynamic server usage.
  * Compatible with ISR (Incremental Static Regeneration).
@@ -25,6 +28,5 @@ const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL!;
 export async function fetchPublicQuery<
   Query extends FunctionReference<"query">,
 >(query: Query, args: FunctionArgs<Query>): Promise<FunctionReturnType<Query>> {
-  const client = new ConvexHttpClient(convexUrl);
   return client.query(query, args);
 }
