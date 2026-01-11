@@ -21,6 +21,16 @@ export const getForMonitor = query({
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Unauthorized");
+    }
+
+    const monitor = await ctx.db.get(args.monitorId);
+    if (!monitor || monitor.userId !== identity.subject) {
+      throw new Error("Monitor not found");
+    }
+
     const limit = args.limit || 20;
 
     return await ctx.db
