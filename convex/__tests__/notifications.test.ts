@@ -46,7 +46,9 @@ async function createTestIncident(
   await t.mutation(internal.monitoring.openIncident, { monitorId });
   // Drain scheduled notification action to avoid unhandled errors
   await t.finishAllScheduledFunctions(advanceTimers);
-  const incidents = await t.query(api.incidents.getForMonitor, { monitorId });
+  const incidents = await t
+    .withIdentity(user)
+    .query(api.incidents.getForMonitor, { monitorId });
   return incidents[0]._id;
 }
 
@@ -153,7 +155,9 @@ describe("openIncident behavior", () => {
     await t.mutation(internal.monitoring.openIncident, { monitorId });
     await t.finishAllScheduledFunctions(advanceTimers);
 
-    const incidents = await t.query(api.incidents.getForMonitor, { monitorId });
+    const incidents = await t
+      .withIdentity(user)
+      .query(api.incidents.getForMonitor, { monitorId });
     expect(incidents).toHaveLength(1);
     expect(incidents[0].title).toBe("Production API is down");
     expect(incidents[0].description).toContain("3 consecutive checks");
@@ -174,7 +178,9 @@ describe("openIncident behavior", () => {
     await t.finishAllScheduledFunctions(advanceTimers);
 
     // Should still only have one
-    const incidents = await t.query(api.incidents.getForMonitor, { monitorId });
+    const incidents = await t
+      .withIdentity(user)
+      .query(api.incidents.getForMonitor, { monitorId });
     expect(incidents).toHaveLength(1);
   });
 
@@ -192,7 +198,9 @@ describe("openIncident behavior", () => {
     await t.mutation(internal.monitoring.openIncident, { monitorId });
     await t.finishAllScheduledFunctions(advanceTimers);
 
-    const incidents = await t.query(api.incidents.getForMonitor, { monitorId });
+    const incidents = await t
+      .withIdentity(user)
+      .query(api.incidents.getForMonitor, { monitorId });
     expect(incidents).toHaveLength(2);
     expect(incidents.filter((i) => i.status === "investigating")).toHaveLength(
       1,
@@ -210,7 +218,9 @@ describe("resolveIncident behavior", () => {
     await t.mutation(internal.monitoring.resolveIncident, { monitorId });
     await t.finishAllScheduledFunctions(advanceTimers);
 
-    const incidents = await t.query(api.incidents.getForMonitor, { monitorId });
+    const incidents = await t
+      .withIdentity(user)
+      .query(api.incidents.getForMonitor, { monitorId });
     expect(incidents[0].status).toBe("resolved");
     expect(incidents[0].resolvedAt).toBeDefined();
     expect(incidents[0].resolvedAt).toBeGreaterThanOrEqual(
@@ -226,7 +236,9 @@ describe("resolveIncident behavior", () => {
     await t.mutation(internal.monitoring.resolveIncident, { monitorId });
     await t.finishAllScheduledFunctions(advanceTimers);
 
-    const incidents = await t.query(api.incidents.getForMonitor, { monitorId });
+    const incidents = await t
+      .withIdentity(user)
+      .query(api.incidents.getForMonitor, { monitorId });
     expect(incidents).toHaveLength(0);
   });
 
@@ -239,18 +251,22 @@ describe("resolveIncident behavior", () => {
     await t.mutation(internal.monitoring.resolveIncident, { monitorId });
     await t.finishAllScheduledFunctions(advanceTimers);
 
-    const incidentsBefore = await t.query(api.incidents.getForMonitor, {
-      monitorId,
-    });
+    const incidentsBefore = await t
+      .withIdentity(user)
+      .query(api.incidents.getForMonitor, {
+        monitorId,
+      });
     const resolvedAtBefore = incidentsBefore[0].resolvedAt;
 
     // Try to resolve again
     await t.mutation(internal.monitoring.resolveIncident, { monitorId });
     await t.finishAllScheduledFunctions(advanceTimers);
 
-    const incidentsAfter = await t.query(api.incidents.getForMonitor, {
-      monitorId,
-    });
+    const incidentsAfter = await t
+      .withIdentity(user)
+      .query(api.incidents.getForMonitor, {
+        monitorId,
+      });
     // resolvedAt should not change (no incident to resolve)
     expect(incidentsAfter[0].resolvedAt).toEqual(resolvedAtBefore);
   });
@@ -368,7 +384,9 @@ describe("incident lifecycle tracking", () => {
     await t.mutation(internal.monitoring.openIncident, { monitorId });
     await t.finishAllScheduledFunctions(advanceTimers);
 
-    const incidents = await t.query(api.incidents.getForMonitor, { monitorId });
+    const incidents = await t
+      .withIdentity(user)
+      .query(api.incidents.getForMonitor, { monitorId });
     expect(incidents[0].startedAt).toBeGreaterThanOrEqual(beforeCreate);
     expect(incidents[0].resolvedAt).toBeUndefined();
   });
@@ -383,7 +401,9 @@ describe("incident lifecycle tracking", () => {
     await t.mutation(internal.monitoring.resolveIncident, { monitorId });
     await t.finishAllScheduledFunctions(advanceTimers);
 
-    const incidents = await t.query(api.incidents.getForMonitor, { monitorId });
+    const incidents = await t
+      .withIdentity(user)
+      .query(api.incidents.getForMonitor, { monitorId });
     expect(incidents[0].resolvedAt).toBeGreaterThanOrEqual(beforeResolve);
   });
 
@@ -401,7 +421,9 @@ describe("incident lifecycle tracking", () => {
     await t.mutation(internal.monitoring.openIncident, { monitorId });
     await t.finishAllScheduledFunctions(advanceTimers);
 
-    const incidents = await t.query(api.incidents.getForMonitor, { monitorId });
+    const incidents = await t
+      .withIdentity(user)
+      .query(api.incidents.getForMonitor, { monitorId });
     expect(incidents).toHaveLength(2);
 
     const resolved = incidents.filter((i) => i.status === "resolved");
@@ -438,12 +460,16 @@ describe("monitor-incident relationship", () => {
     });
     await t.finishAllScheduledFunctions(advanceTimers);
 
-    const incidents1 = await t.query(api.incidents.getForMonitor, {
-      monitorId: monitor1Id,
-    });
-    const incidents2 = await t.query(api.incidents.getForMonitor, {
-      monitorId: monitor2Id,
-    });
+    const incidents1 = await t
+      .withIdentity(user)
+      .query(api.incidents.getForMonitor, {
+        monitorId: monitor1Id,
+      });
+    const incidents2 = await t
+      .withIdentity(user)
+      .query(api.incidents.getForMonitor, {
+        monitorId: monitor2Id,
+      });
 
     expect(incidents1).toHaveLength(1);
     expect(incidents2).toHaveLength(1);

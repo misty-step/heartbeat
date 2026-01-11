@@ -38,7 +38,9 @@ describe("getForMonitor", () => {
     const t = setupBackend();
     const monitorId = await createTestMonitor(t);
 
-    const incidents = await t.query(api.incidents.getForMonitor, { monitorId });
+    const incidents = await t
+      .withIdentity(user)
+      .query(api.incidents.getForMonitor, { monitorId });
     expect(incidents).toHaveLength(0);
   });
 
@@ -50,7 +52,9 @@ describe("getForMonitor", () => {
     await t.mutation(internal.monitoring.openIncident, { monitorId });
     await t.finishAllScheduledFunctions(advanceTimers);
 
-    const incidents = await t.query(api.incidents.getForMonitor, { monitorId });
+    const incidents = await t
+      .withIdentity(user)
+      .query(api.incidents.getForMonitor, { monitorId });
     expect(incidents).toHaveLength(1);
     expect(incidents[0].status).toBe("investigating");
   });
@@ -69,7 +73,9 @@ describe("getForMonitor", () => {
     await t.mutation(internal.monitoring.openIncident, { monitorId });
     await t.finishAllScheduledFunctions(advanceTimers);
 
-    const incidents = await t.query(api.incidents.getForMonitor, { monitorId });
+    const incidents = await t
+      .withIdentity(user)
+      .query(api.incidents.getForMonitor, { monitorId });
     expect(incidents).toHaveLength(2);
     // Most recent (investigating) first
     expect(incidents[0].status).toBe("investigating");
@@ -88,10 +94,12 @@ describe("getForMonitor", () => {
       await t.finishAllScheduledFunctions(advanceTimers);
     }
 
-    const incidents = await t.query(api.incidents.getForMonitor, {
-      monitorId,
-      limit: 2,
-    });
+    const incidents = await t
+      .withIdentity(user)
+      .query(api.incidents.getForMonitor, {
+        monitorId,
+        limit: 2,
+      });
     expect(incidents).toHaveLength(2);
   });
 });
