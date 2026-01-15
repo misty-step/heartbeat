@@ -5,14 +5,19 @@ import { UserButton } from "@clerk/nextjs";
 import { ThemeToggle } from "./ThemeToggle";
 import { Settings } from "lucide-react";
 
+/**
+ * DashboardNavbar - Kyoto Moss Design System
+ *
+ * Navigation bar for the dashboard with logo, settings, theme toggle, and user menu.
+ */
 export function DashboardNavbar() {
   return (
-    <nav className="px-6 sm:px-12 lg:px-24 py-6 border-b border-foreground/10">
+    <nav className="px-6 sm:px-12 lg:px-24 py-6 border-b border-[var(--color-border-subtle)]">
       <div className="flex items-center justify-between">
         {/* Logo / Wordmark */}
         <Link
           href="/dashboard"
-          className="font-serif text-xl tracking-tight text-foreground hover:opacity-70 transition-opacity"
+          className="font-display text-xl tracking-tight text-[var(--color-text-primary)] hover:opacity-70 transition-opacity"
         >
           Heartbeat
         </Link>
@@ -21,19 +26,19 @@ export function DashboardNavbar() {
         <div className="flex items-center gap-4">
           <Link
             href="/dashboard/settings"
-            className="p-2 text-foreground/50 hover:text-foreground hover:bg-foreground/5 transition-colors rounded-md"
+            className="p-2 text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-tertiary)] transition-colors rounded-[var(--radius-md)]"
             title="Notification Settings"
           >
-            <Settings className="h-5 w-5" />
+            <Settings className="size-5" />
           </Link>
           <ThemeToggle />
           <UserButton
             afterSignOutUrl="/"
             appearance={{
               elements: {
-                avatarBox: "w-8 h-8",
+                avatarBox: "size-8",
                 userButtonTrigger:
-                  "focus:shadow-none focus:ring-2 focus:ring-foreground/20 rounded-full",
+                  "focus:shadow-none focus:ring-2 focus:ring-[var(--color-accent-primary)]/20 rounded-full",
               },
             }}
           />

@@ -7,6 +7,12 @@ import { Id } from "../convex/_generated/dataModel";
 import { X } from "lucide-react";
 import { validateMonitorForm, type ValidationErrors } from "@/lib/domain";
 
+/**
+ * MonitorSettingsModal - Kyoto Moss Design System
+ *
+ * Modal dialog for editing monitor settings.
+ */
+
 interface Monitor {
   _id: Id<"monitors">;
   name: string;
@@ -21,8 +27,6 @@ interface MonitorSettingsModalProps {
   monitor: Monitor;
   onClose: () => void;
 }
-
-// FormErrors type imported from @/lib/domain as ValidationErrors
 
 type IntervalValue = 60 | 120 | 300 | 600 | 1800 | 3600;
 
@@ -40,14 +44,13 @@ export function MonitorSettingsModal({
     name: monitor.name,
     url: monitor.url,
     interval: monitor.interval as IntervalValue,
-    timeout: Math.floor(monitor.timeout / 1000), // Store in seconds
+    timeout: Math.floor(monitor.timeout / 1000),
     expectedStatusCode: monitor.expectedStatusCode?.toString() || "",
     visibility: monitor.visibility,
   });
 
   const [errors, setErrors] = useState<ValidationErrors>({});
 
-  // Use domain validation function
   const validateForm = (): boolean => {
     const result = validateMonitorForm({
       url: formData.url,
@@ -70,7 +73,7 @@ export function MonitorSettingsModal({
         name: formData.name,
         url: formData.url,
         interval: formData.interval,
-        timeout: formData.timeout * 1000, // Convert seconds to milliseconds
+        timeout: formData.timeout * 1000,
         expectedStatusCode: formData.expectedStatusCode
           ? parseInt(formData.expectedStatusCode)
           : undefined,
@@ -107,7 +110,6 @@ export function MonitorSettingsModal({
     }
   };
 
-  // Close modal on backdrop click
   const handleBackdropClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
       onClose();
@@ -119,18 +121,18 @@ export function MonitorSettingsModal({
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
       onClick={handleBackdropClick}
     >
-      <div className="relative w-full max-w-lg mx-4 bg-background shadow-xl border border-foreground/10">
+      <div className="relative w-full max-w-lg mx-4 bg-[var(--color-bg-primary)] shadow-[var(--shadow-lg)] border border-[var(--color-border-subtle)] rounded-[var(--radius-lg)]">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-foreground/10">
-          <h2 className="font-serif text-xl text-foreground">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--color-border-subtle)]">
+          <h2 className="font-display text-xl text-[var(--color-text-primary)]">
             Monitor Settings
           </h2>
           <button
             onClick={onClose}
-            className="p-2 text-foreground/40 hover:text-foreground hover:bg-foreground/5 transition-colors"
+            className="p-2 text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-tertiary)] transition-colors rounded-[var(--radius-sm)]"
             aria-label="Close"
           >
-            <X className="w-5 h-5" />
+            <X className="size-5" />
           </button>
         </div>
 
@@ -138,7 +140,7 @@ export function MonitorSettingsModal({
         <form onSubmit={handleSubmit} className="px-6 py-6 space-y-5">
           {/* General error message */}
           {errors.submit && (
-            <div className="px-4 py-3 bg-red-500/10 text-red-600 dark:text-red-400 text-sm">
+            <div className="px-4 py-3 bg-down-muted text-down text-sm rounded-[var(--radius-sm)]">
               {errors.submit}
             </div>
           )}
@@ -147,7 +149,7 @@ export function MonitorSettingsModal({
           <div className="space-y-2">
             <label
               htmlFor="name"
-              className="block text-sm font-medium text-foreground/70"
+              className="block text-sm font-medium text-[var(--color-text-secondary)]"
             >
               Monitor Name *
             </label>
@@ -159,21 +161,19 @@ export function MonitorSettingsModal({
                 setFormData({ ...formData, name: e.target.value })
               }
               className={`w-full px-4 py-3 bg-transparent border ${
-                errors.name ? "border-red-500" : "border-foreground/20"
-              } text-foreground focus:outline-none focus:border-foreground/50 transition-colors`}
+                errors.name
+                  ? "border-[var(--color-status-down)]"
+                  : "border-[var(--color-border-default)]"
+              } text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-accent-primary)] transition-colors rounded-[var(--radius-md)]`}
             />
-            {errors.name && (
-              <p className="text-sm text-red-600 dark:text-red-400">
-                {errors.name}
-              </p>
-            )}
+            {errors.name && <p className="text-sm text-down">{errors.name}</p>}
           </div>
 
           {/* URL field */}
           <div className="space-y-2">
             <label
               htmlFor="url"
-              className="block text-sm font-medium text-foreground/70"
+              className="block text-sm font-medium text-[var(--color-text-secondary)]"
             >
               URL *
             </label>
@@ -185,21 +185,19 @@ export function MonitorSettingsModal({
                 setFormData({ ...formData, url: e.target.value })
               }
               className={`w-full px-4 py-3 bg-transparent border ${
-                errors.url ? "border-red-500" : "border-foreground/20"
-              } text-foreground focus:outline-none focus:border-foreground/50 transition-colors`}
+                errors.url
+                  ? "border-[var(--color-status-down)]"
+                  : "border-[var(--color-border-default)]"
+              } text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-accent-primary)] transition-colors rounded-[var(--radius-md)]`}
             />
-            {errors.url && (
-              <p className="text-sm text-red-600 dark:text-red-400">
-                {errors.url}
-              </p>
-            )}
+            {errors.url && <p className="text-sm text-down">{errors.url}</p>}
           </div>
 
           {/* Check Interval field */}
           <div className="space-y-2">
             <label
               htmlFor="interval"
-              className="block text-sm font-medium text-foreground/70"
+              className="block text-sm font-medium text-[var(--color-text-secondary)]"
             >
               Check Interval
             </label>
@@ -212,7 +210,7 @@ export function MonitorSettingsModal({
                   interval: Number(e.target.value) as IntervalValue,
                 })
               }
-              className="w-full px-4 py-3 bg-transparent border border-foreground/20 text-foreground focus:outline-none focus:border-foreground/50 transition-colors"
+              className="w-full px-4 py-3 bg-transparent border border-[var(--color-border-default)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-accent-primary)] transition-colors rounded-[var(--radius-md)]"
             >
               <option value={60}>Every 1 minute</option>
               <option value={300}>Every 5 minutes</option>
@@ -226,7 +224,7 @@ export function MonitorSettingsModal({
           <div className="space-y-2">
             <label
               htmlFor="timeout"
-              className="block text-sm font-medium text-foreground/70"
+              className="block text-sm font-medium text-[var(--color-text-secondary)]"
             >
               Timeout (seconds)
             </label>
@@ -239,9 +237,9 @@ export function MonitorSettingsModal({
               onChange={(e) =>
                 setFormData({ ...formData, timeout: Number(e.target.value) })
               }
-              className="w-full px-4 py-3 bg-transparent border border-foreground/20 text-foreground focus:outline-none focus:border-foreground/50 transition-colors"
+              className="w-full px-4 py-3 bg-transparent border border-[var(--color-border-default)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-accent-primary)] transition-colors rounded-[var(--radius-md)]"
             />
-            <p className="text-xs text-foreground/40">
+            <p className="text-xs text-[var(--color-text-muted)]">
               How long to wait for a response (5-60 seconds)
             </p>
           </div>
@@ -250,10 +248,10 @@ export function MonitorSettingsModal({
           <div className="space-y-2">
             <label
               htmlFor="expectedStatusCode"
-              className="block text-sm font-medium text-foreground/70"
+              className="block text-sm font-medium text-[var(--color-text-secondary)]"
             >
               Expected Status Code
-              <span className="ml-2 text-foreground/40 font-normal">
+              <span className="ml-2 text-[var(--color-text-muted)] font-normal">
                 (optional)
               </span>
             </label>
@@ -269,23 +267,21 @@ export function MonitorSettingsModal({
               placeholder="200"
               className={`w-full px-4 py-3 bg-transparent border ${
                 errors.expectedStatusCode
-                  ? "border-red-500"
-                  : "border-foreground/20"
-              } text-foreground placeholder:text-foreground/30 focus:outline-none focus:border-foreground/50 transition-colors`}
+                  ? "border-[var(--color-status-down)]"
+                  : "border-[var(--color-border-default)]"
+              } text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-accent-primary)] transition-colors rounded-[var(--radius-md)]`}
             />
             {errors.expectedStatusCode && (
-              <p className="text-sm text-red-600 dark:text-red-400">
-                {errors.expectedStatusCode}
-              </p>
+              <p className="text-sm text-down">{errors.expectedStatusCode}</p>
             )}
-            <p className="text-xs text-foreground/40">
+            <p className="text-xs text-[var(--color-text-muted)]">
               Leave empty to accept any 2xx or 3xx status
             </p>
           </div>
 
           {/* Visibility toggle */}
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-foreground/70">
+            <label className="block text-sm font-medium text-[var(--color-text-secondary)]">
               Status Page Visibility
             </label>
             <label className="flex items-center gap-3 cursor-pointer">
@@ -298,13 +294,13 @@ export function MonitorSettingsModal({
                     visibility: e.target.checked ? "public" : "private",
                   })
                 }
-                className="w-4 h-4 accent-foreground"
+                className="size-4 accent-[var(--color-accent-primary)]"
               />
-              <span className="text-sm text-foreground">
+              <span className="text-sm text-[var(--color-text-primary)]">
                 Show on public status page
               </span>
             </label>
-            <p className="text-xs text-foreground/40">
+            <p className="text-xs text-[var(--color-text-muted)]">
               {formData.visibility === "public"
                 ? "This monitor is visible on your public status page"
                 : "This monitor is hidden from your public status page"}
@@ -312,12 +308,12 @@ export function MonitorSettingsModal({
           </div>
 
           {/* Action buttons */}
-          <div className="flex items-center justify-between pt-4 border-t border-foreground/10">
+          <div className="flex items-center justify-between pt-4 border-t border-[var(--color-border-subtle)]">
             <button
               type="button"
               onClick={handleDeleteClick}
               disabled={isDeleting}
-              className="px-4 py-2 text-red-600 dark:text-red-400 hover:bg-red-500/10 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 text-down hover:bg-down-muted font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed rounded-[var(--radius-sm)]"
             >
               {isDeleting ? "Deleting..." : "Delete Monitor"}
             </button>
@@ -326,14 +322,14 @@ export function MonitorSettingsModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 border border-foreground/20 text-foreground/70 hover:bg-foreground/5 font-medium transition-colors"
+                className="px-4 py-2 border border-[var(--color-border-default)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-tertiary)] font-medium transition-colors rounded-[var(--radius-md)]"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="px-6 py-2 bg-foreground text-background font-medium hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
+                className="px-6 py-2 bg-[var(--color-accent-primary)] text-[var(--color-text-inverse)] font-medium hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity rounded-[var(--radius-md)]"
               >
                 {isSubmitting ? "Saving..." : "Save Changes"}
               </button>

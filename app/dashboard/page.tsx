@@ -50,7 +50,7 @@ export default function DashboardPage() {
       <div className="flex-1 flex items-center justify-center py-24">
         <div className="text-center space-y-4">
           <div className="w-8 h-8 border-2 border-foreground/20 border-t-foreground/60 rounded-full animate-spin mx-auto" />
-          <p className="text-sm text-foreground/50">Loading...</p>
+          <p className="text-sm text-[var(--color-text-muted)]">Loading...</p>
         </div>
       </div>
     );
@@ -62,7 +62,7 @@ export default function DashboardPage() {
       <div className="flex-1 flex items-center px-6 sm:px-12 lg:px-24 py-16 sm:py-24">
         <div className="w-full max-w-xl">
           {/* Editorial headline */}
-          <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl leading-[1.1] tracking-tight text-foreground mb-12">
+          <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl leading-[1.1] tracking-tight text-foreground text-balance mb-12">
             What are you
             <br />
             <span className="italic">monitoring?</span>
@@ -72,7 +72,7 @@ export default function DashboardPage() {
           <AddMonitorForm />
 
           {/* Subtle helper text */}
-          <p className="mt-8 text-sm text-foreground/40">
+          <p className="mt-8 text-sm text-[var(--color-text-muted)]">
             Checks run every 5 minutes. We'll alert you if something goes down.
           </p>
         </div>
@@ -92,11 +92,11 @@ export default function DashboardPage() {
                 <StatusIndicator status={aggregateStatus} size="xl" cinematic />
               </div>
             )}
-            <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl tracking-tight text-foreground leading-none">
+            <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl tracking-tight text-foreground text-balance leading-none">
               {getStatusHeadline(aggregateStatus)}
             </h1>
           </div>
-          <div className="flex items-center gap-6 text-sm text-foreground/50">
+          <div className="flex items-center gap-6 text-sm text-[var(--color-text-muted)]">
             <span className="inline-flex items-center gap-2">
               <Activity className="h-3.5 w-3.5" />
               <span className="tabular-nums">{monitors.length}</span>{" "}
@@ -113,7 +113,9 @@ export default function DashboardPage() {
 
         {/* Actions row */}
         <div className="flex items-center justify-between border-t border-foreground/10 pt-8">
-          <h2 className="font-serif text-xl text-foreground/70">Monitors</h2>
+          <h2 className="font-serif text-xl text-[var(--color-text-secondary)]">
+            Monitors
+          </h2>
           <button
             onClick={() => setShowAddForm(!showAddForm)}
             className={`flex items-center gap-2 px-4 py-2 font-medium transition-all ${

@@ -3,14 +3,15 @@
 import { useEffect, useRef, useState } from "react";
 
 /**
- * ZenUptimeChart - Minimal single-stroke response time visualization
+ * ZenUptimeChart - Kyoto Moss Design System
  *
- * Unlike UptimeChart (gradient glow, multiple layers), this is pure:
+ * Minimal single-stroke response time visualization.
+ * Unlike HeartbeatPulse (EKG style), this is pure minimalism:
  * - Single 1.5px stroke line
- * - Foreground color (theme-aware)
+ * - Theme-aware foreground color
  * - No glow, no gradient
- * - No visible data points (until hover)
  * - Smooth bezier curves
+ * - Data points appear on hover only
  */
 
 interface ChartDataPoint {
@@ -108,7 +109,7 @@ export function ZenUptimeChart({
         strokeWidth="1.5"
         strokeLinecap="round"
         strokeLinejoin="round"
-        className="text-foreground/40"
+        className="text-[var(--color-text-muted)]"
         style={{
           strokeDasharray: pathLength,
           strokeDashoffset: isAnimated ? 0 : pathLength,
@@ -137,13 +138,19 @@ export function ZenUptimeChart({
             {/* Visible point on hover */}
             {hoveredPoint === i && (
               <>
-                <circle cx={x} cy={y} r="3" className="fill-foreground" />
+                <circle
+                  cx={x}
+                  cy={y}
+                  r="3"
+                  className="fill-[var(--color-text-primary)]"
+                />
                 {/* Tooltip */}
                 <text
                   x={x}
                   y={y - 12}
                   textAnchor="middle"
-                  className="text-[10px] fill-foreground/60 font-mono"
+                  className="text-[10px] fill-[var(--color-text-secondary)] font-mono"
+                  style={{ fontVariantNumeric: "tabular-nums" }}
                 >
                   {point.responseTime}ms
                 </text>

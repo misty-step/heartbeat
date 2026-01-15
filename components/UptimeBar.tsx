@@ -1,8 +1,10 @@
 "use client";
 
+import { useState, useRef } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../convex/_generated/api";
 import { Id } from "../convex/_generated/dataModel";
+import { cn } from "@/lib/cn";
 
 interface UptimeBarProps {
   monitorId: Id<"monitors">;
@@ -14,18 +16,38 @@ type DayStatus = "up" | "degraded" | "down";
 const getBarColor = (status: DayStatus | "unknown") => {
   switch (status) {
     case "up":
-      return "bg-foreground";
+      return "bg-up";
     case "degraded":
       return "bg-degraded";
     case "down":
       return "bg-down";
     default:
-      return "bg-foreground/10";
+      return "bg-[var(--color-border-subtle)]";
   }
+};
+
+const getStatusLabel = (status: DayStatus | "unknown") => {
+  switch (status) {
+    case "up":
+      return "Operational";
+    case "degraded":
+      return "Degraded";
+    case "down":
+      return "Down";
+    default:
+      return "No data";
+  }
+};
+
+const formatDate = (dateStr: string) => {
+  const date = new Date(dateStr + "T00:00:00");
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 };
 
 export function UptimeBar({ monitorId, days = 30 }: UptimeBarProps) {
   const dailyStatus = useQuery(api.checks.getDailyStatus, { monitorId, days });
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   if (!dailyStatus) {
     // Loading state - show placeholder bars
@@ -34,7 +56,7 @@ export function UptimeBar({ monitorId, days = 30 }: UptimeBarProps) {
         {Array.from({ length: days }).map((_, i) => (
           <div
             key={i}
-            className="flex-1 h-6 bg-foreground/5 animate-pulse"
+            className="flex-1 h-6 bg-[var(--color-border-subtle)] animate-pulse"
             style={{ animationDelay: `${i * 20}ms` }}
           />
         ))}
@@ -56,19 +78,48 @@ export function UptimeBar({ monitorId, days = 30 }: UptimeBarProps) {
 
   return (
     <div className="space-y-2">
-      <div className="flex gap-[2px]">
+      <div
+        ref={containerRef}
+        className="relative flex gap-[2px]"
+        onMouseLeave={() => setHoveredIndex(null)}
+      >
         {dateRange.map((date, i) => {
           const status = statusByDate.get(date) ?? "unknown";
+          const isHovered = hoveredIndex === i;
           return (
             <div
               key={date}
-              className={`flex-1 h-6 transition-all hover:opacity-70 ${getBarColor(status)}`}
-              title={date}
+              className={cn(
+                "flex-1 h-6 transition-transform origin-bottom",
+                getBarColor(status),
+                isHovered ? "scale-y-125 z-10" : "hover:scale-y-110",
+              )}
+              onMouseEnter={() => setHoveredIndex(i)}
             />
           );
         })}
+
+        {/* Positioned tooltip */}
+        {hoveredIndex !== null && (
+          <div
+            className="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 bg-[var(--color-bg-inverse)] text-[var(--color-text-inverse)] text-xs font-mono rounded-[var(--radius-sm)] shadow-lg whitespace-nowrap z-20 pointer-events-none"
+            style={{
+              left: `${((hoveredIndex + 0.5) / days) * 100}%`,
+            }}
+          >
+            <span className="tabular-nums">
+              {formatDate(dateRange[hoveredIndex])}
+            </span>
+            <span className="mx-1.5 opacity-50">·</span>
+            <span>
+              {getStatusLabel(
+                statusByDate.get(dateRange[hoveredIndex]) ?? "unknown",
+              )}
+            </span>
+          </div>
+        )}
       </div>
-      <div className="flex justify-between text-xs text-foreground/40">
+      <div className="flex justify-between text-xs text-[var(--color-text-muted)]">
         <span>{days} days ago</span>
         <span>Today</span>
       </div>
@@ -93,14 +144,15 @@ export function UptimeBarSimple({
           return (
             <div
               key={i}
-              className={`flex-1 h-6 transition-all ${
-                filled ? "bg-foreground" : "bg-foreground/10"
-              }`}
+              className={cn(
+                "flex-1 h-6 transition-all",
+                filled ? "bg-up" : "bg-[var(--color-border-subtle)]",
+              )}
             />
           );
         })}
       </div>
-      <div className="flex justify-between text-xs text-foreground/40">
+      <div className="flex justify-between text-xs text-[var(--color-text-muted)]">
         <span>{days} days ago</span>
         <span>Today</span>
       </div>

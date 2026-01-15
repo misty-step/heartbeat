@@ -1,47 +1,51 @@
 import Link from "next/link";
-import { StatusIndicator } from "@/components/StatusIndicator";
 
+/**
+ * Footer - Kyoto Moss Design System
+ *
+ * Site footer with brand, copyright, and navigation links.
+ */
 export function Footer() {
   return (
-    <footer className="w-full border-t border-border footer-bg">
+    <footer className="w-full border-t border-[var(--color-border-subtle)] bg-[var(--color-bg-secondary)]">
       <div className="px-6 sm:px-12 lg:px-24 py-8">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           {/* Brand & Copyright */}
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-3">
-              <span className="font-serif font-bold text-foreground tracking-tight">
+              <span className="font-display font-bold text-[var(--color-text-primary)] tracking-tight">
                 Heartbeat
               </span>
-              <span className="text-foreground/20">/</span>
-              <span className="text-xs text-foreground/50 font-mono">
+              <span className="text-[var(--color-border-default)]">/</span>
+              <span className="text-xs text-[var(--color-text-muted)] font-mono">
                 © 2025 Misty Step
               </span>
             </div>
           </div>
 
           {/* Minimal Links */}
-          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs font-mono text-foreground/60">
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs font-mono text-[var(--color-text-tertiary)]">
             <Link
               href="/dashboard"
-              className="hover:text-foreground transition-colors"
+              className="hover:text-[var(--color-text-primary)] transition-colors"
             >
               Dashboard
             </Link>
             <Link
               href="/terms"
-              className="hover:text-foreground transition-colors"
+              className="hover:text-[var(--color-text-primary)] transition-colors"
             >
               Terms
             </Link>
             <Link
               href="/privacy"
-              className="hover:text-foreground transition-colors"
+              className="hover:text-[var(--color-text-primary)] transition-colors"
             >
               Privacy
             </Link>
             <a
               href="mailto:hello@mistystep.io"
-              className="hover:text-foreground transition-colors"
+              className="hover:text-[var(--color-text-primary)] transition-colors"
             >
               Contact
             </a>

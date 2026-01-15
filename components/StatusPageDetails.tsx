@@ -6,6 +6,7 @@ import { GlassPanel } from "./ui/GlassPanel";
 import { StatCard } from "./ui/StatCard";
 import { formatRelativeTime } from "@/lib/domain/formatting";
 import { type MonitorStatus } from "@/lib/domain";
+import { cn } from "@/lib/cn";
 
 interface ChartDataPoint {
   timestamp: number;
@@ -34,16 +35,18 @@ interface StatusPageDetailsProps {
   incidents: Incident[];
 }
 
-/** Status-tinted gradient backgrounds for visual continuity from hero */
+/** Status-tinted gradient backgrounds using Kyoto Moss semantic colors */
 const gradientStyles: Record<MonitorStatus, string> = {
-  up: "from-teal-950/40 via-background to-background",
-  degraded: "from-amber-950/40 via-background to-background",
-  down: "from-red-950/40 via-background to-background",
+  up: "from-[var(--color-status-up)]/10 via-[var(--color-bg-primary)] to-[var(--color-bg-primary)]",
+  degraded:
+    "from-[var(--color-status-degraded)]/10 via-[var(--color-bg-primary)] to-[var(--color-bg-primary)]",
+  down: "from-[var(--color-status-down)]/10 via-[var(--color-bg-primary)] to-[var(--color-bg-primary)]",
 };
 
 /**
- * Premium bento grid details section for status pages.
+ * StatusPageDetails - Kyoto Moss Design System
  *
+ * Premium bento grid details section for status pages.
  * Features:
  * - Status-tinted gradient fade from hero
  * - Glass panels for chart and incidents
@@ -67,7 +70,10 @@ export function StatusPageDetails({
     <section className="relative min-h-[50vh] pb-24">
       {/* Gradient fade from hero - status-tinted */}
       <div
-        className={`absolute inset-0 bg-gradient-to-b ${gradientStyles[status]} pointer-events-none`}
+        className={cn(
+          "absolute inset-0 bg-gradient-to-b pointer-events-none",
+          gradientStyles[status],
+        )}
       />
 
       {/* Subtle dot matrix texture */}
@@ -78,7 +84,7 @@ export function StatusPageDetails({
         {/* Response Time Panel - Full Width Glass Card */}
         {chartData.length > 0 && (
           <GlassPanel>
-            <h2 className="text-[11px] font-medium tracking-[0.2em] uppercase text-foreground/40 mb-4">
+            <h2 className="text-[11px] font-medium tracking-[0.2em] uppercase text-[var(--color-text-muted)] mb-4">
               Response Time
             </h2>
             <div className="h-32">
@@ -87,13 +93,17 @@ export function StatusPageDetails({
           </GlassPanel>
         )}
 
-        {/* Stats Row - 3 Cards */}
-        <div className="grid grid-cols-3 gap-4">
+        {/* Asymmetric Bento Grid - Uptime featured, others supporting */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          {/* Featured Uptime Card - spans 2 columns */}
           <StatCard
             label="Uptime"
             value={`${uptimePercentage.toFixed(1)}%`}
             status={uptimeStatus}
+            size="large"
+            className="col-span-2"
           />
+          {/* Supporting stats - stacked on the right */}
           <StatCard
             label="Avg Response"
             value={`${Math.round(avgResponseTime)}ms`}
@@ -102,20 +112,23 @@ export function StatusPageDetails({
           <StatCard
             label="Last Check"
             value={lastCheckAt ? formatRelativeTime(lastCheckAt) : "—"}
+            className="rotate-[0.5deg] hover:rotate-0 transition-transform"
           />
         </div>
 
         {/* Incidents Panel */}
         {incidents.length > 0 ? (
           <GlassPanel>
-            <h2 className="text-[11px] font-medium tracking-[0.2em] uppercase text-foreground/40 mb-4">
+            <h2 className="text-[11px] font-medium tracking-[0.2em] uppercase text-[var(--color-text-muted)] mb-4">
               Active Incidents
             </h2>
             <IncidentTimeline incidents={incidents} />
           </GlassPanel>
         ) : (
           <div className="text-center py-8">
-            <p className="text-sm text-foreground/25">No incidents recorded</p>
+            <p className="text-sm text-[var(--color-text-muted)]">
+              No incidents recorded
+            </p>
           </div>
         )}
       </div>

@@ -14,15 +14,14 @@ describe("GlassPanel", () => {
     );
     const panel = container.firstChild as HTMLElement;
     expect(panel.className).toContain("custom-class");
-    expect(panel.className).toContain("backdrop-blur-xl");
+    // Uses solid background with border (no opacity)
+    expect(panel.className).toContain("bg-[var(--color-bg-elevated)]");
+    expect(panel.className).toContain("border-[var(--color-border-default)]");
   });
 
   test("contains glass styling elements", () => {
     const { container } = render(<GlassPanel>Content</GlassPanel>);
-    // Check for noise texture overlay
-    const noiseTexture = container.querySelector(".noise-texture");
-    expect(noiseTexture).toBeInTheDocument();
-    // Check for top edge highlight
+    // Check for top edge highlight (washi texture removed for visibility)
     const edgeHighlight = container.querySelector(".bg-gradient-to-r");
     expect(edgeHighlight).toBeInTheDocument();
   });

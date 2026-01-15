@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { ChevronDown } from "lucide-react";
 import { type MonitorStatus } from "@/lib/domain";
+import { cn } from "@/lib/cn";
 
 interface ZenStatusHeroProps {
   status: MonitorStatus;
@@ -23,28 +24,29 @@ const statusMessages: Record<MonitorStatus, string> = {
   down: "Service outage in progress",
 };
 
-/** Ambient backlight - soft colored glow behind card */
+/** Ambient backlight - soft colored glow behind card using Kyoto Moss tokens */
 const ambientStyles: Record<MonitorStatus, string> = {
-  up: "bg-gradient-to-br from-teal-400/20 to-cyan-500/15",
-  degraded: "bg-gradient-to-br from-amber-400/25 to-orange-500/15",
-  down: "bg-gradient-to-br from-red-500/30 to-rose-600/20",
+  up: "bg-up-muted",
+  degraded: "bg-degraded-muted",
+  down: "bg-down-muted",
 };
 
-/** Glass card surface - backdrop blur with status-tinted ring */
+/** Card surface - solid background with status-tinted border */
 const glassStyles: Record<MonitorStatus, string> = {
-  up: "bg-background/50 backdrop-blur-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] ring-1 ring-teal-400/20",
+  up: "bg-[var(--color-bg-elevated)] shadow-[var(--shadow-md)] border-2 border-[var(--color-status-up)]",
   degraded:
-    "bg-background/50 backdrop-blur-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] ring-1 ring-amber-400/25",
-  down: "bg-background/50 backdrop-blur-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] ring-1 ring-red-500/30",
+    "bg-[var(--color-bg-elevated)] shadow-[var(--shadow-md)] border-2 border-[var(--color-status-degraded)]",
+  down: "bg-[var(--color-bg-elevated)] shadow-[var(--shadow-md)] border-2 border-[var(--color-status-down)]",
 };
 
 /**
- * Full-viewport Zen hero for status pages.
+ * ZenStatusHero - Kyoto Moss Design System
  *
+ * Full-viewport hero for status pages with wabi-sabi aesthetic.
  * Visual differentiation per status:
- * - up: Serene deer drinking, neutral card
- * - degraded: Alert deer, storm clouds, amber border
- * - down: Thunder storm, fleeing deer, red border
+ * - up: Serene deer drinking, moss-tinted glass
+ * - degraded: Alert deer, storm clouds, clay/amber border
+ * - down: Thunder storm, fleeing deer, brick red border
  */
 export function ZenStatusHero({ status, monitorName }: ZenStatusHeroProps) {
   const handleScrollToDetails = () => {
@@ -55,7 +57,7 @@ export function ZenStatusHero({ status, monitorName }: ZenStatusHeroProps) {
   };
 
   return (
-    <header className="h-screen relative overflow-hidden">
+    <header className="h-dvh relative overflow-hidden">
       {/* Full-bleed background image - changes per status */}
       <div className="absolute inset-0">
         <Image
@@ -66,33 +68,36 @@ export function ZenStatusHero({ status, monitorName }: ZenStatusHeroProps) {
           priority
         />
         {/* Lighter overlay — let image shine */}
-        <div className="absolute inset-0 bg-background/30 dark:bg-background/40" />
+        <div className="absolute inset-0 bg-[var(--color-bg-primary)]/30 dark:bg-[var(--color-bg-primary)]/40" />
       </div>
 
       {/* Content - UPPER LEFT with layered glass card */}
       <div className="relative z-10 h-full flex flex-col justify-start pt-16 sm:pt-24 px-6 sm:px-12 lg:px-24">
-        <div className="relative max-w-md animate-zen-fade-in">
-          {/* 1. Ambient Backlight - Colored glow behind card */}
+        <div className="relative max-w-md animate-km-fade-in">
+          {/* 1. Ambient Backlight - Status-colored glow behind card (increased visibility) */}
           <div
-            className={`absolute -inset-3 rounded-3xl blur-2xl ${ambientStyles[status]}`}
+            className={cn(
+              "absolute -inset-3 rounded-3xl blur-2xl opacity-80",
+              ambientStyles[status],
+            )}
           />
 
           {/* 2. Glass Card */}
           <div
-            className={`relative overflow-hidden rounded-2xl ${glassStyles[status]}`}
+            className={cn(
+              "relative overflow-hidden rounded-[var(--radius-xl)]",
+              glassStyles[status],
+            )}
           >
-            {/* 3. Top Edge Highlight - light catching glass edge */}
-            <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent" />
-
-            {/* 4. Noise Texture Overlay - tactile glass feel */}
-            <div className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay noise-texture" />
+            {/* 3. Top Edge Highlight - visible light catching glass edge */}
+            <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent" />
 
             {/* Content */}
             <div className="relative z-10 p-6 sm:p-8">
-              <h1 className="font-serif text-3xl md:text-4xl lg:text-5xl text-foreground tracking-tight">
+              <h1 className="font-display text-3xl md:text-4xl lg:text-5xl text-[var(--color-text-primary)] text-balance tracking-tight">
                 {monitorName}
               </h1>
-              <p className="mt-3 text-foreground/70 text-base">
+              <p className="mt-3 text-[var(--color-text-secondary)] text-base text-pretty">
                 {statusMessages[status]}
               </p>
             </div>
@@ -103,7 +108,7 @@ export function ZenStatusHero({ status, monitorName }: ZenStatusHeroProps) {
       {/* Scroll hint - centered at bottom */}
       <button
         onClick={handleScrollToDetails}
-        className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-foreground/40 hover:text-foreground/60 transition-colors animate-zen-hint z-10"
+        className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] transition-colors animate-km-hint z-10"
         aria-label="Scroll to details"
       >
         <span className="text-xs tracking-wider uppercase">Details</span>

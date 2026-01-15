@@ -1,7 +1,15 @@
+/**
+ * StatusIndicator - Kyoto Moss Design System (Cinematic Variant)
+ *
+ * Enhanced status indicator with cinematic mode for dramatic effects.
+ * Used on landing pages and hero sections.
+ * For standard use, prefer components/ui/StatusIndicator.tsx
+ */
+
 interface StatusIndicatorProps {
   status: "up" | "down" | "degraded" | "unknown";
   size?: "sm" | "md" | "lg" | "xl" | "2xl";
-  cinematic?: boolean; // Enable extra ring layers for dramatic effect
+  cinematic?: boolean;
 }
 
 export function StatusIndicator({
@@ -9,26 +17,31 @@ export function StatusIndicator({
   size = "md",
   cinematic = false,
 }: StatusIndicatorProps) {
-  // Size variants - larger for more visual impact
   const sizeClasses = {
-    sm: "w-3 h-3",
-    md: "w-4 h-4",
-    lg: "w-5 h-5",
-    xl: "w-6 h-6",
-    "2xl": "w-8 h-8",
+    sm: "size-3",
+    md: "size-4",
+    lg: "size-5",
+    xl: "size-6",
+    "2xl": "size-8",
   };
 
-  // Revolutionary: "up" uses black/white (theme-aware) with cyan glow
-  // Other statuses use semantic colors
   const colorMap = {
-    up: "bg-up", // Black (light) / White (dark) - distinctive!
-    degraded: "bg-degraded", // Orange
-    down: "bg-down", // Red
-    unknown: "bg-unknown", // Gray
+    up: "bg-up",
+    degraded: "bg-degraded",
+    down: "bg-down",
+    unknown: "bg-[var(--color-text-muted)]",
+  };
+
+  const glowColorMap = {
+    up: "var(--color-status-up)",
+    degraded: "var(--color-status-degraded)",
+    down: "var(--color-status-down)",
+    unknown: "var(--color-text-muted)",
   };
 
   const dotColor = colorMap[status];
-  const shouldHeartbeat = status === "up";
+  const glowColor = glowColorMap[status];
+  const shouldBreathe = status === "up";
 
   return (
     <div
@@ -36,88 +49,54 @@ export function StatusIndicator({
     >
       {/* Main status dot */}
       <div
-        className={`relative z-10 rounded-full ${sizeClasses[size]} ${dotColor}`}
+        className={`relative z-10 rounded-full ${sizeClasses[size]} ${dotColor} ${shouldBreathe ? "animate-km-breathe" : ""}`}
+      />
+
+      {/* Glow effect for all statuses - increased visibility */}
+      <div
+        className={`absolute inset-0 rounded-full ${dotColor}`}
         style={{
-          animation: shouldHeartbeat
-            ? "heartbeat 2s ease-in-out infinite"
-            : "none",
-          willChange: shouldHeartbeat ? "transform, opacity" : "auto",
+          opacity: cinematic ? 0.55 : 0.45,
+          filter: cinematic ? "blur(8px)" : "blur(5px)",
         }}
       />
 
-      {/* Cyan glow ring - only for "up" status */}
-      {shouldHeartbeat && (
-        <>
-          {/* Inner glow */}
-          <div
-            className="absolute inset-0 rounded-full"
-            style={{
-              background: "var(--color-up-glow)",
-              opacity: cinematic ? 0.4 : 0.3,
-              filter: cinematic ? "blur(6px)" : "blur(4px)",
-            }}
-          />
-
-          {/* Expanding ring animation */}
-          <div
-            className="absolute inset-0 rounded-full"
-            style={{
-              background: "var(--color-up-glow)",
-              animation: "ring-expand 2s ease-out infinite",
-              willChange: "transform, opacity",
-            }}
-          />
-
-          {/* Additional cinematic rings */}
-          {cinematic && (
-            <>
-              {/* Secondary expanding ring - delayed */}
-              <div
-                className="absolute inset-0 rounded-full"
-                style={{
-                  background: "var(--color-up-glow)",
-                  animation: "ring-expand 2s ease-out infinite 0.5s",
-                  willChange: "transform, opacity",
-                }}
-              />
-
-              {/* Pulsing outer aura */}
-              <div
-                className="absolute rounded-full"
-                style={{
-                  inset: "-50%",
-                  background:
-                    "radial-gradient(circle, var(--color-up-glow) 0%, transparent 70%)",
-                  animation: "pulse-glow 2s ease-in-out infinite",
-                  opacity: 0.2,
-                }}
-              />
-            </>
-          )}
-        </>
+      {/* Breathing ring for up status - increased visibility */}
+      {shouldBreathe && (
+        <div
+          className="absolute inset-0 rounded-full animate-km-breathe-subtle"
+          style={{
+            background: glowColor,
+            opacity: 0.5,
+            filter: "blur(4px)",
+          }}
+        />
       )}
 
-      {/* Enhanced glow for degraded/down with cinematic mode */}
-      {(status === "degraded" || status === "down") && (
+      {/* Additional cinematic effects */}
+      {cinematic && (
         <>
+          {/* Outer glow aura - increased visibility */}
           <div
-            className={`absolute inset-0 rounded-full ${
-              status === "degraded" ? "bg-degraded" : "bg-down"
-            }`}
+            className="absolute rounded-full"
             style={{
-              opacity: cinematic ? 0.3 : 0.2,
-              filter: cinematic ? "blur(8px)" : "blur(6px)",
+              inset: "-50%",
+              background: `radial-gradient(circle, ${glowColor} 0%, transparent 70%)`,
+              animation: shouldBreathe
+                ? "km-breathe 4s ease-in-out infinite"
+                : "none",
+              opacity: 0.35,
             }}
           />
 
-          {/* Urgent pulsing for down status */}
-          {cinematic && status === "down" && (
+          {/* Extra pulsing for down status (urgency) - increased visibility */}
+          {status === "down" && (
             <div
               className="absolute rounded-full bg-down"
               style={{
-                inset: "-50%",
-                animation: "pulse-glow 3s ease-in-out infinite",
-                opacity: 0.15,
+                inset: "-75%",
+                animation: "km-breathe-subtle 3s ease-in-out infinite",
+                opacity: 0.25,
                 filter: "blur(12px)",
               }}
             />

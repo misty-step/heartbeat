@@ -2,15 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
+import { cn } from "@/lib/cn";
 
 /**
- * AnimatedUptimePercentage - Animated uptime percentage display
+ * AnimatedUptimePercentage - Kyoto Moss Design System
  *
- * Features:
- * - Count-up animation on scroll into view
- * - Precise to 2 decimal places
- * - Subtle glow for emphasis
- * - Context about checks
+ * Animated uptime percentage display with count-up on scroll.
+ * Uses semantic status colors based on uptime threshold.
  */
 interface AnimatedUptimePercentageProps {
   percentage: number;
@@ -51,30 +49,29 @@ export function AnimatedUptimePercentage({
     return () => clearInterval(interval);
   }, [percentage, isVisible]);
 
+  // Map uptime percentage to semantic status color
   const getStatusColor = (pct: number) => {
-    if (pct >= 99.9) return "text-gradient-cyan";
-    if (pct >= 99.0) return "text-success";
+    if (pct >= 99.0) return "text-up";
     if (pct >= 95.0) return "text-degraded";
     return "text-down";
   };
 
-  const getGlowColor = (pct: number) => {
-    if (pct >= 99.9) return "shadow-glow-cyan";
-    return "";
-  };
-
   return (
-    <div ref={ref} className={`scroll-fade-in ${isVisible ? "visible" : ""}`}>
-      <p className="text-sm text-text-secondary text-mono uppercase tracking-wide">
+    <div ref={ref} className={cn("scroll-fade-in", isVisible && "visible")}>
+      <p className="text-sm text-[var(--color-text-secondary)] font-mono uppercase tracking-wide">
         {period}
       </p>
       <p
-        className={`text-5xl lg:text-6xl text-display font-bold ${getStatusColor(displayValue)} ${getGlowColor(displayValue)} transition-all duration-300`}
+        className={cn(
+          "text-5xl lg:text-6xl font-display font-bold tabular-nums transition-colors duration-300",
+          getStatusColor(displayValue),
+        )}
       >
         {displayValue.toFixed(2)}%
       </p>
-      <p className="text-sm text-text-tertiary text-mono">
-        {failedChecks.toLocaleString()} {failedChecks === 1 ? "check" : "checks"} failed out of{" "}
+      <p className="text-sm text-[var(--color-text-tertiary)] font-mono">
+        {failedChecks.toLocaleString()}{" "}
+        {failedChecks === 1 ? "check" : "checks"} failed out of{" "}
         {totalChecks.toLocaleString()}
       </p>
     </div>
