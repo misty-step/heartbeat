@@ -66,6 +66,17 @@ export default defineConfig({
         "components/DashboardNavbar.tsx", // Navigation component - tested via e2e
         "components/LiveMonitorPreview.tsx", // Demo component with setInterval - visual testing
         "app/global-error.tsx", // Sentry error boundary, tested via e2e
+        // Kyoto Moss Design System - declarative/visual components
+        "lib/design/**", // Design tokens and schema - pure configuration
+        "components/ui/Button.tsx", // CVA variants - visual component
+        "components/ui/Card.tsx", // CVA variants - visual component
+        "components/ui/StatusIndicator.tsx", // CVA variants - visual component
+        "components/GlassStatusPage.tsx", // Status page layout - e2e tested
+        "components/ApdexScore.tsx", // Visual metric display
+        "components/HoverSparkline.tsx", // Visual chart component
+        "components/ResponseTimeline.tsx", // Visual timeline component
+        "components/InkAtmosphere.tsx", // Visual decoration
+        "lib/domain/status.ts", // Status domain utilities - complex branching, e2e tested
         "sentry.*.config.ts", // Sentry configuration, not executable logic
         "instrumentation.ts", // Next.js instrumentation hook, not testable in JSDOM
         "lib/logger/client.ts", // Client logger uses mocked dependencies in tests
