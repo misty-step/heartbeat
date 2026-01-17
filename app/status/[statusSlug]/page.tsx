@@ -1,8 +1,7 @@
 import { notFound } from "next/navigation";
 import { fetchPublicQuery } from "@/lib/convex-public";
 import { api } from "@/convex/_generated/api";
-import { ZenStatusHero } from "@/components/ZenStatusHero";
-import { StatusPageDetails } from "@/components/StatusPageDetails";
+import { GlassStatusPage } from "@/components/GlassStatusPage";
 
 // ISR Configuration
 export const revalidate = 60; // Revalidate every 60 seconds
@@ -79,17 +78,14 @@ export default async function IndividualStatusPage({ params }: PageProps) {
       : 0;
 
   return (
-    <div className="min-h-screen bg-background">
-      <ZenStatusHero status={monitor.status} monitorName={monitor.name} />
-
-      <StatusPageDetails
-        status={monitor.status}
-        chartData={chartData}
-        uptimePercentage={uptimeStats.uptimePercentage}
-        avgResponseTime={avgResponseTime}
-        lastCheckAt={monitor.lastCheckAt}
-        incidents={incidents}
-      />
-    </div>
+    <GlassStatusPage
+      monitorName={monitor.name}
+      status={monitor.status}
+      uptimePercentage={uptimeStats.uptimePercentage}
+      avgResponseTime={avgResponseTime}
+      lastCheckAt={monitor.lastCheckAt}
+      chartData={chartData}
+      incidents={incidents}
+    />
   );
 }
