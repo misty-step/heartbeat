@@ -10,6 +10,7 @@ const isPublicRoute = createRouteMatcher([
   "/sign-in(.*)",
   "/sign-up(.*)",
   "/api/logs", // Public endpoint for client log batching
+  "/design-lab(.*)", // Design lab for reviewing variations
 ]);
 
 export default clerkMiddleware(async (auth, request) => {

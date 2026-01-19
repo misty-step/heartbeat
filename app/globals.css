@@ -38,19 +38,19 @@
   --color-primary: var(--color-accent-primary);
 
   /* Spacing scale (8px base) */
-  --spacing-xs: var(--spacing-xs);
-  --spacing-sm: var(--spacing-sm);
-  --spacing-md: var(--spacing-md);
-  --spacing-lg: var(--spacing-lg);
-  --spacing-xl: var(--spacing-xl);
-  --spacing-2xl: var(--spacing-2xl);
-  --spacing-3xl: var(--spacing-3xl);
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-2xl: 48px;
+  --spacing-3xl: 64px;
 
   /* Radii */
-  --radius-sm: var(--radius-sm);
-  --radius-md: var(--radius-md);
-  --radius-lg: var(--radius-lg);
-  --radius-xl: var(--radius-xl);
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
 
   /* Responsive page spacing */
   --spacing-page: clamp(1.5rem, 5vw, 6rem);
@@ -164,6 +164,72 @@
   --shadow-glow: 0 0 20px rgba(90, 138, 111, 0.2);
 }
 
+/* ===== LAYOUT UTILITIES =====
+ * Deep module: encapsulates responsive spacing complexity.
+ * Use these instead of manual px-8 sm:px-16 lg:px-24 scattered across files.
+ *
+ * FLEX SIDEBAR PATTERN:
+ * When using flex with a sidebar, ALWAYS add explicit width to the sidebar:
+ *
+ * ❌ WRONG: <div class="shrink-0">...</div>
+ * ✅ RIGHT: <div class="shrink-0 w-full max-w-md">...</div>
+ *
+ * Why: shrink-0 prevents shrinking but doesn't set width.
+ * Child's w-full is 100% of parent (undefined), causing collapse.
+ */
+@layer utilities {
+  /* Max-width utilities - explicit definitions for Tailwind v4 */
+  .max-w-xs {
+    max-width: 20rem;
+  }
+  .max-w-sm {
+    max-width: 24rem;
+  }
+  .max-w-md {
+    max-width: 28rem;
+  }
+  .max-w-lg {
+    max-width: 32rem;
+  }
+  .max-w-xl {
+    max-width: 36rem;
+  }
+  .max-w-2xl {
+    max-width: 42rem;
+  }
+
+  /* Page padding - single source of truth for horizontal spacing */
+  .page-padding {
+    padding-inline: var(--spacing-page);
+  }
+
+  /* Page container - max-width + centered + padding */
+  .page-container {
+    width: 100%;
+    max-width: 90rem;
+    margin-inline: auto;
+    padding-inline: var(--spacing-page);
+  }
+
+  .page-container-narrow {
+    width: 100%;
+    max-width: 80rem;
+    margin-inline: auto;
+    padding-inline: var(--spacing-page);
+  }
+
+  /* Section spacing - vertical rhythm */
+  .section-padding {
+    padding-block: 5rem;
+  }
+
+  @media (min-width: 640px) {
+    .section-padding {
+      padding-block: 6rem;
+    }
+  }
+}
+
 /* ===== BASE STYLES ===== */
 * {
   box-sizing: border-box;
@@ -196,6 +262,7 @@ body::before {
   z-index: 9999;
 }
 
+/* DEPRECATED: .hero-grid never used in codebase, marked for removal in next cleanup */
 /* ===== HERO GRID (Shoji-inspired) ===== */
 .hero-grid {
   position: relative;
@@ -520,6 +587,7 @@ body::before {
   border: 1px solid var(--color-border-subtle);
 }
 
+/* DEPRECATED: .prose never used in codebase, marked for removal in next cleanup */
 /* ===== PROSE STYLING ===== */
 .prose {
   max-width: 65ch;
