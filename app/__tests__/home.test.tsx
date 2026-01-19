@@ -19,12 +19,15 @@ vi.mock("next/link", () => ({
 }));
 
 describe("HomePage", () => {
-  test("shows hero copy and primary CTA", () => {
+  test("shows hero headline and primary CTA", () => {
     render(<HomePage />);
-    expect(screen.getByText(/Your infrastructure,/)).toBeInTheDocument();
-    expect(
-      screen.getByRole("link", { name: /Start Monitoring/i }),
-    ).toHaveAttribute("href", "/dashboard");
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
+      "Heartbeat",
+    );
+    expect(screen.getByRole("link", { name: /Start Free/i })).toHaveAttribute(
+      "href",
+      "/sign-up",
+    );
   });
 
   test("includes footer metadata", () => {
