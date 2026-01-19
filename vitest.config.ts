@@ -71,6 +71,8 @@ export default defineConfig({
         "lib/logger/client.ts", // Client logger uses mocked dependencies in tests
         "lib/logger/server.ts", // Server logger uses mocked dependencies in tests
         "lib/convex-public.ts", // ISR infrastructure wrapper - integration tested via e2e
+        "app/design-lab/**", // Design exploration pages - visual review, not unit tested
+        "components/landing/**", // Landing page presentational components - visual review
       ],
       thresholds: {
         lines: 80,
