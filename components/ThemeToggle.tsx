@@ -3,6 +3,11 @@
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 
+/**
+ * ThemeToggle - Kyoto Moss Design System
+ *
+ * Toggle button for switching between light and dark modes.
+ */
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -12,13 +17,13 @@ export function ThemeToggle() {
   }, []);
 
   if (!mounted) {
-    return <div className="w-8 h-8" />;
+    return <div className="size-8" />;
   }
 
   return (
     <button
       onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-      className="w-8 h-8 flex items-center justify-center text-foreground/60 hover:text-foreground transition-colors"
+      className="size-8 flex items-center justify-center text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)] transition-colors"
       aria-label="Toggle theme"
     >
       {theme === "dark" ? (
@@ -30,7 +35,7 @@ export function ThemeToggle() {
           strokeWidth="1.5"
           strokeLinecap="round"
           strokeLinejoin="round"
-          className="w-5 h-5"
+          className="size-5"
         >
           <circle cx="12" cy="12" r="4" />
           <path d="M12 2v2" />
@@ -51,7 +56,7 @@ export function ThemeToggle() {
           strokeWidth="1.5"
           strokeLinecap="round"
           strokeLinejoin="round"
-          className="w-5 h-5"
+          className="size-5"
         >
           <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
         </svg>

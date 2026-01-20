@@ -1,27 +1,27 @@
 import type { Metadata } from "next";
-import { Manrope, Newsreader, IBM_Plex_Mono } from "next/font/google";
+import { Manrope, Noto_Serif_JP, IBM_Plex_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Providers } from "./providers";
 import "./globals.css";
 
-// Editorial serif for display headlines
-const newsreader = Newsreader({
+// Kyoto Moss Design System - Typography
+// Display: Noto Serif JP - Japanese elegance with wabi-sabi character
+const notoSerifJP = Noto_Serif_JP({
   subsets: ["latin"],
   weight: ["400", "500", "600"],
-  style: ["normal", "italic"],
-  variable: "--font-serif",
+  variable: "--font-display",
   display: "swap",
 });
 
-// Clean sans-serif for body text
+// Body: Manrope - Clean, humanist sans-serif
 const manrope = Manrope({
   subsets: ["latin"],
-  variable: "--font-sans",
+  variable: "--font-body",
   display: "swap",
 });
 
-// Technical monospace (code, data, timestamps)
+// Mono: IBM Plex Mono - Technical precision
 const ibmPlexMono = IBM_Plex_Mono({
   subsets: ["latin"],
   weight: ["400", "500"],
@@ -50,7 +50,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${newsreader.variable} ${manrope.variable} ${ibmPlexMono.variable}`}
+      className={`${notoSerifJP.variable} ${manrope.variable} ${ibmPlexMono.variable}`}
     >
       <body className="antialiased bg-background text-foreground">
         <Providers>{children}</Providers>

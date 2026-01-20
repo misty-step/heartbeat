@@ -50,8 +50,8 @@ describe("UptimeBar", () => {
     expect((bars[bars.length - 1] as HTMLElement).className).toContain(
       "bg-down",
     );
-    // First bars should be up-colored
-    expect((bars[0] as HTMLElement).className).toContain("bg-foreground");
+    // First bars should be up-colored (Kyoto Moss uses bg-up)
+    expect((bars[0] as HTMLElement).className).toContain("bg-up");
   });
 
   test("marks all bars down when all days have failures", () => {
