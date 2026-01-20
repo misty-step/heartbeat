@@ -30,27 +30,10 @@
 
   /* Borders */
   --color-border: var(--color-border-default);
-  --color-border-subtle: var(--color-border-subtle);
-  --color-border-strong: var(--color-border-strong);
 
   /* Accent */
   --color-accent: var(--color-accent-primary);
   --color-primary: var(--color-accent-primary);
-
-  /* Spacing scale (8px base) */
-  --spacing-xs: 4px;
-  --spacing-sm: 8px;
-  --spacing-md: 16px;
-  --spacing-lg: 24px;
-  --spacing-xl: 32px;
-  --spacing-2xl: 48px;
-  --spacing-3xl: 64px;
-
-  /* Radii */
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
 
   /* Responsive page spacing */
   --spacing-page: clamp(1.5rem, 5vw, 6rem);
@@ -259,7 +242,7 @@ body::before {
   pointer-events: none;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
   opacity: 0.035;
-  z-index: 9999;
+  z-index: 1;
 }
 
 /* DEPRECATED: .hero-grid never used in codebase, marked for removal in next cleanup */

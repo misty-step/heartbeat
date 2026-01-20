@@ -49,6 +49,23 @@ describe("AnimatedUptimePercentage", () => {
     ).toContain("text-up");
   });
 
+  test("uses up color at 99.0% boundary", async () => {
+    render(
+      <AnimatedUptimePercentage
+        percentage={99.0}
+        totalChecks={10}
+        failedChecks={0}
+      />,
+    );
+    await act(async () => {
+      vi.advanceTimersByTime(2000);
+      vi.runOnlyPendingTimers();
+    });
+    expect(
+      (await screen.findByText((text) => text.includes("99.00%"))).className,
+    ).toContain("text-up");
+  });
+
   test("uses degraded color between 95% and 99%", async () => {
     render(
       <AnimatedUptimePercentage
@@ -63,6 +80,23 @@ describe("AnimatedUptimePercentage", () => {
     });
     expect(
       (await screen.findByText((text) => text.includes("96.00%"))).className,
+    ).toContain("text-degraded");
+  });
+
+  test("uses degraded color at 95.0% boundary", async () => {
+    render(
+      <AnimatedUptimePercentage
+        percentage={95.0}
+        totalChecks={10}
+        failedChecks={1}
+      />,
+    );
+    await act(async () => {
+      vi.advanceTimersByTime(2000);
+      vi.runOnlyPendingTimers();
+    });
+    expect(
+      (await screen.findByText((text) => text.includes("95.00%"))).className,
     ).toContain("text-degraded");
   });
 

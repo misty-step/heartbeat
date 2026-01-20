@@ -41,13 +41,13 @@ describe("UptimeBarSimple", () => {
 
   test("shows date labels", () => {
     render(<UptimeBarSimple percentage={100} days={30} />);
-    expect(screen.getByText("30 days ago")).toBeDefined();
-    expect(screen.getByText("Today")).toBeDefined();
+    expect(screen.getByText("30 days ago")).toBeInTheDocument();
+    expect(screen.getByText("Today")).toBeInTheDocument();
   });
 
   test("shows correct date label for custom days", () => {
     render(<UptimeBarSimple percentage={100} days={7} />);
-    expect(screen.getByText("7 days ago")).toBeDefined();
-    expect(screen.getByText("Today")).toBeDefined();
+    expect(screen.getByText("7 days ago")).toBeInTheDocument();
+    expect(screen.getByText("Today")).toBeInTheDocument();
   });
 });

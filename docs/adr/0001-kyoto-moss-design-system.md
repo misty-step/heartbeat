@@ -167,7 +167,7 @@ pnpm dev           # Visual verification
 
 ## References
 
-- [linejam design system](https://github.com/...) - Token architecture inspiration
+- linejam design system - Token architecture inspiration (internal reference)
 - [Class Variance Authority](https://cva.style/) - Component variant pattern
 - [Tailwind CSS v4](https://tailwindcss.com/) - @theme directive
 - Wabi-sabi philosophy - Aesthetic foundation

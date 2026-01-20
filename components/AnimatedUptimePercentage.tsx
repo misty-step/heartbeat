@@ -29,6 +29,13 @@ export function AnimatedUptimePercentage({
   useEffect(() => {
     // Only animate when visible
     if (!isVisible) return;
+    const prefersReducedMotion =
+      typeof window !== "undefined" &&
+      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    if (prefersReducedMotion) {
+      setDisplayValue(percentage);
+      return;
+    }
 
     const duration = 1500; // 1.5 seconds
     const steps = 60;

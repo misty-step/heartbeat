@@ -155,13 +155,7 @@ describe("defineTheme", () => {
       },
     };
 
-    try {
-      defineTheme(config);
-    } catch (e) {
-      const error = e as Error;
-      expect(error.message).toContain("and");
-      expect(error.message).toContain("more");
-    }
+    expect(() => defineTheme(config)).toThrow(/and.*more|more.*and/);
   });
 });
 

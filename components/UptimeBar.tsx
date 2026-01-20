@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../convex/_generated/api";
 import { Id } from "../convex/_generated/dataModel";
 import { cn } from "@/lib/cn";
+import { getStatusLabel as getDomainStatusLabel } from "@/lib/domain";
 
 interface UptimeBarProps {
   monitorId: Id<"monitors">;
@@ -26,28 +27,17 @@ const getBarColor = (status: DayStatus | "unknown") => {
   }
 };
 
-const getStatusLabel = (status: DayStatus | "unknown") => {
-  switch (status) {
-    case "up":
-      return "Operational";
-    case "degraded":
-      return "Degraded";
-    case "down":
-      return "Down";
-    default:
-      return "No data";
-  }
-};
+const getStatusLabel = (status: DayStatus | "unknown") =>
+  status === "unknown" ? "No data" : getDomainStatusLabel(status);
 
 const formatDate = (dateStr: string) => {
   const date = new Date(dateStr + "T00:00:00");
-  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
 };
 
 export function UptimeBar({ monitorId, days = 30 }: UptimeBarProps) {
   const dailyStatus = useQuery(api.checks.getDailyStatus, { monitorId, days });
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
 
   if (!dailyStatus) {
     // Loading state - show placeholder bars
@@ -79,7 +69,6 @@ export function UptimeBar({ monitorId, days = 30 }: UptimeBarProps) {
   return (
     <div className="space-y-2">
       <div
-        ref={containerRef}
         className="relative flex gap-[2px]"
         onMouseLeave={() => setHoveredIndex(null)}
       >

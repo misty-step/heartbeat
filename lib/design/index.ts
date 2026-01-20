@@ -8,7 +8,7 @@
  * import { cn, kyotoMossTheme, getStatusClasses } from '@/lib/design';
  *
  * // Class composition
- * <div className={cn('p-4', isActive && 'bg-elevated')} />
+ * <div className={cn('p-4', isActive && 'bg-[var(--color-bg-elevated)]')} />
  *
  * // Status styling
  * const { bg, bgMuted } = getStatusClasses('up');

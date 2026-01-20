@@ -21,7 +21,7 @@ import {
 interface ChartDataPoint {
   timestamp: number;
   responseTime: number;
-  status: "up" | "down";
+  status: MonitorStatus;
 }
 
 interface Incident {
@@ -172,7 +172,7 @@ export function GlassStatusPage({
             )}
           >
             <p className="text-[10px] font-medium text-[var(--color-text-muted)] uppercase tracking-[0.15em] mb-3">
-              90-Day Uptime
+              30-Day Uptime
             </p>
             <p
               className={cn(
@@ -197,12 +197,14 @@ export function GlassStatusPage({
                         "flex-1 h-3 rounded-[2px] transition-all duration-150",
                         check.status === "up"
                           ? "bg-[var(--color-status-up)]/25 hover:bg-[var(--color-status-up)]/40"
-                          : "bg-[var(--color-status-down)] hover:bg-[var(--color-status-down)]/80",
+                          : check.status === "degraded"
+                            ? "bg-[var(--color-status-degraded)]/25 hover:bg-[var(--color-status-degraded)]/40"
+                            : "bg-[var(--color-status-down)] hover:bg-[var(--color-status-down)]/80",
                       )}
                       title={
-                        check.status === "up"
-                          ? `${Math.round(check.responseTime)}ms`
-                          : "Down"
+                        check.status === "down"
+                          ? "Down"
+                          : `${Math.round(check.responseTime)}ms`
                       }
                     />
                   ))}

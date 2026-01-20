@@ -120,6 +120,12 @@ export function calculateApdex(
   const satisfiedThreshold = options?.satisfiedThreshold ?? 200;
   const toleratedThreshold = options?.toleratedThreshold ?? 1000;
 
+  if (toleratedThreshold <= satisfiedThreshold) {
+    throw new Error(
+      "toleratedThreshold must be greater than satisfiedThreshold",
+    );
+  }
+
   if (responseTimes.length === 0) {
     return {
       score: 1,

@@ -8,7 +8,7 @@ interface GlassPanelProps {
 /**
  * GlassPanel - Kyoto Moss Design System
  *
- * Premium glass card with frosted blur, edge highlight, and washi texture.
+ * Premium glass card with frosted blur and edge highlight.
  * Used for elevated content panels in the status page details section.
  */
 export function GlassPanel({ children, className = "" }: GlassPanelProps) {

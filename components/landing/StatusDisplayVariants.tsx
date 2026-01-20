@@ -339,7 +339,9 @@ export function TempleRippleCard({
       : "up";
 
   const avgTime = Math.round(
-    monitors.reduce((sum, m) => sum + m.responseTime, 0) / monitors.length,
+    monitors.length > 0
+      ? monitors.reduce((sum, m) => sum + m.responseTime, 0) / monitors.length
+      : 0,
   );
 
   return (
@@ -544,7 +546,9 @@ export function ZenolithCard({
       : "up";
 
   const avgTime = Math.round(
-    monitors.reduce((sum, m) => sum + m.responseTime, 0) / monitors.length,
+    monitors.length > 0
+      ? monitors.reduce((sum, m) => sum + m.responseTime, 0) / monitors.length
+      : 0,
   );
 
   // Earth tone status colors

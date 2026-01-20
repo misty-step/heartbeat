@@ -97,7 +97,7 @@ export const CardTitle = forwardRef<
   <h3
     ref={ref}
     className={cn(
-      "text-lg font-medium text-[var(--color-text-primary)] text-balance",
+      "text-lg font-medium font-serif text-[var(--color-text-primary)] text-balance",
       className,
     )}
     {...props}
@@ -132,7 +132,7 @@ export const CardContent = forwardRef<
   HTMLDivElement,
   HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn("", className)} {...props} />
+  <div ref={ref} className={cn(className)} {...props} />
 ));
 
 CardContent.displayName = "CardContent";

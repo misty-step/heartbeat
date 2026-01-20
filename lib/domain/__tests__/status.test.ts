@@ -157,6 +157,15 @@ describe("calculateApdex", () => {
     expect(result.frustrated).toBe(1); // 400
   });
 
+  it("throws when thresholds are invalid", () => {
+    expect(() =>
+      calculateApdex([100, 200], {
+        satisfiedThreshold: 500,
+        toleratedThreshold: 300,
+      }),
+    ).toThrow(/toleratedThreshold must be greater/);
+  });
+
   it("assigns correct ratings at boundaries", () => {
     // 0.94+ = excellent
     expect(calculateApdex([100, 100, 100, 100, 100]).rating).toBe("excellent");

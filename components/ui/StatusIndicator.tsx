@@ -57,6 +57,7 @@ export function StatusIndicator({
       {/* Glow layer - subtle, not aggressive */}
       {glow && status !== "unknown" && (
         <span
+          aria-hidden="true"
           className={cn(
             "absolute inset-0 rounded-full blur-sm",
             status === "up" && "bg-up opacity-30",

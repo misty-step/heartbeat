@@ -98,6 +98,11 @@ describe("getToken", () => {
     expect(typeof lightValue).toBe("string");
     expect(typeof darkValue).toBe("string");
   });
+
+  it("returns expected value for light mode background", () => {
+    const value = getToken("color-bg-primary", "light");
+    expect(value).toBe("#f5f2eb");
+  });
 });
 
 describe("getTokens", () => {

@@ -59,10 +59,10 @@ function validateTokenSet(
   themeId: string,
 ): string[] {
   const errors: string[] = [];
-  const tokenKeys = Object.keys(tokens) as TokenKey[];
+  const tokenKeys = new Set(Object.keys(tokens) as TokenKey[]);
 
   for (const requiredToken of REQUIRED_TOKENS) {
-    if (!tokenKeys.includes(requiredToken)) {
+    if (!tokenKeys.has(requiredToken)) {
       errors.push(
         `Theme "${themeId}" missing token "${requiredToken}" in ${mode} mode`,
       );

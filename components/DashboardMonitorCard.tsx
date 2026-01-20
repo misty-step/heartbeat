@@ -201,7 +201,7 @@ export function DashboardMonitorCard({
                   <div
                     key={i}
                     className="flex-1 rounded-t-[2px] bg-[var(--color-border-subtle)] animate-pulse"
-                    style={{ height: `${30 + Math.random() * 40}%` }}
+                    style={{ height: `${30 + ((i * 7) % 40)}%` }}
                   />
                 ))}
           </div>

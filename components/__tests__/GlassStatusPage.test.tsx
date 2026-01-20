@@ -72,9 +72,9 @@ describe("GlassStatusPage", () => {
       expect(screen.getByText("100.00")).toBeInTheDocument();
     });
 
-    it("renders 90-Day Uptime label", () => {
+    it("renders 30-Day Uptime label", () => {
       render(<GlassStatusPage {...defaultProps} />);
-      expect(screen.getByText("90-Day Uptime")).toBeInTheDocument();
+      expect(screen.getByText("30-Day Uptime")).toBeInTheDocument();
     });
   });
 
