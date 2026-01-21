@@ -32,7 +32,7 @@ describe("create", () => {
       url: "https://example.com",
       method: "GET",
       interval: 60,
-      timeout: 10,
+      timeout: 10000,
       projectSlug: "test-project",
     });
 
@@ -46,6 +46,36 @@ describe("create", () => {
     });
   });
 
+  test("rejects timeout below minimum", async () => {
+    const t = setupBackend();
+
+    await expect(
+      t.withIdentity(user).mutation(api.monitors.create, {
+        name: "Test Monitor",
+        url: "https://example.com",
+        method: "GET",
+        interval: 60,
+        timeout: 999,
+        projectSlug: "test-project",
+      }),
+    ).rejects.toThrow("Timeout must be between 1 and 60 seconds");
+  });
+
+  test("rejects timeout above maximum", async () => {
+    const t = setupBackend();
+
+    await expect(
+      t.withIdentity(user).mutation(api.monitors.create, {
+        name: "Test Monitor",
+        url: "https://example.com",
+        method: "GET",
+        interval: 60,
+        timeout: 60001,
+        projectSlug: "test-project",
+      }),
+    ).rejects.toThrow("Timeout must be between 1 and 60 seconds");
+  });
+
   test("requires auth", async () => {
     const t = setupBackend();
 
@@ -55,7 +85,7 @@ describe("create", () => {
         url: "https://example.com",
         method: "GET",
         interval: 60,
-        timeout: 10,
+        timeout: 10000,
         projectSlug: "test-project",
       }),
     ).rejects.toThrow("Unauthorized");
@@ -230,6 +260,30 @@ describe("update", () => {
     expect(monitor.name).toBe("Updated Name");
     expect(monitor.interval).toBe(300);
     expect(monitor.url).toBe("https://example.com"); // unchanged
+  });
+
+  test("rejects invalid timeout", async () => {
+    const t = setupBackend();
+    const monitorId = await createMonitor(t);
+
+    await expect(
+      t.withIdentity(user).mutation(api.monitors.update, {
+        id: monitorId,
+        timeout: 60001,
+      }),
+    ).rejects.toThrow("Timeout must be between 1 and 60 seconds");
+  });
+
+  test("rejects too-low timeout", async () => {
+    const t = setupBackend();
+    const monitorId = await createMonitor(t);
+
+    await expect(
+      t.withIdentity(user).mutation(api.monitors.update, {
+        id: monitorId,
+        timeout: 999,
+      }),
+    ).rejects.toThrow("Timeout must be between 1 and 60 seconds");
   });
 
   test("requires auth", async () => {

@@ -5,6 +5,15 @@ import { generateUniqueStatusSlug } from "./slugs";
 import { isPubliclyVisible } from "./lib/visibility";
 import { validateMonitorUrl } from "./lib/urlValidation";
 
+const MIN_TIMEOUT_MS = 1000;
+const MAX_TIMEOUT_MS = 60000;
+
+const assertTimeoutInRange = (timeout: number) => {
+  if (timeout < MIN_TIMEOUT_MS || timeout > MAX_TIMEOUT_MS) {
+    throw new Error("Timeout must be between 1 and 60 seconds");
+  }
+};
+
 const publicMonitorValidator = v.object({
   _id: v.id("monitors"),
   name: v.string(),
@@ -120,6 +129,8 @@ export const create = mutation({
       throw new Error(urlError);
     }
 
+    assertTimeoutInRange(args.timeout);
+
     const now = Date.now();
     const statusSlug = await generateUniqueStatusSlug(ctx);
 
@@ -186,6 +197,10 @@ export const update = mutation({
       if (urlError) {
         throw new Error(urlError);
       }
+    }
+
+    if (args.timeout !== undefined) {
+      assertTimeoutInRange(args.timeout);
     }
 
     const { id, ...updates } = args;
