@@ -3,6 +3,11 @@ import { query } from "./_generated/server";
 import { toPublicCheck } from "./publicTypes";
 import { isPubliclyVisible } from "./lib/visibility";
 
+const DEFAULT_LIMIT = 50;
+const MAX_LIMIT = 100;
+const DEFAULT_DAYS = 30;
+const MAX_DAYS = 365;
+
 const publicCheckValidator = v.object({
   _id: v.id("checks"),
   status: v.union(v.literal("up"), v.literal("down")),
@@ -26,7 +31,7 @@ export const getRecentForMonitor = query({
       throw new Error("Monitor not found");
     }
 
-    const limit = args.limit || 50;
+    const limit = Math.min(args.limit || DEFAULT_LIMIT, MAX_LIMIT);
 
     return await ctx.db
       .query("checks")
@@ -52,7 +57,7 @@ export const getUptimeStats = query({
       throw new Error("Monitor not found");
     }
 
-    const days = args.days || 30;
+    const days = Math.min(args.days || DEFAULT_DAYS, MAX_DAYS);
     const startTime = Date.now() - days * 24 * 60 * 60 * 1000;
 
     const checks = await ctx.db
@@ -105,7 +110,7 @@ export const getPublicChecksForMonitor = query({
       return [];
     }
 
-    const limit = args.limit ?? 50;
+    const limit = Math.min(args.limit ?? DEFAULT_LIMIT, MAX_LIMIT);
     const checks = await ctx.db
       .query("checks")
       .withIndex("by_monitor", (q) => q.eq("monitorId", args.monitorId))
@@ -132,7 +137,7 @@ export const getPublicUptimeStats = query({
       return { uptimePercentage: 100, totalChecks: 0, avgResponseTime: null };
     }
 
-    const days = args.days ?? 30;
+    const days = Math.min(args.days ?? DEFAULT_DAYS, MAX_DAYS);
     const startTime = Date.now() - days * 24 * 60 * 60 * 1000;
 
     const checks = await ctx.db
@@ -191,7 +196,7 @@ export const getDailyStatus = query({
       throw new Error("Monitor not found");
     }
 
-    const days = args.days ?? 30;
+    const days = Math.min(args.days ?? DEFAULT_DAYS, MAX_DAYS);
     const startTime = Date.now() - days * 24 * 60 * 60 * 1000;
 
     const checks = await ctx.db

@@ -84,6 +84,24 @@ describe("getRecentForMonitor", () => {
     expect(checks).toHaveLength(2);
   });
 
+  test("clamps limit to 100", async () => {
+    const t = setupBackend();
+    const monitorId = await createTestMonitor(t);
+
+    const now = Date.now();
+    for (let i = 0; i < 120; i++) {
+      await recordCheck(t, monitorId, "up", 100 + i, now - i * 1000);
+    }
+
+    const checks = await t
+      .withIdentity(user)
+      .query(api.checks.getRecentForMonitor, {
+        monitorId,
+        limit: 1000,
+      });
+    expect(checks).toHaveLength(100);
+  });
+
   test("defaults to 50 when no limit specified", async () => {
     const t = setupBackend();
     const monitorId = await createTestMonitor(t);
@@ -210,6 +228,23 @@ describe("getUptimeStats", () => {
     });
     expect(stats.totalChecks).toBe(2);
     expect(stats.uptimePercentage).toBe(100); // Only the 'up' checks
+  });
+
+  test("clamps days to 365", async () => {
+    const t = setupBackend();
+    const monitorId = await createTestMonitor(t);
+
+    const now = Date.now();
+    const fourHundredDaysAgo = now - 400 * 24 * 60 * 60 * 1000;
+
+    await recordCheck(t, monitorId, "up", 100, now);
+    await recordCheck(t, monitorId, "down", 0, fourHundredDaysAgo);
+
+    const stats = await t.withIdentity(user).query(api.checks.getUptimeStats, {
+      monitorId,
+      days: 1000,
+    });
+    expect(stats.totalChecks).toBe(1);
   });
 
   test("handles all failed checks", async () => {
