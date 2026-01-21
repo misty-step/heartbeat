@@ -31,7 +31,7 @@ export const getRecentForMonitor = query({
       throw new Error("Monitor not found");
     }
 
-    const limit = Math.min(args.limit || DEFAULT_LIMIT, MAX_LIMIT);
+    const limit = Math.min(args.limit ?? DEFAULT_LIMIT, MAX_LIMIT);
 
     return await ctx.db
       .query("checks")
@@ -57,7 +57,7 @@ export const getUptimeStats = query({
       throw new Error("Monitor not found");
     }
 
-    const days = Math.min(args.days || DEFAULT_DAYS, MAX_DAYS);
+    const days = Math.min(args.days ?? DEFAULT_DAYS, MAX_DAYS);
     const startTime = Date.now() - days * 24 * 60 * 60 * 1000;
 
     const checks = await ctx.db

@@ -274,6 +274,18 @@ describe("update", () => {
     ).rejects.toThrow("Timeout must be between 1 and 60 seconds");
   });
 
+  test("rejects too-low timeout", async () => {
+    const t = setupBackend();
+    const monitorId = await createMonitor(t);
+
+    await expect(
+      t.withIdentity(user).mutation(api.monitors.update, {
+        id: monitorId,
+        timeout: 999,
+      }),
+    ).rejects.toThrow("Timeout must be between 1 and 60 seconds");
+  });
+
   test("requires auth", async () => {
     const t = setupBackend();
     const monitorId = await createMonitor(t);
