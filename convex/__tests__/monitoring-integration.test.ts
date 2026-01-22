@@ -1,6 +1,6 @@
 import { test, expect, describe, vi, beforeEach, afterEach } from "vitest";
 import { api, internal } from "../_generated/api";
-import { setupBackend } from "../../tests/convex";
+import { setupBackend, createTestSubscription } from "../../tests/convex";
 
 vi.mock("../lib/email", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../lib/email")>();
@@ -33,6 +33,8 @@ afterEach(() => {
 });
 
 async function createTestMonitor(t: ReturnType<typeof setupBackend>) {
+  // Ensure subscription exists
+  await createTestSubscription(t, user.subject);
   const monitor = await t.withIdentity(user).mutation(api.monitors.create, {
     name: "Test Monitor",
     url: "https://example.com",

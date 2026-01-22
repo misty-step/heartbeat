@@ -1,6 +1,6 @@
 import { describe, expect, test, vi, beforeEach, afterEach } from "vitest";
 import { api, internal } from "../_generated/api";
-import { setupBackend } from "../../tests/convex";
+import { setupBackend, createTestSubscription } from "../../tests/convex";
 
 const user = { name: "Test", subject: "user_123", issuer: "clerk" };
 
@@ -32,6 +32,8 @@ const createMonitor = async (
     visibility?: "public" | "private";
   } = {},
 ) => {
+  // Ensure subscription exists for the user
+  await createTestSubscription(t, user.subject);
   const monitor = await t.withIdentity(user).mutation(api.monitors.create, {
     ...baseMonitorArgs,
     ...overrides,

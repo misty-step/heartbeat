@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { query, mutation, internalQuery } from "./_generated/server";
+import { internal } from "./_generated/api";
 import { toPublicMonitor } from "./publicTypes";
 import { generateUniqueStatusSlug } from "./slugs";
 import { isPubliclyVisible } from "./lib/visibility";
@@ -123,6 +124,26 @@ export const create = mutation({
       throw new Error("Unauthorized");
     }
 
+    // Check subscription limits
+    const canCreate = await ctx.runQuery(
+      internal.subscriptions.canCreateMonitor,
+      { userId: identity.subject },
+    );
+    if (!canCreate.allowed) {
+      throw new Error(canCreate.reason || "Cannot create monitor");
+    }
+
+    // Validate interval against tier limits
+    const limits = await ctx.runQuery(internal.subscriptions.getTierLimits, {
+      userId: identity.subject,
+    });
+    if (args.interval < limits.minInterval) {
+      const minMinutes = limits.minInterval / 60;
+      throw new Error(
+        `Minimum check interval is ${minMinutes} minutes on your plan. Upgrade to check more frequently.`,
+      );
+    }
+
     // Validate URL to prevent SSRF attacks
     const urlError = validateMonitorUrl(args.url);
     if (urlError) {
@@ -189,6 +210,19 @@ export const update = mutation({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) {
       throw new Error("Unauthorized");
+    }
+
+    // Validate interval against tier limits (if interval is being updated)
+    if (args.interval !== undefined) {
+      const limits = await ctx.runQuery(internal.subscriptions.getTierLimits, {
+        userId: identity.subject,
+      });
+      if (args.interval < limits.minInterval) {
+        const minMinutes = limits.minInterval / 60;
+        throw new Error(
+          `Minimum check interval is ${minMinutes} minutes on your plan. Upgrade to check more frequently.`,
+        );
+      }
     }
 
     // Validate URL to prevent SSRF attacks (if URL is being updated)
