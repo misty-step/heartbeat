@@ -73,13 +73,6 @@ export default defineConfig({
         "lib/convex-public.ts", // ISR infrastructure wrapper - integration tested via e2e
         "app/design-lab/**", // Design exploration pages - visual review, not unit tested
         "components/landing/**", // Landing page presentational components - visual review
-        // Stripe integration - external API, tested via e2e
-        "convex/stripe.ts", // Stripe API calls require external service
-        "lib/stripe.ts", // Stripe client initialization
-        "lib/tiers.ts", // Tier configuration - static data
-        "app/pricing/**", // Pricing page - UI with Stripe integration
-        "app/api/stripe/**", // Stripe webhook handler - requires external service
-        "components/SubscriptionGate.tsx", // Auth gating component - tested via e2e
       ],
       thresholds: {
         lines: 80,
