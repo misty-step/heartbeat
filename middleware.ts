@@ -5,11 +5,13 @@ const isPublicRoute = createRouteMatcher([
   "/",
   "/terms",
   "/privacy",
+  "/pricing",
   "/status(.*)",
   "/s(.*)", // Public status pages at /s/[slug]
   "/sign-in(.*)",
   "/sign-up(.*)",
   "/api/logs", // Public endpoint for client log batching
+  "/api/stripe/webhook", // Stripe webhook endpoint
   "/design-lab(.*)", // Design lab for reviewing variations
 ]);
 
