@@ -20,6 +20,8 @@ import type * as monitors from "../monitors.js";
 import type * as notifications from "../notifications.js";
 import type * as publicTypes from "../publicTypes.js";
 import type * as slugs from "../slugs.js";
+import type * as stripe from "../stripe.js";
+import type * as subscriptions from "../subscriptions.js";
 import type * as userSettings from "../userSettings.js";
 
 import type {
@@ -41,6 +43,8 @@ declare const fullApi: ApiFromModules<{
   notifications: typeof notifications;
   publicTypes: typeof publicTypes;
   slugs: typeof slugs;
+  stripe: typeof stripe;
+  subscriptions: typeof subscriptions;
   userSettings: typeof userSettings;
 }>;
 

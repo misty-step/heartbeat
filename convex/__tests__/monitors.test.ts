@@ -1,6 +1,6 @@
 import { test, expect, describe } from "vitest";
 import { api } from "../_generated/api";
-import { setupBackend } from "../../tests/convex";
+import { setupBackend, createTestSubscription } from "../../tests/convex";
 
 const user = { name: "Test", subject: "user_123", issuer: "clerk" };
 const otherUser = { name: "Other", subject: "user_456", issuer: "clerk" };
@@ -11,6 +11,8 @@ async function createMonitor(
   identity = user,
   overrides = {},
 ) {
+  // Ensure subscription exists
+  await createTestSubscription(t, identity.subject);
   const monitor = await t.withIdentity(identity).mutation(api.monitors.create, {
     name: "Test Monitor",
     url: "https://example.com",
@@ -26,6 +28,7 @@ async function createMonitor(
 describe("create", () => {
   test("creates monitor successfully", async () => {
     const t = setupBackend();
+    await createTestSubscription(t, user.subject);
 
     await t.withIdentity(user).mutation(api.monitors.create, {
       name: "Test Monitor",
@@ -48,6 +51,7 @@ describe("create", () => {
 
   test("rejects timeout below minimum", async () => {
     const t = setupBackend();
+    await createTestSubscription(t, user.subject);
 
     await expect(
       t.withIdentity(user).mutation(api.monitors.create, {
@@ -63,6 +67,7 @@ describe("create", () => {
 
   test("rejects timeout above maximum", async () => {
     const t = setupBackend();
+    await createTestSubscription(t, user.subject);
 
     await expect(
       t.withIdentity(user).mutation(api.monitors.create, {
@@ -136,6 +141,7 @@ describe("create", () => {
   describe("SSRF protection", () => {
     test("rejects localhost URLs", async () => {
       const t = setupBackend();
+      await createTestSubscription(t, user.subject);
 
       await expect(
         t.withIdentity(user).mutation(api.monitors.create, {
@@ -151,6 +157,7 @@ describe("create", () => {
 
     test("rejects private IP ranges", async () => {
       const t = setupBackend();
+      await createTestSubscription(t, user.subject);
 
       await expect(
         t.withIdentity(user).mutation(api.monitors.create, {
@@ -166,6 +173,7 @@ describe("create", () => {
 
     test("rejects cloud metadata IP", async () => {
       const t = setupBackend();
+      await createTestSubscription(t, user.subject);
 
       await expect(
         t.withIdentity(user).mutation(api.monitors.create, {
@@ -181,6 +189,7 @@ describe("create", () => {
 
     test("allows public URLs", async () => {
       const t = setupBackend();
+      await createTestSubscription(t, user.subject);
 
       const monitor = await t.withIdentity(user).mutation(api.monitors.create, {
         name: "Public URL Test",
