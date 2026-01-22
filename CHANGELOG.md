@@ -1,3 +1,13 @@
+# [1.3.0](https://github.com/misty-step/heartbeat/compare/v1.2.3...v1.3.0) (2026-01-22)
+
+### Bug Fixes
+
+- Add /pricing and /api/stripe/webhook to public routes ([20c395f](https://github.com/misty-step/heartbeat/commit/20c395f5a22095a9106f626112d407c7df1c81d6))
+
+### Features
+
+- Add Stripe subscription monetization ([#73](https://github.com/misty-step/heartbeat/issues/73)) ([f212c57](https://github.com/misty-step/heartbeat/commit/f212c5701d36759ca0a5cf25c5b6ff85a2be0ac0)), closes [#72](https://github.com/misty-step/heartbeat/issues/72)
+
 ## [1.2.3](https://github.com/misty-step/heartbeat/compare/v1.2.2...v1.2.3) (2026-01-11)
 
 ### Performance Improvements
