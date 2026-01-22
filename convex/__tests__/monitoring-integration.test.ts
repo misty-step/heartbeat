@@ -19,6 +19,7 @@ const user = {
 
 const advanceTimers = () => vi.advanceTimersByTime(1);
 const intervalMs = 60_000;
+const INCIDENT_FAILURE_THRESHOLD = 3;
 
 beforeEach(() => {
   vi.useFakeTimers();
@@ -40,7 +41,10 @@ async function createTestMonitor(t: ReturnType<typeof setupBackend>) {
     timeout: 10000,
     projectSlug: "test-project",
   });
-  return monitor!._id;
+  if (!monitor) {
+    throw new Error("Test setup failed: monitor creation returned null.");
+  }
+  return monitor._id;
 }
 
 async function setupUserSettings(t: ReturnType<typeof setupBackend>) {
@@ -70,7 +74,7 @@ describe("runHeartbeat integration", () => {
       await t.finishAllScheduledFunctions(advanceTimers);
     };
 
-    for (let i = 0; i < 3; i += 1) {
+    for (let i = 0; i < INCIDENT_FAILURE_THRESHOLD; i += 1) {
       if (i > 0) {
         vi.advanceTimersByTime(intervalMs);
       }
@@ -80,7 +84,9 @@ describe("runHeartbeat integration", () => {
     const monitorAfterFailures = await t
       .withIdentity(user)
       .query(api.monitors.get, { id: monitorId });
-    expect(monitorAfterFailures.consecutiveFailures).toBe(3);
+    expect(monitorAfterFailures.consecutiveFailures).toBe(
+      INCIDENT_FAILURE_THRESHOLD,
+    );
 
     const incidentsAfterFailures = await t
       .withIdentity(user)
@@ -92,10 +98,8 @@ describe("runHeartbeat integration", () => {
     const checksAfterFailures = await t
       .withIdentity(user)
       .query(api.checks.getRecentForMonitor, { monitorId });
-    expect(checksAfterFailures).toHaveLength(3);
-    expect(checksAfterFailures.every((check) => check.status === "down")).toBe(
-      true,
-    );
+    expect(checksAfterFailures).toHaveLength(INCIDENT_FAILURE_THRESHOLD);
+    checksAfterFailures.forEach((check) => expect(check.status).toBe("down"));
 
     vi.advanceTimersByTime(intervalMs);
     await runHeartbeat();
