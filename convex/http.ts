@@ -90,11 +90,11 @@ const stripeWebhook = httpAction(async (ctx, request) => {
   }
 });
 
-// --- Event handlers (private to this module) ---
+// --- Utility functions (exported for testing) ---
 
 type ActionCtx = Parameters<Parameters<typeof httpAction>[0]>[0];
 
-function mapStripeStatus(
+export function mapStripeStatus(
   status: Stripe.Subscription.Status,
 ): "trialing" | "active" | "past_due" | "canceled" | "expired" {
   switch (status) {
@@ -112,7 +112,9 @@ function mapStripeStatus(
   }
 }
 
-function extractTier(subscription: Stripe.Subscription): "pulse" | "vital" {
+export function extractTier(
+  subscription: Stripe.Subscription,
+): "pulse" | "vital" {
   const metaTier = subscription.metadata?.tier;
   if (metaTier === "pulse" || metaTier === "vital") return metaTier;
 
@@ -122,7 +124,7 @@ function extractTier(subscription: Stripe.Subscription): "pulse" | "vital" {
   return "pulse";
 }
 
-function getCurrentPeriodEnd(subscription: Stripe.Subscription): number {
+export function getCurrentPeriodEnd(subscription: Stripe.Subscription): number {
   const item = subscription.items.data[0];
   return item?.current_period_end ?? Math.floor(Date.now() / 1000);
 }
