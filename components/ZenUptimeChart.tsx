@@ -77,7 +77,10 @@ export function ZenUptimeChart({
       setPathLength(length);
 
       // Trigger animation after a short delay
-      setTimeout(() => setIsAnimated(true), 100);
+      const timerId = setTimeout(() => setIsAnimated(true), 100);
+
+      // Clean up timer on unmount to prevent state updates after unmount
+      return () => clearTimeout(timerId);
     }
   }, [data]);
 
