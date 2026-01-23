@@ -376,12 +376,12 @@ describe("getByUserId (internal)", () => {
   });
 });
 
-describe("createSubscription", () => {
+describe("createSubscription (internal)", () => {
   test("creates new subscription", async () => {
     const t = setupBackend();
     const now = Date.now();
 
-    await t.mutation(api.subscriptions.createSubscription, {
+    await t.mutation(internal.subscriptions.createSubscription, {
       userId: user.subject,
       stripeCustomerId: "cus_new",
       stripeSubscriptionId: "sub_new",
@@ -409,7 +409,7 @@ describe("createSubscription", () => {
     await createTestSubscription(t, user.subject, { tier: "pulse" });
 
     // Try to create another - should update existing
-    await t.mutation(api.subscriptions.createSubscription, {
+    await t.mutation(internal.subscriptions.createSubscription, {
       userId: user.subject,
       stripeCustomerId: "cus_updated",
       stripeSubscriptionId: "sub_updated",
@@ -428,7 +428,7 @@ describe("createSubscription", () => {
   });
 });
 
-describe("updateSubscription", () => {
+describe("updateSubscription (internal)", () => {
   test("updates subscription fields", async () => {
     const t = setupBackend();
     await createTestSubscription(t, user.subject, {
@@ -436,7 +436,7 @@ describe("updateSubscription", () => {
       status: "trialing",
     });
 
-    await t.mutation(api.subscriptions.updateSubscription, {
+    await t.mutation(internal.subscriptions.updateSubscription, {
       stripeSubscriptionId: `sub_test_${user.subject}`,
       tier: "vital",
       status: "active",
@@ -452,7 +452,7 @@ describe("updateSubscription", () => {
   test("returns null when subscription not found", async () => {
     const t = setupBackend();
 
-    const result = await t.mutation(api.subscriptions.updateSubscription, {
+    const result = await t.mutation(internal.subscriptions.updateSubscription, {
       stripeSubscriptionId: "sub_nonexistent",
       status: "active",
     });
@@ -467,7 +467,7 @@ describe("updateSubscription", () => {
       status: "active",
     });
 
-    await t.mutation(api.subscriptions.updateSubscription, {
+    await t.mutation(internal.subscriptions.updateSubscription, {
       stripeSubscriptionId: `sub_test_${user.subject}`,
       cancelAtPeriodEnd: true,
     });
@@ -481,12 +481,12 @@ describe("updateSubscription", () => {
   });
 });
 
-describe("expireSubscription", () => {
+describe("expireSubscription (internal)", () => {
   test("marks subscription as expired", async () => {
     const t = setupBackend();
     await createTestSubscription(t, user.subject, { status: "active" });
 
-    await t.mutation(api.subscriptions.expireSubscription, {
+    await t.mutation(internal.subscriptions.expireSubscription, {
       stripeSubscriptionId: `sub_test_${user.subject}`,
     });
 
@@ -499,7 +499,7 @@ describe("expireSubscription", () => {
   test("returns null when subscription not found", async () => {
     const t = setupBackend();
 
-    const result = await t.mutation(api.subscriptions.expireSubscription, {
+    const result = await t.mutation(internal.subscriptions.expireSubscription, {
       stripeSubscriptionId: "sub_nonexistent",
     });
 

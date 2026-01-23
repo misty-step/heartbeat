@@ -117,33 +117,13 @@ describe("SubscriptionGate", () => {
   });
 
   describe("unauthenticated state", () => {
-    test("shows loading when not authenticated (query skipped returns undefined)", () => {
-      // When not authenticated, useQuery is called with "skip" which returns undefined
-      // This means the loading check (hasActive === undefined) hits first
+    test("shows sign in prompt when not authenticated", () => {
+      // Auth check now happens BEFORE subscription query check
       mockUseConvexAuth.mockReturnValue({
         isAuthenticated: false,
         isLoading: false,
       });
-      mockUseQuery.mockReturnValue(undefined);
-
-      render(
-        <SubscriptionGate>
-          <div>Protected Content</div>
-        </SubscriptionGate>,
-      );
-
-      // Shows loading because hasActive === undefined check comes before isAuthenticated check
-      expect(screen.getByText("Loading...")).toBeInTheDocument();
-    });
-
-    test("shows sign in prompt when not authenticated and hasActive resolved", () => {
-      // Defensive code path: if somehow hasActive resolves while not authenticated
-      // (e.g., race condition or future code changes)
-      mockUseConvexAuth.mockReturnValue({
-        isAuthenticated: false,
-        isLoading: false,
-      });
-      mockUseQuery.mockReturnValue(false); // Resolved to false
+      mockUseQuery.mockReturnValue(undefined); // Query skipped
 
       render(
         <SubscriptionGate>

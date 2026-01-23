@@ -1,10 +1,5 @@
 import { v } from "convex/values";
-import {
-  query,
-  mutation,
-  internalMutation,
-  internalQuery,
-} from "./_generated/server";
+import { query, internalMutation, internalQuery } from "./_generated/server";
 
 /**
  * Tier configuration (mirrored from lib/tiers.ts for Convex runtime)
@@ -221,10 +216,9 @@ export const getByUserId = internalQuery({
 
 /**
  * Create a subscription from Stripe webhook.
- * Note: Exposed as public mutation for HTTP webhook access.
- * Security: Webhook signature verification happens in the API route.
+ * Internal only - called by convex/http.ts after signature verification.
  */
-export const createSubscription = mutation({
+export const createSubscription = internalMutation({
   args: {
     userId: v.string(),
     stripeCustomerId: v.string(),
@@ -274,10 +268,9 @@ export const createSubscription = mutation({
 
 /**
  * Update subscription from Stripe webhook.
- * Note: Exposed as public mutation for HTTP webhook access.
- * Security: Webhook signature verification happens in the API route.
+ * Internal only - called by convex/http.ts after signature verification.
  */
-export const updateSubscription = mutation({
+export const updateSubscription = internalMutation({
   args: {
     stripeSubscriptionId: v.string(),
     tier: v.optional(v.union(v.literal("pulse"), v.literal("vital"))),
@@ -325,10 +318,9 @@ export const updateSubscription = mutation({
 
 /**
  * Mark subscription as expired from Stripe webhook.
- * Note: Exposed as public mutation for HTTP webhook access.
- * Security: Webhook signature verification happens in the API route.
+ * Internal only - called by convex/http.ts after signature verification.
  */
-export const expireSubscription = mutation({
+export const expireSubscription = internalMutation({
   args: { stripeSubscriptionId: v.string() },
   handler: async (ctx, args) => {
     const subscription = await ctx.db
