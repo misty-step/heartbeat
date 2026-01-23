@@ -51,9 +51,6 @@ export default defineConfig({
         "convex/notifications.ts", // Action-based notification sending - external API (Resend), tested via e2e
         "convex/lib/email.ts", // Email sending requires Resend runtime - tested via e2e
         "convex/auth.config.ts", // Auth config is external setup
-        "convex/http.ts", // HTTP router for Stripe webhooks - integration tested
-        "convex/stripe.ts", // Stripe webhook handlers - integration tested via e2e
-        "lib/stripe.ts", // Stripe client initialization - requires Stripe runtime
         "app/layout.tsx", // Root layout often contains providers/metadata not easily testable
         "app/providers.tsx", // Providers are integration points, covered by e2e/integration
         "app/dashboard/**", // Dashboard pages are containers with auth/query wiring - tested via e2e
