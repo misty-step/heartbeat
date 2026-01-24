@@ -5,9 +5,10 @@
   "private": true,
   "scripts": {
     "prepare": "lefthook install",
-    "dev": "concurrently --kill-others-on-fail -n \"Next,Convex\" -c \"cyan,magenta\" \"pnpm dev:next\" \"pnpm dev:convex\"",
+    "dev": "concurrently --kill-others-on-fail -n \"Next,Convex,Stripe\" -c \"cyan,magenta,yellow\" \"pnpm dev:next\" \"pnpm dev:convex\" \"pnpm dev:stripe\"",
     "dev:next": "next dev --turbopack",
     "dev:convex": "convex dev",
+    "dev:stripe": "./scripts/dev-stripe.sh",
     "build": "npx convex deploy --cmd 'next build'",
     "start": "next start",
     "lint": "eslint . --max-warnings 0",
