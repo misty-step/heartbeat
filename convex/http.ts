@@ -43,6 +43,19 @@ const stripeWebhook = httpAction(async (ctx, request) => {
 
   console.log(`Received Stripe webhook: ${event.type}`);
 
+  // Idempotency check: skip if already processed
+  const alreadyProcessed = await ctx.runQuery(
+    internal.subscriptions.isEventProcessed,
+    { eventId: event.id },
+  );
+  if (alreadyProcessed) {
+    console.log(`Skipping duplicate event: ${event.id}`);
+    return new Response(JSON.stringify({ received: true, duplicate: true }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
   try {
     switch (event.type) {
       case "checkout.session.completed":
@@ -85,6 +98,11 @@ const stripeWebhook = httpAction(async (ctx, request) => {
       default:
         console.log(`Unhandled event type: ${event.type}`);
     }
+
+    // Mark event as processed after successful handling
+    await ctx.runMutation(internal.subscriptions.markEventProcessed, {
+      eventId: event.id,
+    });
 
     return new Response(JSON.stringify({ received: true }), {
       status: 200,

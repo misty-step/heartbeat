@@ -382,3 +382,66 @@ export const expireSubscription = internalMutation({
     return subscription._id;
   },
 });
+
+// --- Stripe Webhook Idempotency ---
+
+/**
+ * Check if a Stripe event has already been processed.
+ * Used for webhook idempotency.
+ */
+export const isEventProcessed = internalQuery({
+  args: { eventId: v.string() },
+  handler: async (ctx, args) => {
+    const event = await ctx.db
+      .query("stripeEvents")
+      .withIndex("by_event_id", (q) => q.eq("eventId", args.eventId))
+      .first();
+    return event !== null;
+  },
+});
+
+/**
+ * Mark a Stripe event as processed.
+ * Called after successful webhook handling.
+ */
+export const markEventProcessed = internalMutation({
+  args: { eventId: v.string() },
+  handler: async (ctx, args) => {
+    // Double-check to avoid race conditions (belt and suspenders)
+    const existing = await ctx.db
+      .query("stripeEvents")
+      .withIndex("by_event_id", (q) => q.eq("eventId", args.eventId))
+      .first();
+
+    if (existing) {
+      return existing._id;
+    }
+
+    return await ctx.db.insert("stripeEvents", {
+      eventId: args.eventId,
+      processedAt: Date.now(),
+    });
+  },
+});
+
+/**
+ * Clean up old processed events (older than 7 days).
+ * Called by cron job to prevent unbounded table growth.
+ */
+export const cleanupOldEvents = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+
+    const oldEvents = await ctx.db
+      .query("stripeEvents")
+      .withIndex("by_processed_at", (q) => q.lt("processedAt", sevenDaysAgo))
+      .take(100); // Batch delete to avoid timeout
+
+    for (const event of oldEvents) {
+      await ctx.db.delete(event._id);
+    }
+
+    return { deleted: oldEvents.length };
+  },
+});

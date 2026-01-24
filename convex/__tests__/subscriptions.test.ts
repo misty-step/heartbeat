@@ -590,3 +590,106 @@ describe("subscription isolation", () => {
     expect(otherUsage!.monitors).toBe(1);
   });
 });
+
+describe("Stripe webhook idempotency", () => {
+  test("isEventProcessed returns false for new event", async () => {
+    const t = setupBackend();
+
+    const result = await t.query(internal.subscriptions.isEventProcessed, {
+      eventId: "evt_new_event",
+    });
+    expect(result).toBe(false);
+  });
+
+  test("markEventProcessed creates event record", async () => {
+    const t = setupBackend();
+
+    await t.mutation(internal.subscriptions.markEventProcessed, {
+      eventId: "evt_test_123",
+    });
+
+    const isProcessed = await t.query(internal.subscriptions.isEventProcessed, {
+      eventId: "evt_test_123",
+    });
+    expect(isProcessed).toBe(true);
+  });
+
+  test("isEventProcessed returns true after event is marked", async () => {
+    const t = setupBackend();
+
+    // Initially not processed
+    const before = await t.query(internal.subscriptions.isEventProcessed, {
+      eventId: "evt_test_456",
+    });
+    expect(before).toBe(false);
+
+    // Mark as processed
+    await t.mutation(internal.subscriptions.markEventProcessed, {
+      eventId: "evt_test_456",
+    });
+
+    // Now processed
+    const after = await t.query(internal.subscriptions.isEventProcessed, {
+      eventId: "evt_test_456",
+    });
+    expect(after).toBe(true);
+  });
+
+  test("markEventProcessed is idempotent (handles duplicates)", async () => {
+    const t = setupBackend();
+
+    // Mark twice - should not throw
+    await t.mutation(internal.subscriptions.markEventProcessed, {
+      eventId: "evt_duplicate",
+    });
+    await t.mutation(internal.subscriptions.markEventProcessed, {
+      eventId: "evt_duplicate",
+    });
+
+    const isProcessed = await t.query(internal.subscriptions.isEventProcessed, {
+      eventId: "evt_duplicate",
+    });
+    expect(isProcessed).toBe(true);
+  });
+
+  test("cleanupOldEvents removes events older than 7 days", async () => {
+    const t = setupBackend();
+    const now = Date.now();
+    const eightDaysAgo = now - 8 * 24 * 60 * 60 * 1000;
+
+    // Manually insert an old event (bypassing the mutation to set old timestamp)
+    await t.run(async (ctx) => {
+      await ctx.db.insert("stripeEvents", {
+        eventId: "evt_old",
+        processedAt: eightDaysAgo,
+      });
+      await ctx.db.insert("stripeEvents", {
+        eventId: "evt_recent",
+        processedAt: now,
+      });
+    });
+
+    // Run cleanup
+    const result = await t.mutation(
+      internal.subscriptions.cleanupOldEvents,
+      {},
+    );
+    expect(result.deleted).toBe(1);
+
+    // Old event should be gone
+    const oldProcessed = await t.query(
+      internal.subscriptions.isEventProcessed,
+      {
+        eventId: "evt_old",
+      },
+    );
+    expect(oldProcessed).toBe(false);
+
+    // Recent event should still exist
+    const recentProcessed = await t.query(
+      internal.subscriptions.isEventProcessed,
+      { eventId: "evt_recent" },
+    );
+    expect(recentProcessed).toBe(true);
+  });
+});
