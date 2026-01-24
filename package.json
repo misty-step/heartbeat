@@ -16,7 +16,11 @@
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
-    "deploy:check": "npx convex deploy --dry-run --env-file .env.production"
+    "stripe:verify": "./scripts/verify-stripe.sh",
+    "stripe:verify:prod": "./scripts/verify-stripe.sh --prod",
+    "stripe:setup-webhook": "./scripts/setup-stripe-webhook.sh",
+    "stripe:setup-webhook:prod": "./scripts/setup-stripe-webhook.sh --prod",
+    "deploy:check": "./scripts/verify-stripe.sh --prod && npx convex deploy --dry-run --env-file .env.production"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.35.5",
