@@ -18,11 +18,14 @@ export async function createTestSubscription(
   options: {
     tier?: "pulse" | "vital";
     status?: "trialing" | "active" | "past_due" | "canceled" | "expired";
+    currentPeriodEnd?: number;
   } = {},
 ) {
   const now = Date.now();
   const tier = options.tier ?? "vital";
   const status = options.status ?? "active";
+  const currentPeriodEnd =
+    options.currentPeriodEnd ?? now + 30 * 24 * 60 * 60 * 1000; // 30 days from now
 
   await t.mutation(internal.subscriptions.createSubscription, {
     userId,
@@ -30,7 +33,7 @@ export async function createTestSubscription(
     stripeSubscriptionId: `sub_test_${userId}`,
     tier,
     status,
-    currentPeriodEnd: now + 30 * 24 * 60 * 60 * 1000, // 30 days from now
+    currentPeriodEnd,
     cancelAtPeriodEnd: false,
   });
 }

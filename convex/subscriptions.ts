@@ -22,7 +22,38 @@ const TRIAL_TIER = "vital" as const;
 type TierName = keyof typeof TIERS;
 
 /**
- * Check if a subscription status grants active access.
+ * Check if a subscription grants active access.
+ *
+ * Access is granted if:
+ * 1. Status is "trialing" or "active"
+ * 2. Status is "canceled" but still within paid period (currentPeriodEnd > now)
+ * 3. Status is "past_due" but still within grace period (currentPeriodEnd > now)
+ */
+function hasActiveAccess(subscription: {
+  status: "trialing" | "active" | "past_due" | "canceled" | "expired";
+  currentPeriodEnd: number;
+}): boolean {
+  const now = Date.now();
+
+  // Always active
+  if (subscription.status === "trialing" || subscription.status === "active") {
+    return true;
+  }
+
+  // Canceled or past_due but still in paid period
+  if (
+    (subscription.status === "canceled" ||
+      subscription.status === "past_due") &&
+    subscription.currentPeriodEnd > now
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * Simple status check (for backwards compatibility, prefer hasActiveAccess)
  */
 function isActiveStatus(
   status: "trialing" | "active" | "past_due" | "canceled" | "expired",
@@ -68,7 +99,7 @@ export const hasActiveSubscription = query({
       return false;
     }
 
-    return isActiveStatus(subscription.status);
+    return hasActiveAccess(subscription);
   },
 });
 
@@ -88,7 +119,7 @@ export const getUsage = query({
       .withIndex("by_user", (q) => q.eq("userId", identity.subject))
       .first();
 
-    if (!subscription || !isActiveStatus(subscription.status)) {
+    if (!subscription || !hasActiveAccess(subscription)) {
       return null;
     }
 
@@ -123,7 +154,7 @@ export const canCreateMonitor = internalQuery({
       return { allowed: false, reason: "No active subscription" };
     }
 
-    if (!isActiveStatus(subscription.status)) {
+    if (!hasActiveAccess(subscription)) {
       return {
         allowed: false,
         reason: "Your subscription is not active. Please update your billing.",
@@ -158,7 +189,7 @@ export const getTierLimits = internalQuery({
       .withIndex("by_user", (q) => q.eq("userId", args.userId))
       .first();
 
-    if (!subscription || !isActiveStatus(subscription.status)) {
+    if (!subscription || !hasActiveAccess(subscription)) {
       // No subscription = no access, return most restrictive
       return {
         monitors: 0,
@@ -307,8 +338,14 @@ export const updateSubscription = internalMutation({
       Object.entries(updates).filter(([, v]) => v !== undefined),
     );
 
+    // Zombie trial prevention: clear trialEnd when subscription becomes active
+    // This prevents access via stale trial data after a cancellation
+    const shouldClearTrial =
+      args.status === "active" && subscription.status === "trialing";
+
     await ctx.db.patch(subscription._id, {
       ...filteredUpdates,
+      ...(shouldClearTrial && { trialEnd: undefined }),
       updatedAt: Date.now(),
     });
 

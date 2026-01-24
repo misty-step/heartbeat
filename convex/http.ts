@@ -13,8 +13,8 @@ import Stripe from "stripe";
  * that could be bypassed. All subscription mutations are internal.
  */
 const stripeWebhook = httpAction(async (ctx, request) => {
-  const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
-  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+  const stripeSecretKey = process.env.STRIPE_SECRET_KEY?.trim();
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET?.trim();
 
   if (!stripeSecretKey || !webhookSecret) {
     console.error("Stripe environment variables not configured");
@@ -70,6 +70,13 @@ const stripeWebhook = httpAction(async (ctx, request) => {
 
       case "invoice.payment_failed":
         await handleInvoicePaymentFailed(
+          ctx,
+          event.data.object as Stripe.Invoice,
+        );
+        break;
+
+      case "invoice.payment_succeeded":
+        await handleInvoicePaymentSucceeded(
           ctx,
           event.data.object as Stripe.Invoice,
         );
@@ -212,6 +219,33 @@ async function handleInvoicePaymentFailed(
   });
 
   console.log(`Marked subscription as past_due: ${subscriptionId}`);
+}
+
+async function handleInvoicePaymentSucceeded(
+  ctx: ActionCtx,
+  invoice: Stripe.Invoice,
+) {
+  const sub = invoice.parent?.subscription_details?.subscription;
+  const subscriptionId = typeof sub === "string" ? sub : sub?.id;
+  if (!subscriptionId) return;
+
+  // Get the period end from the invoice lines (subscription renewal)
+  const lineItem = invoice.lines?.data?.find(
+    (line) => line.parent?.type === "subscription_item_details",
+  );
+  const periodEnd = lineItem?.period?.end;
+
+  if (periodEnd) {
+    await ctx.runMutation(internal.subscriptions.updateSubscription, {
+      stripeSubscriptionId: subscriptionId,
+      status: "active",
+      currentPeriodEnd: periodEnd * 1000, // Convert to milliseconds
+    });
+
+    console.log(
+      `Updated subscription period end after payment: ${subscriptionId}`,
+    );
+  }
 }
 
 // --- HTTP Router ---

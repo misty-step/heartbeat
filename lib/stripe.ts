@@ -8,7 +8,7 @@ let stripePromise: Promise<Stripe | null>;
  */
 export function getStripe() {
   if (!stripePromise) {
-    const key = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+    const key = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY?.trim();
     if (!key) {
       console.error("NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY not configured");
       return Promise.resolve(null);

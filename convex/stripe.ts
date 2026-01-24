@@ -35,7 +35,7 @@ const TIERS = {
 const TRIAL_DAYS = 14;
 
 function getStripe(): Stripe {
-  const key = process.env.STRIPE_SECRET_KEY;
+  const key = process.env.STRIPE_SECRET_KEY?.trim();
   if (!key) {
     throw new Error("STRIPE_SECRET_KEY is not configured");
   }
@@ -44,7 +44,7 @@ function getStripe(): Stripe {
 
 function getPriceId(tier: "pulse" | "vital", interval: "month" | "year") {
   const envKey = `STRIPE_PRICE_${tier.toUpperCase()}_${interval === "month" ? "MONTHLY" : "YEARLY"}`;
-  const priceId = process.env[envKey];
+  const priceId = process.env[envKey]?.trim();
   if (!priceId) {
     throw new Error(`${envKey} is not configured`);
   }
@@ -95,6 +95,26 @@ export const createCheckoutSession = action({
       customerId = customer.id;
     }
 
+    // Calculate trial: honor existing trial if mid-trial, otherwise new 14-day trial
+    const TRIAL_DURATION_MS = TRIAL_DAYS * 24 * 60 * 60 * 1000;
+    const now = Date.now();
+
+    let trialConfig: { trial_period_days: number } | { trial_end: number } = {
+      trial_period_days: TRIAL_DAYS,
+    };
+
+    // If user has an existing subscription with remaining trial, honor it
+    if (existingSub?.trialEnd && existingSub.trialEnd > now) {
+      // Use trial_end timestamp (Stripe expects seconds, not milliseconds)
+      trialConfig = { trial_end: Math.floor(existingSub.trialEnd / 1000) };
+    } else if (!existingSub) {
+      // New user gets full trial
+      trialConfig = { trial_period_days: TRIAL_DAYS };
+    } else {
+      // Existing user with no trial left - no trial on new subscription
+      trialConfig = { trial_end: Math.floor(now / 1000) + 1 }; // Minimal trial (Stripe requires at least 48h in future or use 'now')
+    }
+
     const checkoutSession: Stripe.Checkout.Session =
       await stripe.checkout.sessions.create({
         customer: customerId,
@@ -107,7 +127,7 @@ export const createCheckoutSession = action({
           },
         ],
         subscription_data: {
-          trial_period_days: TRIAL_DAYS,
+          ...trialConfig,
           metadata: {
             userId: identity.subject,
             tier: args.tier,

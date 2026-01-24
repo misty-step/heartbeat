@@ -97,9 +97,23 @@ describe("hasActiveSubscription", () => {
     expect(hasActive).toBe(true);
   });
 
-  test("returns false for past_due subscription", async () => {
+  test("returns true for past_due subscription within paid period", async () => {
     const t = setupBackend();
+    // Default currentPeriodEnd is 30 days in future
     await createTestSubscription(t, user.subject, { status: "past_due" });
+
+    const hasActive = await t
+      .withIdentity(user)
+      .query(api.subscriptions.hasActiveSubscription, {});
+    expect(hasActive).toBe(true);
+  });
+
+  test("returns false for past_due subscription after paid period expires", async () => {
+    const t = setupBackend();
+    await createTestSubscription(t, user.subject, {
+      status: "past_due",
+      currentPeriodEnd: Date.now() - 1000, // Expired
+    });
 
     const hasActive = await t
       .withIdentity(user)
@@ -107,9 +121,23 @@ describe("hasActiveSubscription", () => {
     expect(hasActive).toBe(false);
   });
 
-  test("returns false for canceled subscription", async () => {
+  test("returns true for canceled subscription within paid period", async () => {
     const t = setupBackend();
+    // Default currentPeriodEnd is 30 days in future
     await createTestSubscription(t, user.subject, { status: "canceled" });
+
+    const hasActive = await t
+      .withIdentity(user)
+      .query(api.subscriptions.hasActiveSubscription, {});
+    expect(hasActive).toBe(true);
+  });
+
+  test("returns false for canceled subscription after paid period expires", async () => {
+    const t = setupBackend();
+    await createTestSubscription(t, user.subject, {
+      status: "canceled",
+      currentPeriodEnd: Date.now() - 1000, // Expired
+    });
 
     const hasActive = await t
       .withIdentity(user)
