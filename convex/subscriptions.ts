@@ -265,8 +265,10 @@ export const createSubscription = internalMutation({
     currentPeriodEnd: v.number(),
     trialEnd: v.optional(v.number()),
     cancelAtPeriodEnd: v.boolean(),
+    eventTimestamp: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    const { eventTimestamp, ...subscriptionData } = args;
     // Check if subscription already exists for this user
     const existing = await ctx.db
       .query("subscriptions")
@@ -274,15 +276,28 @@ export const createSubscription = internalMutation({
       .first();
 
     if (existing) {
+      if (
+        eventTimestamp &&
+        existing.lastStripeEventTimestamp &&
+        eventTimestamp < existing.lastStripeEventTimestamp
+      ) {
+        console.log(
+          `Rejecting stale event: ${eventTimestamp} < ${existing.lastStripeEventTimestamp}`,
+        );
+        return existing._id;
+      }
       // Update existing instead of creating duplicate
       await ctx.db.patch(existing._id, {
-        stripeCustomerId: args.stripeCustomerId,
-        stripeSubscriptionId: args.stripeSubscriptionId,
-        tier: args.tier,
-        status: args.status,
-        currentPeriodEnd: args.currentPeriodEnd,
-        trialEnd: args.trialEnd,
-        cancelAtPeriodEnd: args.cancelAtPeriodEnd,
+        stripeCustomerId: subscriptionData.stripeCustomerId,
+        stripeSubscriptionId: subscriptionData.stripeSubscriptionId,
+        tier: subscriptionData.tier,
+        status: subscriptionData.status,
+        currentPeriodEnd: subscriptionData.currentPeriodEnd,
+        trialEnd: subscriptionData.trialEnd,
+        cancelAtPeriodEnd: subscriptionData.cancelAtPeriodEnd,
+        ...(eventTimestamp !== undefined && {
+          lastStripeEventTimestamp: eventTimestamp,
+        }),
         updatedAt: Date.now(),
       });
       return existing._id;
@@ -290,7 +305,10 @@ export const createSubscription = internalMutation({
 
     const now = Date.now();
     return await ctx.db.insert("subscriptions", {
-      ...args,
+      ...subscriptionData,
+      ...(eventTimestamp !== undefined && {
+        lastStripeEventTimestamp: eventTimestamp,
+      }),
       createdAt: now,
       updatedAt: now,
     });
@@ -317,6 +335,7 @@ export const updateSubscription = internalMutation({
     currentPeriodEnd: v.optional(v.number()),
     trialEnd: v.optional(v.number()),
     cancelAtPeriodEnd: v.optional(v.boolean()),
+    eventTimestamp: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     const subscription = await ctx.db
@@ -333,7 +352,17 @@ export const updateSubscription = internalMutation({
       return null;
     }
 
-    const { stripeSubscriptionId, ...updates } = args;
+    const { stripeSubscriptionId, eventTimestamp, ...updates } = args;
+    if (
+      eventTimestamp &&
+      subscription.lastStripeEventTimestamp &&
+      eventTimestamp < subscription.lastStripeEventTimestamp
+    ) {
+      console.log(
+        `Rejecting stale event: ${eventTimestamp} < ${subscription.lastStripeEventTimestamp}`,
+      );
+      return subscription._id;
+    }
     const filteredUpdates = Object.fromEntries(
       Object.entries(updates).filter(([, v]) => v !== undefined),
     );
@@ -345,6 +374,9 @@ export const updateSubscription = internalMutation({
 
     await ctx.db.patch(subscription._id, {
       ...filteredUpdates,
+      ...(eventTimestamp !== undefined && {
+        lastStripeEventTimestamp: eventTimestamp,
+      }),
       ...(shouldClearTrial && { trialEnd: undefined }),
       updatedAt: Date.now(),
     });
@@ -358,7 +390,10 @@ export const updateSubscription = internalMutation({
  * Internal only - called by convex/http.ts after signature verification.
  */
 export const expireSubscription = internalMutation({
-  args: { stripeSubscriptionId: v.string() },
+  args: {
+    stripeSubscriptionId: v.string(),
+    eventTimestamp: v.optional(v.number()),
+  },
   handler: async (ctx, args) => {
     const subscription = await ctx.db
       .query("subscriptions")
@@ -374,8 +409,22 @@ export const expireSubscription = internalMutation({
       return null;
     }
 
+    if (
+      args.eventTimestamp &&
+      subscription.lastStripeEventTimestamp &&
+      args.eventTimestamp < subscription.lastStripeEventTimestamp
+    ) {
+      console.log(
+        `Rejecting stale event: ${args.eventTimestamp} < ${subscription.lastStripeEventTimestamp}`,
+      );
+      return subscription._id;
+    }
+
     await ctx.db.patch(subscription._id, {
       status: "expired",
+      ...(args.eventTimestamp !== undefined && {
+        lastStripeEventTimestamp: args.eventTimestamp,
+      }),
       updatedAt: Date.now(),
     });
 

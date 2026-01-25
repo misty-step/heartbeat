@@ -77,8 +77,15 @@ echo ""
 echo "=== Webhook Configuration ==="
 
 # Get Convex site URL
-CONVEX_URL=$(grep NEXT_PUBLIC_CONVEX_URL .env.local 2>/dev/null | cut -d= -f2 | tr -d '"' | tr -d "'")
-EXPECTED_WEBHOOK_URL=$(echo "$CONVEX_URL" | sed 's/\.cloud/.site/')/stripe/webhook
+if [ -n "$PROD_FLAG" ]; then
+  # Get production deployment name from dashboard command output
+  DASHBOARD_OUTPUT=$(npx convex dashboard --prod 2>&1)
+  PROD_DEPLOYMENT=$(echo "$DASHBOARD_OUTPUT" | grep -oE '[a-z]+-[a-z]+-[0-9]+' | head -1)
+  EXPECTED_WEBHOOK_URL="https://$PROD_DEPLOYMENT.convex.site/stripe/webhook"
+else
+  CONVEX_URL=$(grep NEXT_PUBLIC_CONVEX_URL .env.local 2>/dev/null | cut -d= -f2 | tr -d '"' | tr -d "'")
+  EXPECTED_WEBHOOK_URL=$(echo "$CONVEX_URL" | sed 's/\.cloud/.site/')/stripe/webhook
+fi
 
 echo "  Expected URL: $EXPECTED_WEBHOOK_URL"
 

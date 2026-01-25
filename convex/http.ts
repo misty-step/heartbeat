@@ -46,6 +46,7 @@ const stripeWebhook = httpAction(async (ctx, request) => {
   }
 
   console.log(`Received Stripe webhook: ${event.type}`);
+  const eventTimestamp = event.created * 1000;
 
   // Idempotency check: skip if already processed
   const alreadyProcessed = await ctx.runQuery(
@@ -67,6 +68,7 @@ const stripeWebhook = httpAction(async (ctx, request) => {
           ctx,
           stripe,
           event.data.object as Stripe.Checkout.Session,
+          eventTimestamp,
         );
         break;
 
@@ -75,6 +77,7 @@ const stripeWebhook = httpAction(async (ctx, request) => {
         await handleSubscriptionUpdated(
           ctx,
           event.data.object as Stripe.Subscription,
+          eventTimestamp,
         );
         break;
 
@@ -82,6 +85,7 @@ const stripeWebhook = httpAction(async (ctx, request) => {
         await handleSubscriptionDeleted(
           ctx,
           event.data.object as Stripe.Subscription,
+          eventTimestamp,
         );
         break;
 
@@ -89,6 +93,7 @@ const stripeWebhook = httpAction(async (ctx, request) => {
         await handleInvoicePaymentFailed(
           ctx,
           event.data.object as Stripe.Invoice,
+          eventTimestamp,
         );
         break;
 
@@ -96,6 +101,7 @@ const stripeWebhook = httpAction(async (ctx, request) => {
         await handleInvoicePaymentSucceeded(
           ctx,
           event.data.object as Stripe.Invoice,
+          eventTimestamp,
         );
         break;
 
@@ -162,6 +168,7 @@ async function handleCheckoutCompleted(
   ctx: ActionCtx,
   stripe: Stripe,
   session: Stripe.Checkout.Session,
+  eventTimestamp: number,
 ) {
   const userId = session.metadata?.userId;
   if (!userId) {
@@ -190,6 +197,7 @@ async function handleCheckoutCompleted(
       ? subscription.trial_end * 1000
       : undefined,
     cancelAtPeriodEnd: subscription.cancel_at_period_end,
+    eventTimestamp,
   });
 
   console.log(`Created subscription for user ${userId}: ${subscription.id}`);
@@ -198,6 +206,7 @@ async function handleCheckoutCompleted(
 async function handleSubscriptionUpdated(
   ctx: ActionCtx,
   subscription: Stripe.Subscription,
+  eventTimestamp: number,
 ) {
   const tier = extractTier(subscription);
   const currentPeriodEnd = getCurrentPeriodEnd(subscription);
@@ -211,6 +220,7 @@ async function handleSubscriptionUpdated(
       ? subscription.trial_end * 1000
       : undefined,
     cancelAtPeriodEnd: subscription.cancel_at_period_end,
+    eventTimestamp,
   });
 
   console.log(`Updated subscription: ${subscription.id}`);
@@ -219,9 +229,11 @@ async function handleSubscriptionUpdated(
 async function handleSubscriptionDeleted(
   ctx: ActionCtx,
   subscription: Stripe.Subscription,
+  eventTimestamp: number,
 ) {
   await ctx.runMutation(internal.subscriptions.expireSubscription, {
     stripeSubscriptionId: subscription.id,
+    eventTimestamp,
   });
 
   console.log(`Expired subscription: ${subscription.id}`);
@@ -230,6 +242,7 @@ async function handleSubscriptionDeleted(
 async function handleInvoicePaymentFailed(
   ctx: ActionCtx,
   invoice: Stripe.Invoice,
+  eventTimestamp: number,
 ) {
   const sub = invoice.parent?.subscription_details?.subscription;
   const subscriptionId = typeof sub === "string" ? sub : sub?.id;
@@ -238,6 +251,7 @@ async function handleInvoicePaymentFailed(
   await ctx.runMutation(internal.subscriptions.updateSubscription, {
     stripeSubscriptionId: subscriptionId,
     status: "past_due",
+    eventTimestamp,
   });
 
   console.log(`Marked subscription as past_due: ${subscriptionId}`);
@@ -246,6 +260,7 @@ async function handleInvoicePaymentFailed(
 async function handleInvoicePaymentSucceeded(
   ctx: ActionCtx,
   invoice: Stripe.Invoice,
+  eventTimestamp: number,
 ) {
   const sub = invoice.parent?.subscription_details?.subscription;
   const subscriptionId = typeof sub === "string" ? sub : sub?.id;
@@ -262,6 +277,7 @@ async function handleInvoicePaymentSucceeded(
       stripeSubscriptionId: subscriptionId,
       status: "active",
       currentPeriodEnd: periodEnd * 1000, // Convert to milliseconds
+      eventTimestamp,
     });
 
     console.log(

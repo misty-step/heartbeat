@@ -99,6 +99,7 @@ export default defineSchema({
     currentPeriodEnd: v.number(),
     trialEnd: v.optional(v.number()),
     cancelAtPeriodEnd: v.boolean(),
+    lastStripeEventTimestamp: v.optional(v.number()), // Prevents out-of-order webhook processing
     createdAt: v.number(),
     updatedAt: v.number(),
   })
