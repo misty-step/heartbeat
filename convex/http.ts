@@ -176,7 +176,10 @@ async function handleCheckoutCompleted(
     return;
   }
 
-  const subscriptionId = session.subscription as string;
+  const subscriptionId =
+    typeof session.subscription === "string"
+      ? session.subscription
+      : session.subscription?.id;
   if (!subscriptionId) {
     console.error("No subscription ID in checkout session");
     return;
@@ -244,7 +247,13 @@ async function handleInvoicePaymentFailed(
   invoice: Stripe.Invoice,
   eventTimestamp: number,
 ) {
-  const sub = invoice.parent?.subscription_details?.subscription;
+  // invoice.subscription for older invoices, parent.subscription_details for June 2023+
+  const sub =
+    (
+      invoice as Stripe.Invoice & {
+        subscription?: Stripe.Subscription | string | null;
+      }
+    ).subscription ?? invoice.parent?.subscription_details?.subscription;
   const subscriptionId = typeof sub === "string" ? sub : sub?.id;
   if (!subscriptionId) return;
 
@@ -262,7 +271,13 @@ async function handleInvoicePaymentSucceeded(
   invoice: Stripe.Invoice,
   eventTimestamp: number,
 ) {
-  const sub = invoice.parent?.subscription_details?.subscription;
+  // invoice.subscription for older invoices, parent.subscription_details for June 2023+
+  const sub =
+    (
+      invoice as Stripe.Invoice & {
+        subscription?: Stripe.Subscription | string | null;
+      }
+    ).subscription ?? invoice.parent?.subscription_details?.subscription;
   const subscriptionId = typeof sub === "string" ? sub : sub?.id;
   if (!subscriptionId) return;
 

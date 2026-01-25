@@ -36,7 +36,14 @@ if [ "$PROD_FLAG" = "--prod" ]; then
     exit 1
   fi
 else
-  CONVEX_URL=$(grep NEXT_PUBLIC_CONVEX_URL .env.local 2>/dev/null | cut -d= -f2 | tr -d '"' | tr -d "'")
+  CONVEX_URL="${CONVEX_SITE_URL:-}"
+  if [ -z "$CONVEX_URL" ]; then
+    CONVEX_URL=$(grep -m1 '^NEXT_PUBLIC_CONVEX_URL=' .env.local 2>/dev/null | cut -d= -f2 | tr -d '"' | tr -d "'" || true)
+  fi
+  if [ -z "$CONVEX_URL" ]; then
+    echo -e "${RED}Error: NEXT_PUBLIC_CONVEX_URL not found in .env.local${NC}"
+    exit 1
+  fi
 fi
 
 WEBHOOK_URL=$(echo "$CONVEX_URL" | sed 's/\.cloud/.site/')/stripe/webhook

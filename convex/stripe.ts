@@ -99,7 +99,10 @@ export const createCheckoutSession = action({
     const TRIAL_DURATION_MS = TRIAL_DAYS * 24 * 60 * 60 * 1000;
     const now = Date.now();
 
-    let trialConfig: { trial_period_days: number } | { trial_end: number } = {
+    let trialConfig:
+      | { trial_period_days: number }
+      | { trial_end: number }
+      | undefined = {
       trial_period_days: TRIAL_DAYS,
     };
 
@@ -111,8 +114,8 @@ export const createCheckoutSession = action({
       // New user gets full trial
       trialConfig = { trial_period_days: TRIAL_DAYS };
     } else {
-      // Existing user with no trial left - no trial on new subscription
-      trialConfig = { trial_end: Math.floor(now / 1000) + 1 }; // Minimal trial (Stripe requires at least 48h in future or use 'now')
+      // Existing user with no trial left - omit trial settings entirely
+      trialConfig = undefined;
     }
 
     const checkoutSession: Stripe.Checkout.Session =
@@ -127,7 +130,7 @@ export const createCheckoutSession = action({
           },
         ],
         subscription_data: {
-          ...trialConfig,
+          ...(trialConfig ?? {}),
           metadata: {
             userId: identity.subject,
             tier: args.tier,

@@ -21,7 +21,11 @@ if [ -n "$CONVEX_SITE_URL" ]; then
   WEBHOOK_URL="$CONVEX_SITE_URL/stripe/webhook"
 elif [ -f .env.local ]; then
   # Derive from NEXT_PUBLIC_CONVEX_URL (replace .cloud with .site)
-  CONVEX_URL=$(grep NEXT_PUBLIC_CONVEX_URL .env.local | cut -d= -f2 | tr -d '"' | tr -d "'")
+  CONVEX_URL=$(grep -m1 '^NEXT_PUBLIC_CONVEX_URL=' .env.local | cut -d= -f2 | tr -d '"' | tr -d "'")
+  if [ -z "$CONVEX_URL" ]; then
+    echo "Error: NEXT_PUBLIC_CONVEX_URL not found in .env.local"
+    exit 1
+  fi
   WEBHOOK_URL=$(echo "$CONVEX_URL" | sed 's/\.cloud/.site/')/stripe/webhook
 else
   echo "Error: Set CONVEX_SITE_URL or ensure .env.local has NEXT_PUBLIC_CONVEX_URL"
