@@ -3,7 +3,13 @@
 import { useQuery, useAction, useConvexAuth } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { TIERS, formatPrice, formatInterval } from "@/lib/tiers";
-import { ArrowLeft, CreditCard, Loader2, ExternalLink } from "lucide-react";
+import {
+  ArrowLeft,
+  CreditCard,
+  Loader2,
+  ExternalLink,
+  Bell,
+} from "lucide-react";
 import Link from "next/link";
 
 export default function BillingPage() {
@@ -47,18 +53,39 @@ export default function BillingPage() {
       <div className="max-w-2xl">
         {/* Back link */}
         <Link
-          href="/dashboard/settings"
+          href="/dashboard"
           className="inline-flex items-center gap-2 text-sm text-[var(--color-text-muted)] hover:text-foreground transition-colors mb-8"
         >
           <ArrowLeft className="h-4 w-4" />
-          Back to Settings
+          Back to Dashboard
         </Link>
 
         {/* Header */}
-        <h1 className="font-serif text-3xl sm:text-4xl text-foreground mb-2">
-          Billing
+        <h1 className="font-serif text-3xl sm:text-4xl text-foreground mb-6">
+          Settings
         </h1>
-        <p className="text-[var(--color-text-muted)] mb-12">
+
+        {/* Settings navigation */}
+        <div className="flex gap-1 border-b border-foreground/10 mb-8">
+          <Link
+            href="/dashboard/settings"
+            className="px-4 py-3 text-foreground/50 hover:text-foreground transition-colors"
+          >
+            <span className="flex items-center gap-2">
+              <Bell className="h-4 w-4" />
+              Notifications
+            </span>
+          </Link>
+          <div className="px-4 py-3 text-foreground font-medium border-b-2 border-foreground -mb-px">
+            <span className="flex items-center gap-2">
+              <CreditCard className="h-4 w-4" />
+              Billing
+            </span>
+          </div>
+        </div>
+
+        {/* Section header */}
+        <p className="text-[var(--color-text-muted)] mb-8">
           Manage your subscription and billing details.
         </p>
 
@@ -99,8 +126,8 @@ export default function BillingPage() {
 
               {/* Trial notice */}
               {subscription.status === "trialing" && subscription.trialEnd && (
-                <div className="p-4 bg-amber-500/10 border border-amber-500/20 mb-6">
-                  <p className="text-sm text-amber-700 dark:text-amber-300">
+                <div className="p-4 bg-amber-100 dark:bg-amber-500/10 border border-amber-300 dark:border-amber-500/20 mb-6">
+                  <p className="text-sm text-amber-900 dark:text-amber-300">
                     Your trial ends on{" "}
                     {new Date(subscription.trialEnd).toLocaleDateString()}.
                     {subscription.cancelAtPeriodEnd
@@ -112,8 +139,8 @@ export default function BillingPage() {
 
               {/* Cancel notice */}
               {subscription.cancelAtPeriodEnd && (
-                <div className="p-4 bg-red-500/10 border border-red-500/20 mb-6">
-                  <p className="text-sm text-red-700 dark:text-red-300">
+                <div className="p-4 bg-red-100 dark:bg-red-500/10 border border-red-300 dark:border-red-500/20 mb-6">
+                  <p className="text-sm text-red-900 dark:text-red-300">
                     Your subscription is set to cancel on{" "}
                     {new Date(
                       subscription.currentPeriodEnd,
@@ -216,23 +243,27 @@ function StatusBadge({
   const config = {
     trialing: {
       label: "Trial",
-      className: "bg-blue-500/10 text-blue-700 dark:text-blue-300",
+      className:
+        "bg-blue-100 dark:bg-blue-500/10 text-blue-800 dark:text-blue-300",
     },
     active: {
       label: "Active",
-      className: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
+      className:
+        "bg-emerald-100 dark:bg-emerald-500/10 text-emerald-800 dark:text-emerald-300",
     },
     past_due: {
       label: "Past Due",
-      className: "bg-amber-500/10 text-amber-700 dark:text-amber-300",
+      className:
+        "bg-amber-100 dark:bg-amber-500/10 text-amber-800 dark:text-amber-300",
     },
     canceled: {
       label: "Canceled",
-      className: "bg-red-500/10 text-red-700 dark:text-red-300",
+      className: "bg-red-100 dark:bg-red-500/10 text-red-800 dark:text-red-300",
     },
     expired: {
       label: "Expired",
-      className: "bg-gray-500/10 text-gray-700 dark:text-gray-300",
+      className:
+        "bg-gray-100 dark:bg-gray-500/10 text-gray-800 dark:text-gray-300",
     },
   };
 

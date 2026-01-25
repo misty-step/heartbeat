@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { UserButton } from "@clerk/nextjs";
 import { ThemeToggle } from "./ThemeToggle";
-import { Settings } from "lucide-react";
+import { Settings, CreditCard } from "lucide-react";
 
 /**
  * DashboardNavbar - Kyoto Moss Design System
@@ -22,12 +22,19 @@ export function DashboardNavbar() {
           Heartbeat
         </Link>
 
-        {/* Right side: Settings + Theme toggle + User menu */}
+        {/* Right side: Billing + Settings + Theme toggle + User menu */}
         <div className="flex items-center gap-4">
+          <Link
+            href="/dashboard/settings/billing"
+            className="p-2 text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-tertiary)] transition-colors rounded-[var(--radius-md)]"
+            title="Billing"
+          >
+            <CreditCard className="size-5" />
+          </Link>
           <Link
             href="/dashboard/settings"
             className="p-2 text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-tertiary)] transition-colors rounded-[var(--radius-md)]"
-            title="Notification Settings"
+            title="Settings"
           >
             <Settings className="size-5" />
           </Link>

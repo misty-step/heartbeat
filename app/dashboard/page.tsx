@@ -8,7 +8,16 @@ import { MonitorSettingsModal } from "../../components/MonitorSettingsModal";
 import { AddMonitorForm } from "../../components/AddMonitorForm";
 import { StatusIndicator } from "../../components/StatusIndicator";
 import { Id } from "../../convex/_generated/dataModel";
-import { Plus, Activity, Clock, X } from "lucide-react";
+import {
+  Plus,
+  Activity,
+  Clock,
+  X,
+  CreditCard,
+  ChevronRight,
+} from "lucide-react";
+import Link from "next/link";
+import { TIERS } from "@/lib/tiers";
 import {
   computeStatus,
   aggregateStatuses,
@@ -19,6 +28,10 @@ import {
 export default function DashboardPage() {
   const { isAuthenticated, isLoading } = useConvexAuth();
   const monitors = useQuery(api.monitors.list, isAuthenticated ? {} : "skip");
+  const subscription = useQuery(
+    api.subscriptions.getSubscription,
+    isAuthenticated ? {} : "skip",
+  );
   const [editingMonitorId, setEditingMonitorId] =
     useState<Id<"monitors"> | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -96,7 +109,7 @@ export default function DashboardPage() {
               {getStatusHeadline(aggregateStatus)}
             </h1>
           </div>
-          <div className="flex items-center gap-6 text-sm text-[var(--color-text-muted)]">
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-[var(--color-text-muted)]">
             <span className="inline-flex items-center gap-2">
               <Activity className="h-3.5 w-3.5" />
               <span className="tabular-nums">{monitors.length}</span>{" "}
@@ -107,6 +120,19 @@ export default function DashboardPage() {
                 <Clock className="h-3.5 w-3.5" />
                 <span>Checked {formatRelativeTime(lastCheckTime)}</span>
               </span>
+            )}
+            {subscription && (
+              <Link
+                href="/dashboard/settings/billing"
+                className="inline-flex items-center gap-2 hover:text-foreground transition-colors group"
+              >
+                <CreditCard className="h-3.5 w-3.5" />
+                <span>
+                  {TIERS[subscription.tier]?.name} Plan
+                  <SubscriptionBadge status={subscription.status} />
+                </span>
+                <ChevronRight className="h-3 w-3 opacity-0 -ml-1 group-hover:opacity-100 transition-opacity" />
+              </Link>
             )}
           </div>
         </div>
@@ -169,5 +195,46 @@ export default function DashboardPage() {
         )}
       </div>
     </div>
+  );
+}
+
+function SubscriptionBadge({
+  status,
+}: {
+  status: "trialing" | "active" | "past_due" | "canceled" | "expired";
+}) {
+  if (status === "active") return null; // Don't show badge for active
+
+  const config = {
+    trialing: {
+      label: "Trial",
+      className:
+        "bg-blue-100 dark:bg-blue-500/10 text-blue-800 dark:text-blue-400",
+    },
+    past_due: {
+      label: "Past Due",
+      className:
+        "bg-amber-100 dark:bg-amber-500/10 text-amber-800 dark:text-amber-400",
+    },
+    canceled: {
+      label: "Canceled",
+      className: "bg-red-100 dark:bg-red-500/10 text-red-800 dark:text-red-400",
+    },
+    expired: {
+      label: "Expired",
+      className:
+        "bg-gray-100 dark:bg-gray-500/10 text-gray-800 dark:text-gray-400",
+    },
+    active: { label: "", className: "" },
+  };
+
+  const { label, className } = config[status];
+
+  return (
+    <span
+      className={`ml-2 px-1.5 py-0.5 text-xs font-medium rounded ${className}`}
+    >
+      {label}
+    </span>
   );
 }
