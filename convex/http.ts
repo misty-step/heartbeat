@@ -127,7 +127,7 @@ const stripeWebhook = httpAction(async (ctx, request) => {
 
 // --- Utility functions (exported for testing) ---
 
-type ActionCtx = Parameters<Parameters<typeof httpAction>[0]>[0];
+export type ActionCtx = Parameters<Parameters<typeof httpAction>[0]>[0];
 
 export function mapStripeStatus(
   status: Stripe.Subscription.Status,
@@ -164,7 +164,8 @@ export function getCurrentPeriodEnd(subscription: Stripe.Subscription): number {
   return item?.current_period_end ?? Math.floor(Date.now() / 1000);
 }
 
-async function handleCheckoutCompleted(
+// Exported for testing - these are internal implementation details
+export async function handleCheckoutCompleted(
   ctx: ActionCtx,
   stripe: Stripe,
   session: Stripe.Checkout.Session,
@@ -206,7 +207,7 @@ async function handleCheckoutCompleted(
   console.log(`Created subscription for user ${userId}: ${subscription.id}`);
 }
 
-async function handleSubscriptionUpdated(
+export async function handleSubscriptionUpdated(
   ctx: ActionCtx,
   subscription: Stripe.Subscription,
   eventTimestamp: number,
@@ -229,7 +230,7 @@ async function handleSubscriptionUpdated(
   console.log(`Updated subscription: ${subscription.id}`);
 }
 
-async function handleSubscriptionDeleted(
+export async function handleSubscriptionDeleted(
   ctx: ActionCtx,
   subscription: Stripe.Subscription,
   eventTimestamp: number,
@@ -242,7 +243,7 @@ async function handleSubscriptionDeleted(
   console.log(`Expired subscription: ${subscription.id}`);
 }
 
-async function handleInvoicePaymentFailed(
+export async function handleInvoicePaymentFailed(
   ctx: ActionCtx,
   invoice: Stripe.Invoice,
   eventTimestamp: number,
@@ -266,7 +267,7 @@ async function handleInvoicePaymentFailed(
   console.log(`Marked subscription as past_due: ${subscriptionId}`);
 }
 
-async function handleInvoicePaymentSucceeded(
+export async function handleInvoicePaymentSucceeded(
   ctx: ActionCtx,
   invoice: Stripe.Invoice,
   eventTimestamp: number,
