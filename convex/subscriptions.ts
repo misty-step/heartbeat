@@ -1,25 +1,6 @@
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
 import { query, internalMutation, internalQuery } from "./_generated/server";
-
-/**
- * Tier configuration (mirrored from lib/tiers.ts for Convex runtime)
- */
-const TIERS = {
-  pulse: {
-    monitors: 15,
-    minInterval: 180,
-    statusPages: 1,
-  },
-  vital: {
-    monitors: 75,
-    minInterval: 60,
-    statusPages: 5,
-  },
-} as const;
-
-const TRIAL_TIER = "vital" as const;
-
-type TierName = keyof typeof TIERS;
+import { TIERS } from "./constants";
 
 /**
  * Check if a subscription grants active access.
@@ -346,10 +327,9 @@ export const updateSubscription = internalMutation({
       .first();
 
     if (!subscription) {
-      console.error(
-        `Subscription not found for Stripe ID: ${args.stripeSubscriptionId}`,
+      throw new ConvexError(
+        `Subscription not found for Stripe ID: ${args.stripeSubscriptionId} - webhook will retry`,
       );
-      return null;
     }
 
     const { stripeSubscriptionId, eventTimestamp, ...updates } = args;
@@ -403,10 +383,9 @@ export const expireSubscription = internalMutation({
       .first();
 
     if (!subscription) {
-      console.error(
-        `Subscription not found for Stripe ID: ${args.stripeSubscriptionId}`,
+      throw new ConvexError(
+        `Subscription not found for Stripe ID: ${args.stripeSubscriptionId} - webhook will retry`,
       );
-      return null;
     }
 
     if (
