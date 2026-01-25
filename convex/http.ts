@@ -173,8 +173,9 @@ export async function handleCheckoutCompleted(
 ) {
   const userId = session.metadata?.userId;
   if (!userId) {
-    console.error("No userId in checkout session metadata");
-    return;
+    throw new Error(
+      "No userId in checkout session metadata - cannot create subscription",
+    );
   }
 
   const subscriptionId =
@@ -182,8 +183,9 @@ export async function handleCheckoutCompleted(
       ? session.subscription
       : session.subscription?.id;
   if (!subscriptionId) {
-    console.error("No subscription ID in checkout session");
-    return;
+    throw new Error(
+      "No subscription ID in checkout session - cannot create subscription",
+    );
   }
 
   const subscription = await stripe.subscriptions.retrieve(subscriptionId);
@@ -256,7 +258,11 @@ export async function handleInvoicePaymentFailed(
       }
     ).subscription ?? invoice.parent?.subscription_details?.subscription;
   const subscriptionId = typeof sub === "string" ? sub : sub?.id;
-  if (!subscriptionId) return;
+  if (!subscriptionId) {
+    throw new Error(
+      "No subscription ID in invoice.payment_failed event - cannot update subscription",
+    );
+  }
 
   await ctx.runMutation(internal.subscriptions.updateSubscription, {
     stripeSubscriptionId: subscriptionId,
@@ -280,7 +286,11 @@ export async function handleInvoicePaymentSucceeded(
       }
     ).subscription ?? invoice.parent?.subscription_details?.subscription;
   const subscriptionId = typeof sub === "string" ? sub : sub?.id;
-  if (!subscriptionId) return;
+  if (!subscriptionId) {
+    throw new Error(
+      "No subscription ID in invoice.payment_succeeded event - cannot update subscription",
+    );
+  }
 
   // Get the period end from the invoice lines (subscription renewal)
   const lineItem = invoice.lines?.data?.find(

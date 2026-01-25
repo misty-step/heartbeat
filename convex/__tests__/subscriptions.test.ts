@@ -477,15 +477,15 @@ describe("updateSubscription (internal)", () => {
     expect(subscription!.status).toBe("active");
   });
 
-  test("returns null when subscription not found", async () => {
+  test("throws when subscription not found", async () => {
     const t = setupBackend();
 
-    const result = await t.mutation(internal.subscriptions.updateSubscription, {
-      stripeSubscriptionId: "sub_nonexistent",
-      status: "active",
-    });
-
-    expect(result).toBeNull();
+    await expect(
+      t.mutation(internal.subscriptions.updateSubscription, {
+        stripeSubscriptionId: "sub_nonexistent",
+        status: "active",
+      }),
+    ).rejects.toThrow(/Subscription not found/i);
   });
 
   test("updates only provided fields", async () => {
@@ -524,14 +524,14 @@ describe("expireSubscription (internal)", () => {
     expect(subscription!.status).toBe("expired");
   });
 
-  test("returns null when subscription not found", async () => {
+  test("throws when subscription not found", async () => {
     const t = setupBackend();
 
-    const result = await t.mutation(internal.subscriptions.expireSubscription, {
-      stripeSubscriptionId: "sub_nonexistent",
-    });
-
-    expect(result).toBeNull();
+    await expect(
+      t.mutation(internal.subscriptions.expireSubscription, {
+        stripeSubscriptionId: "sub_nonexistent",
+      }),
+    ).rejects.toThrow(/Subscription not found/i);
   });
 });
 

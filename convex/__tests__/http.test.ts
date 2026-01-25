@@ -245,7 +245,7 @@ describe("handleCheckoutCompleted", () => {
     expect(stripe.subscriptions.retrieve).toHaveBeenCalledWith("sub_mock123");
   });
 
-  it("returns early when userId is missing", async () => {
+  it("throws when userId is missing", async () => {
     const ctx = createMockCtx();
     const stripe = createMockStripe();
     const session = {
@@ -254,13 +254,15 @@ describe("handleCheckoutCompleted", () => {
       subscription: "sub_mock123",
     } as Stripe.Checkout.Session;
 
-    await handleCheckoutCompleted(ctx, stripe, session, 1700000000000);
+    await expect(
+      handleCheckoutCompleted(ctx, stripe, session, 1700000000000),
+    ).rejects.toThrow(/No userId in checkout session metadata/i);
 
     expect(stripe.subscriptions.retrieve).not.toHaveBeenCalled();
     expect(ctx.runMutation).not.toHaveBeenCalled();
   });
 
-  it("returns early when subscription ID is missing", async () => {
+  it("throws when subscription ID is missing", async () => {
     const ctx = createMockCtx();
     const stripe = createMockStripe();
     const session = {
@@ -269,7 +271,9 @@ describe("handleCheckoutCompleted", () => {
       subscription: null,
     } as unknown as Stripe.Checkout.Session;
 
-    await handleCheckoutCompleted(ctx, stripe, session, 1700000000000);
+    await expect(
+      handleCheckoutCompleted(ctx, stripe, session, 1700000000000),
+    ).rejects.toThrow(/No subscription ID in checkout session/i);
 
     expect(ctx.runMutation).not.toHaveBeenCalled();
   });
@@ -459,13 +463,15 @@ describe("handleInvoicePaymentFailed", () => {
     );
   });
 
-  it("returns early when no subscription ID found", async () => {
+  it("throws when no subscription ID found", async () => {
     const ctx = createMockCtx();
     const invoice = {
       id: "in_test123",
     } as unknown as Stripe.Invoice;
 
-    await handleInvoicePaymentFailed(ctx, invoice, 1700000000000);
+    await expect(
+      handleInvoicePaymentFailed(ctx, invoice, 1700000000000),
+    ).rejects.toThrow(/No subscription ID in invoice\.payment_failed/i);
 
     expect(ctx.runMutation).not.toHaveBeenCalled();
   });
@@ -504,14 +510,16 @@ describe("handleInvoicePaymentSucceeded", () => {
     );
   });
 
-  it("returns early when no subscription ID found", async () => {
+  it("throws when no subscription ID found", async () => {
     const ctx = createMockCtx();
     const invoice = {
       id: "in_test123",
       lines: { data: [] },
     } as unknown as Stripe.Invoice;
 
-    await handleInvoicePaymentSucceeded(ctx, invoice, 1700000000000);
+    await expect(
+      handleInvoicePaymentSucceeded(ctx, invoice, 1700000000000),
+    ).rejects.toThrow(/No subscription ID in invoice\.payment_succeeded/i);
 
     expect(ctx.runMutation).not.toHaveBeenCalled();
   });
