@@ -3,13 +3,13 @@
  * Defines limits and pricing for each plan.
  */
 
-export const TIERS = {
+import { TIERS as TIER_LIMITS, type TierName } from "@/convex/constants";
+
+// Limits live in convex/constants.ts to prevent drift with enforcement.
+const TIER_DETAILS = {
   pulse: {
     name: "Pulse",
     description: "Essential monitoring for side projects and small sites",
-    monitors: 15,
-    minInterval: 180, // 3 minutes in seconds
-    statusPages: 1,
     historyDays: 30,
     webhooks: false,
     apiAccess: false,
@@ -19,9 +19,6 @@ export const TIERS = {
   vital: {
     name: "Vital",
     description: "Professional monitoring for growing applications",
-    monitors: 75,
-    minInterval: 60, // 1 minute in seconds
-    statusPages: 5,
     historyDays: 90,
     webhooks: true,
     apiAccess: true,
@@ -30,7 +27,12 @@ export const TIERS = {
   },
 } as const;
 
-export type TierName = keyof typeof TIERS;
+export const TIERS = {
+  pulse: { ...TIER_DETAILS.pulse, ...TIER_LIMITS.pulse },
+  vital: { ...TIER_DETAILS.vital, ...TIER_LIMITS.vital },
+} as const;
+
+export type { TierName };
 export type Tier = (typeof TIERS)[TierName];
 
 export const TRIAL_DAYS = 14;

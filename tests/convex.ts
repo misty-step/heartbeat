@@ -1,7 +1,7 @@
 // tests/convex.ts
 import { convexTest } from "convex-test";
 import schema from "../convex/schema";
-import { api } from "../convex/_generated/api";
+import { internal } from "../convex/_generated/api";
 
 // Factory for isolated test backend
 export const setupBackend = () =>
@@ -10,6 +10,7 @@ export const setupBackend = () =>
 /**
  * Create a test subscription for a user.
  * Required for tests that create monitors (subscription check).
+ * Uses internal mutation (same as webhook handler).
  */
 export async function createTestSubscription(
   t: ReturnType<typeof setupBackend>,
@@ -17,19 +18,22 @@ export async function createTestSubscription(
   options: {
     tier?: "pulse" | "vital";
     status?: "trialing" | "active" | "past_due" | "canceled" | "expired";
+    currentPeriodEnd?: number;
   } = {},
 ) {
   const now = Date.now();
   const tier = options.tier ?? "vital";
   const status = options.status ?? "active";
+  const currentPeriodEnd =
+    options.currentPeriodEnd ?? now + 30 * 24 * 60 * 60 * 1000; // 30 days from now
 
-  await t.mutation(api.subscriptions.createSubscription, {
+  await t.mutation(internal.subscriptions.createSubscription, {
     userId,
     stripeCustomerId: `cus_test_${userId}`,
     stripeSubscriptionId: `sub_test_${userId}`,
     tier,
     status,
-    currentPeriodEnd: now + 30 * 24 * 60 * 60 * 1000, // 30 days from now
+    currentPeriodEnd,
     cancelAtPeriodEnd: false,
   });
 }

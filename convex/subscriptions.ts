@@ -1,33 +1,40 @@
-import { v } from "convex/values";
-import {
-  query,
-  mutation,
-  internalMutation,
-  internalQuery,
-} from "./_generated/server";
+import { ConvexError, v } from "convex/values";
+import { query, internalMutation, internalQuery } from "./_generated/server";
+import { TIERS } from "./constants";
 
 /**
- * Tier configuration (mirrored from lib/tiers.ts for Convex runtime)
+ * Check if a subscription grants active access.
+ *
+ * Access is granted if:
+ * 1. Status is "trialing" or "active"
+ * 2. Status is "canceled" but still within paid period (currentPeriodEnd > now)
+ * 3. Status is "past_due" but still within grace period (currentPeriodEnd > now)
  */
-const TIERS = {
-  pulse: {
-    monitors: 15,
-    minInterval: 180,
-    statusPages: 1,
-  },
-  vital: {
-    monitors: 75,
-    minInterval: 60,
-    statusPages: 5,
-  },
-} as const;
+function hasActiveAccess(subscription: {
+  status: "trialing" | "active" | "past_due" | "canceled" | "expired";
+  currentPeriodEnd: number;
+}): boolean {
+  const now = Date.now();
 
-const TRIAL_TIER = "vital" as const;
+  // Always active
+  if (subscription.status === "trialing" || subscription.status === "active") {
+    return true;
+  }
 
-type TierName = keyof typeof TIERS;
+  // Canceled or past_due but still in paid period
+  if (
+    (subscription.status === "canceled" ||
+      subscription.status === "past_due") &&
+    subscription.currentPeriodEnd > now
+  ) {
+    return true;
+  }
+
+  return false;
+}
 
 /**
- * Check if a subscription status grants active access.
+ * Simple status check (for backwards compatibility, prefer hasActiveAccess)
  */
 function isActiveStatus(
   status: "trialing" | "active" | "past_due" | "canceled" | "expired",
@@ -73,7 +80,7 @@ export const hasActiveSubscription = query({
       return false;
     }
 
-    return isActiveStatus(subscription.status);
+    return hasActiveAccess(subscription);
   },
 });
 
@@ -93,7 +100,7 @@ export const getUsage = query({
       .withIndex("by_user", (q) => q.eq("userId", identity.subject))
       .first();
 
-    if (!subscription || !isActiveStatus(subscription.status)) {
+    if (!subscription || !hasActiveAccess(subscription)) {
       return null;
     }
 
@@ -128,7 +135,7 @@ export const canCreateMonitor = internalQuery({
       return { allowed: false, reason: "No active subscription" };
     }
 
-    if (!isActiveStatus(subscription.status)) {
+    if (!hasActiveAccess(subscription)) {
       return {
         allowed: false,
         reason: "Your subscription is not active. Please update your billing.",
@@ -163,7 +170,7 @@ export const getTierLimits = internalQuery({
       .withIndex("by_user", (q) => q.eq("userId", args.userId))
       .first();
 
-    if (!subscription || !isActiveStatus(subscription.status)) {
+    if (!subscription || !hasActiveAccess(subscription)) {
       // No subscription = no access, return most restrictive
       return {
         monitors: 0,
@@ -221,10 +228,9 @@ export const getByUserId = internalQuery({
 
 /**
  * Create a subscription from Stripe webhook.
- * Note: Exposed as public mutation for HTTP webhook access.
- * Security: Webhook signature verification happens in the API route.
+ * Internal only - called by convex/http.ts after signature verification.
  */
-export const createSubscription = mutation({
+export const createSubscription = internalMutation({
   args: {
     userId: v.string(),
     stripeCustomerId: v.string(),
@@ -240,8 +246,10 @@ export const createSubscription = mutation({
     currentPeriodEnd: v.number(),
     trialEnd: v.optional(v.number()),
     cancelAtPeriodEnd: v.boolean(),
+    eventTimestamp: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    const { eventTimestamp, ...subscriptionData } = args;
     // Check if subscription already exists for this user
     const existing = await ctx.db
       .query("subscriptions")
@@ -249,15 +257,28 @@ export const createSubscription = mutation({
       .first();
 
     if (existing) {
+      if (
+        eventTimestamp &&
+        existing.lastStripeEventTimestamp &&
+        eventTimestamp < existing.lastStripeEventTimestamp
+      ) {
+        console.log(
+          `Rejecting stale event: ${eventTimestamp} < ${existing.lastStripeEventTimestamp}`,
+        );
+        return existing._id;
+      }
       // Update existing instead of creating duplicate
       await ctx.db.patch(existing._id, {
-        stripeCustomerId: args.stripeCustomerId,
-        stripeSubscriptionId: args.stripeSubscriptionId,
-        tier: args.tier,
-        status: args.status,
-        currentPeriodEnd: args.currentPeriodEnd,
-        trialEnd: args.trialEnd,
-        cancelAtPeriodEnd: args.cancelAtPeriodEnd,
+        stripeCustomerId: subscriptionData.stripeCustomerId,
+        stripeSubscriptionId: subscriptionData.stripeSubscriptionId,
+        tier: subscriptionData.tier,
+        status: subscriptionData.status,
+        currentPeriodEnd: subscriptionData.currentPeriodEnd,
+        trialEnd: subscriptionData.trialEnd,
+        cancelAtPeriodEnd: subscriptionData.cancelAtPeriodEnd,
+        ...(eventTimestamp !== undefined && {
+          lastStripeEventTimestamp: eventTimestamp,
+        }),
         updatedAt: Date.now(),
       });
       return existing._id;
@@ -265,7 +286,10 @@ export const createSubscription = mutation({
 
     const now = Date.now();
     return await ctx.db.insert("subscriptions", {
-      ...args,
+      ...subscriptionData,
+      ...(eventTimestamp !== undefined && {
+        lastStripeEventTimestamp: eventTimestamp,
+      }),
       createdAt: now,
       updatedAt: now,
     });
@@ -274,10 +298,9 @@ export const createSubscription = mutation({
 
 /**
  * Update subscription from Stripe webhook.
- * Note: Exposed as public mutation for HTTP webhook access.
- * Security: Webhook signature verification happens in the API route.
+ * Internal only - called by convex/http.ts after signature verification.
  */
-export const updateSubscription = mutation({
+export const updateSubscription = internalMutation({
   args: {
     stripeSubscriptionId: v.string(),
     tier: v.optional(v.union(v.literal("pulse"), v.literal("vital"))),
@@ -293,6 +316,7 @@ export const updateSubscription = mutation({
     currentPeriodEnd: v.optional(v.number()),
     trialEnd: v.optional(v.number()),
     cancelAtPeriodEnd: v.optional(v.boolean()),
+    eventTimestamp: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     const subscription = await ctx.db
@@ -303,19 +327,37 @@ export const updateSubscription = mutation({
       .first();
 
     if (!subscription) {
-      console.error(
-        `Subscription not found for Stripe ID: ${args.stripeSubscriptionId}`,
+      throw new ConvexError(
+        `Subscription not found for Stripe ID: ${args.stripeSubscriptionId} - webhook will retry`,
       );
-      return null;
     }
 
-    const { stripeSubscriptionId, ...updates } = args;
+    const { stripeSubscriptionId, eventTimestamp, ...updates } = args;
+    if (
+      eventTimestamp &&
+      subscription.lastStripeEventTimestamp &&
+      eventTimestamp < subscription.lastStripeEventTimestamp
+    ) {
+      console.log(
+        `Rejecting stale event: ${eventTimestamp} < ${subscription.lastStripeEventTimestamp}`,
+      );
+      return subscription._id;
+    }
     const filteredUpdates = Object.fromEntries(
       Object.entries(updates).filter(([, v]) => v !== undefined),
     );
 
+    // Zombie trial prevention: clear trialEnd when subscription becomes active
+    // This prevents access via stale trial data after a cancellation
+    const shouldClearTrial =
+      args.status === "active" && subscription.status === "trialing";
+
     await ctx.db.patch(subscription._id, {
       ...filteredUpdates,
+      ...(eventTimestamp !== undefined && {
+        lastStripeEventTimestamp: eventTimestamp,
+      }),
+      ...(shouldClearTrial && { trialEnd: undefined }),
       updatedAt: Date.now(),
     });
 
@@ -325,11 +367,13 @@ export const updateSubscription = mutation({
 
 /**
  * Mark subscription as expired from Stripe webhook.
- * Note: Exposed as public mutation for HTTP webhook access.
- * Security: Webhook signature verification happens in the API route.
+ * Internal only - called by convex/http.ts after signature verification.
  */
-export const expireSubscription = mutation({
-  args: { stripeSubscriptionId: v.string() },
+export const expireSubscription = internalMutation({
+  args: {
+    stripeSubscriptionId: v.string(),
+    eventTimestamp: v.optional(v.number()),
+  },
   handler: async (ctx, args) => {
     const subscription = await ctx.db
       .query("subscriptions")
@@ -339,17 +383,93 @@ export const expireSubscription = mutation({
       .first();
 
     if (!subscription) {
-      console.error(
-        `Subscription not found for Stripe ID: ${args.stripeSubscriptionId}`,
+      throw new ConvexError(
+        `Subscription not found for Stripe ID: ${args.stripeSubscriptionId} - webhook will retry`,
       );
-      return null;
+    }
+
+    if (
+      args.eventTimestamp &&
+      subscription.lastStripeEventTimestamp &&
+      args.eventTimestamp < subscription.lastStripeEventTimestamp
+    ) {
+      console.log(
+        `Rejecting stale event: ${args.eventTimestamp} < ${subscription.lastStripeEventTimestamp}`,
+      );
+      return subscription._id;
     }
 
     await ctx.db.patch(subscription._id, {
       status: "expired",
+      ...(args.eventTimestamp !== undefined && {
+        lastStripeEventTimestamp: args.eventTimestamp,
+      }),
       updatedAt: Date.now(),
     });
 
     return subscription._id;
+  },
+});
+
+// --- Stripe Webhook Idempotency ---
+
+/**
+ * Check if a Stripe event has already been processed.
+ * Used for webhook idempotency.
+ */
+export const isEventProcessed = internalQuery({
+  args: { eventId: v.string() },
+  handler: async (ctx, args) => {
+    const event = await ctx.db
+      .query("stripeEvents")
+      .withIndex("by_event_id", (q) => q.eq("eventId", args.eventId))
+      .first();
+    return event !== null;
+  },
+});
+
+/**
+ * Mark a Stripe event as processed.
+ * Called after successful webhook handling.
+ */
+export const markEventProcessed = internalMutation({
+  args: { eventId: v.string() },
+  handler: async (ctx, args) => {
+    // Double-check to avoid race conditions (belt and suspenders)
+    const existing = await ctx.db
+      .query("stripeEvents")
+      .withIndex("by_event_id", (q) => q.eq("eventId", args.eventId))
+      .first();
+
+    if (existing) {
+      return existing._id;
+    }
+
+    return await ctx.db.insert("stripeEvents", {
+      eventId: args.eventId,
+      processedAt: Date.now(),
+    });
+  },
+});
+
+/**
+ * Clean up old processed events (older than 7 days).
+ * Called by cron job to prevent unbounded table growth.
+ */
+export const cleanupOldEvents = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+
+    const oldEvents = await ctx.db
+      .query("stripeEvents")
+      .withIndex("by_processed_at", (q) => q.lt("processedAt", sevenDaysAgo))
+      .take(100); // Batch delete to avoid timeout
+
+    for (const event of oldEvents) {
+      await ctx.db.delete(event._id);
+    }
+
+    return { deleted: oldEvents.length };
   },
 });

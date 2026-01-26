@@ -40,6 +40,8 @@ next-env.d.ts
 # claude code / mcp
 .playwright-mcp/
 .polish-sessions/
+thinktank.log
+thinktank_*/
 
 # Playwright
 node_modules/

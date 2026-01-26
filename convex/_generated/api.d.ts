@@ -9,7 +9,9 @@
  */
 
 import type * as checks from "../checks.js";
+import type * as constants from "../constants.js";
 import type * as crons from "../crons.js";
+import type * as http from "../http.js";
 import type * as incidents from "../incidents.js";
 import type * as lib_email from "../lib/email.js";
 import type * as lib_urlValidation from "../lib/urlValidation.js";
@@ -32,7 +34,9 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   checks: typeof checks;
+  constants: typeof constants;
   crons: typeof crons;
+  http: typeof http;
   incidents: typeof incidents;
   "lib/email": typeof lib_email;
   "lib/urlValidation": typeof lib_urlValidation;

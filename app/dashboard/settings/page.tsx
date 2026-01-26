@@ -3,7 +3,15 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useAction, useConvexAuth } from "convex/react";
 import { api } from "../../../convex/_generated/api";
-import { ArrowLeft, Mail, Webhook, Bell, BellOff, Send } from "lucide-react";
+import {
+  ArrowLeft,
+  Mail,
+  Webhook,
+  Bell,
+  BellOff,
+  Send,
+  CreditCard,
+} from "lucide-react";
 import Link from "next/link";
 
 type ThrottleMinutes = 5 | 15 | 30 | 60;
@@ -151,8 +159,34 @@ export default function SettingsPage() {
             Back to Dashboard
           </Link>
           <h1 className="font-serif text-3xl sm:text-4xl tracking-tight text-foreground">
-            Notification Settings
+            Settings
           </h1>
+        </div>
+
+        {/* Settings navigation */}
+        <div className="flex gap-1 border-b border-foreground/10">
+          <div className="px-4 py-3 text-foreground font-medium border-b-2 border-foreground -mb-px">
+            <span className="flex items-center gap-2">
+              <Bell className="h-4 w-4" />
+              Notifications
+            </span>
+          </div>
+          <Link
+            href="/dashboard/settings/billing"
+            className="px-4 py-3 text-foreground/50 hover:text-foreground transition-colors"
+          >
+            <span className="flex items-center gap-2">
+              <CreditCard className="h-4 w-4" />
+              Billing
+            </span>
+          </Link>
+        </div>
+
+        {/* Section header */}
+        <div className="space-y-2">
+          <h2 className="font-serif text-xl text-foreground">
+            Notification Preferences
+          </h2>
           <p className="text-foreground/60">
             Configure how you want to be notified when your monitors go down or
             recover.

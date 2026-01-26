@@ -99,10 +99,19 @@ export default defineSchema({
     currentPeriodEnd: v.number(),
     trialEnd: v.optional(v.number()),
     cancelAtPeriodEnd: v.boolean(),
+    lastStripeEventTimestamp: v.optional(v.number()), // Prevents out-of-order webhook processing
     createdAt: v.number(),
     updatedAt: v.number(),
   })
     .index("by_user", ["userId"])
     .index("by_stripe_customer", ["stripeCustomerId"])
     .index("by_stripe_subscription", ["stripeSubscriptionId"]),
+
+  // Stripe webhook idempotency tracking
+  stripeEvents: defineTable({
+    eventId: v.string(), // Stripe event ID (evt_...)
+    processedAt: v.number(),
+  })
+    .index("by_event_id", ["eventId"])
+    .index("by_processed_at", ["processedAt"]),
 });

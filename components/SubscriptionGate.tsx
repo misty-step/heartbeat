@@ -31,8 +31,8 @@ export function SubscriptionGate({ children }: SubscriptionGateProps) {
     return <>{children}</>;
   }
 
-  // Still loading auth or subscription status
-  if (authLoading || hasActive === undefined) {
+  // Still loading auth state
+  if (authLoading) {
     return (
       <div className="flex-1 flex items-center justify-center py-24">
         <div className="text-center space-y-4">
@@ -59,7 +59,19 @@ export function SubscriptionGate({ children }: SubscriptionGateProps) {
     );
   }
 
-  // No active subscription
+  // Still loading subscription status (authenticated, waiting for query)
+  if (hasActive === undefined) {
+    return (
+      <div className="flex-1 flex items-center justify-center py-24">
+        <div className="text-center space-y-4">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto text-foreground/40" />
+          <p className="text-sm text-[var(--color-text-muted)]">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // No active subscription (hasActive is false, not undefined)
   if (!hasActive) {
     return (
       <div className="flex-1 flex items-center px-6 sm:px-12 lg:px-24 py-16 sm:py-24">
