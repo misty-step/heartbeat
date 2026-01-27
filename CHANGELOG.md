@@ -1,3 +1,14 @@
+# [1.5.0](https://github.com/misty-step/heartbeat/compare/v1.4.0...v1.5.0) (2026-01-27)
+
+### Bug Fixes
+
+- **a11y:** Add Escape key handler to MonitorSettingsModal ([#77](https://github.com/misty-step/heartbeat/issues/77)) ([af98cdf](https://github.com/misty-step/heartbeat/commit/af98cdfa86907a5914f23253bdc1a3961a5d8123)), closes [#45](https://github.com/misty-step/heartbeat/issues/45)
+- **a11y:** Add screen reader support to cinematic StatusIndicator ([#78](https://github.com/misty-step/heartbeat/issues/78)) ([80fcb0f](https://github.com/misty-step/heartbeat/commit/80fcb0fc65bf6fb3bf0f7dc631b89696fae4308f)), closes [#18](https://github.com/misty-step/heartbeat/issues/18)
+
+### Features
+
+- **ux:** Add error boundaries for runtime crash handling ([#79](https://github.com/misty-step/heartbeat/issues/79)) ([9f879e9](https://github.com/misty-step/heartbeat/commit/9f879e9d8b6482e6b11ff5fcdcd7ecb41f47738f)), closes [#17](https://github.com/misty-step/heartbeat/issues/17)
+
 # [1.4.0](https://github.com/misty-step/heartbeat/compare/v1.3.0...v1.4.0) (2026-01-27)
 
 ### Features
