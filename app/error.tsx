@@ -1,5 +1,6 @@
 "use client";
 
+import * as Sentry from "@sentry/nextjs";
 import { useEffect } from "react";
 import { StatusIndicator } from "@/components/StatusIndicator";
 
@@ -16,8 +17,8 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
-    // Surface the error in the console; global-error handles Sentry.
     console.error(error);
+    Sentry.captureException(error);
   }, [error]);
 
   return (
