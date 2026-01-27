@@ -42,9 +42,17 @@ export function StatusIndicator({
   const dotColor = colorMap[status];
   const glowColor = glowColorMap[status];
   const shouldBreathe = status === "up";
+  const statusLabels = {
+    up: "Operational",
+    degraded: "Degraded",
+    down: "Down",
+    unknown: "Unknown",
+  };
 
   return (
     <div
+      role="status"
+      aria-label={`Status: ${statusLabels[status]}`}
       className={`relative flex items-center justify-center ${sizeClasses[size]}`}
     >
       {/* Main status dot */}
