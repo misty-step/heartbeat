@@ -6,6 +6,13 @@
  * For standard use, prefer components/ui/StatusIndicator.tsx
  */
 
+const statusLabels = {
+  up: "Operational",
+  degraded: "Degraded",
+  down: "Down",
+  unknown: "Unknown",
+} as const;
+
 interface StatusIndicatorProps {
   status: "up" | "down" | "degraded" | "unknown";
   size?: "sm" | "md" | "lg" | "xl" | "2xl";
@@ -45,8 +52,12 @@ export function StatusIndicator({
 
   return (
     <div
+      role="status"
       className={`relative flex items-center justify-center ${sizeClasses[size]}`}
     >
+      {/* Screen reader text - must be DOM content, not aria-label, for dynamic updates */}
+      <span className="sr-only">{`Status: ${statusLabels[status]}`}</span>
+
       {/* Main status dot */}
       <div
         className={`relative z-10 rounded-full ${sizeClasses[size]} ${dotColor} ${shouldBreathe ? "animate-km-breathe" : ""}`}
