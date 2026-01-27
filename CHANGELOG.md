@@ -1,3 +1,9 @@
+# [1.4.0](https://github.com/misty-step/heartbeat/compare/v1.3.0...v1.4.0) (2026-01-27)
+
+### Features
+
+- **observability:** Add PostHog analytics and health check endpoint ([#75](https://github.com/misty-step/heartbeat/issues/75)) ([f097637](https://github.com/misty-step/heartbeat/commit/f097637cab311348191de962c7836f8c7984aaf0))
+
 # [1.3.0](https://github.com/misty-step/heartbeat/compare/v1.2.3...v1.3.0) (2026-01-22)
 
 ### Bug Fixes
