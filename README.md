@@ -32,6 +32,7 @@ pnpm convex dev
 ```
 
 This will:
+
 - Create a new Convex deployment
 - Generate `convex/_generated/` types
 - Start the Convex dev server
@@ -48,21 +49,18 @@ This will:
 
 ### 4. Configure Environment Variables
 
-Create `.env.local` in the project root:
+Copy the example env file and fill in your values:
 
 ```bash
-# Convex (from step 2)
-CONVEX_DEPLOYMENT=prod:your-deployment-name-12345
-NEXT_PUBLIC_CONVEX_URL=https://your-deployment.convex.cloud
-
-# Clerk (from step 3)
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
-CLERK_SECRET_KEY=sk_test_...
-CLERK_JWT_ISSUER_DOMAIN=your-app.clerk.accounts.dev
-
-# Optional: Resend (for email notifications)
-RESEND_API_KEY=re_...
+cp .env.example .env.local
 ```
+
+Required variables for local development:
+
+- `CONVEX_DEPLOYMENT` and `NEXT_PUBLIC_CONVEX_URL` (from step 2)
+- `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and `CLERK_SECRET_KEY` (from step 3)
+
+See `.env.example` for all available options including Stripe, Sentry, and PostHog.
 
 ### 5. Run the Development Server
 
@@ -72,10 +70,12 @@ pnpm dev
 ```
 
 Note: This runs both servers in a single terminal with colored output:
+
 - Cyan: Next.js dev server
 - Magenta: Convex dev server
 
 If you prefer to run them separately:
+
 ```bash
 # Terminal 1: Convex dev server
 pnpm dev:convex
@@ -120,6 +120,9 @@ Navigate to [http://localhost:3000](http://localhost:3000)
 - **Backend**: Convex (serverless database + functions + cron)
 - **Auth**: Clerk (authentication & user management)
 - **Monitoring**: HTTP checks via Convex actions
+- **Payments**: Stripe (subscriptions)
+- **Error Tracking**: Sentry
+- **Analytics**: PostHog
 - **Email**: Resend (optional, for incident notifications)
 - **Fonts**: Geist Sans & Geist Mono
 - **Icons**: Lucide React
@@ -157,18 +160,21 @@ heartbeat/
 ## Database Schema
 
 ### monitors
+
 - Monitor configuration (name, URL, interval, etc.)
 - User ownership via `userId`
 - Project grouping via `projectSlug`
 - Status tracking (`consecutiveFailures`, `lastCheckAt`, `lastResponseTime`)
 
 ### checks
+
 - Historical check results
 - Status (up/down/degraded)
 - Response time measurements
 - Error messages for failures
 
 ### incidents
+
 - Incident records (investigating/identified/resolved)
 - Start and end timestamps
 - Associated with specific monitors
