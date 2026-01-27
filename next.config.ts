@@ -5,6 +5,22 @@ const nextConfig: NextConfig = {
   // Exclude pino from Turbopack bundling
   // pino uses worker_threads via thread-stream which doesn't bundle well
   serverExternalPackages: ["pino", "pino-pretty", "thread-stream"],
+  async rewrites() {
+    return [
+      {
+        source: "/ingest/static/:path*",
+        destination: "https://us-assets.i.posthog.com/static/:path*",
+      },
+      {
+        source: "/ingest/:path*",
+        destination: "https://us.i.posthog.com/:path*",
+      },
+      {
+        source: "/ingest/decide",
+        destination: "https://us.i.posthog.com/decide",
+      },
+    ];
+  },
 };
 
 export default withSentryConfig(nextConfig, {

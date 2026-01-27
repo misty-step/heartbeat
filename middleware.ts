@@ -11,6 +11,7 @@ const isPublicRoute = createRouteMatcher([
   "/sign-in(.*)",
   "/sign-up(.*)",
   "/api/logs", // Public endpoint for client log batching
+  "/api/health", // Health check for uptime monitoring
   "/design-lab(.*)", // Design lab for reviewing variations
   // Note: Stripe webhooks now go directly to Convex HTTP action
 ]);
