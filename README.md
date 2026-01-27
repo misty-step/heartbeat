@@ -58,7 +58,7 @@ cp .env.example .env.local
 Required variables for local development:
 
 - `CONVEX_DEPLOYMENT` and `NEXT_PUBLIC_CONVEX_URL` (from step 2)
-- `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and `CLERK_SECRET_KEY` (from step 3)
+- `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`, and `CLERK_JWT_ISSUER_DOMAIN` (from step 3)
 
 See `.env.example` for all available options including Stripe, Sentry, and PostHog.
 
