@@ -1,11 +1,13 @@
 "use client";
 
+import { Suspense, useEffect } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
+import { useUser } from "@clerk/nextjs";
 import posthog from "posthog-js";
 import { PostHogProvider as PHProvider, usePostHog } from "posthog-js/react";
-import { usePathname, useSearchParams } from "next/navigation";
-import { Suspense, useEffect } from "react";
-import { useUser } from "@clerk/nextjs";
 
+// Module-level initialization: PostHog SDK initializes when this file is imported.
+// This is intentional - analytics should start before React hydration completes.
 if (typeof window !== "undefined" && process.env.NEXT_PUBLIC_POSTHOG_KEY) {
   posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY, {
     api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST || "/ingest",
@@ -18,60 +20,62 @@ if (typeof window !== "undefined" && process.env.NEXT_PUBLIC_POSTHOG_KEY) {
       maskAllInputs: true,
       maskTextSelector: "[data-ph-mask]",
     },
-    loaded: (posthogClient) => {
+    loaded: (ph) => {
       if (process.env.NODE_ENV === "development") {
-        posthogClient.debug();
+        ph.debug();
       }
     },
   });
 }
 
-function PostHogPageView() {
+function PageViewTracker(): null {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const posthogClient = usePostHog();
+  const ph = usePostHog();
 
   useEffect(() => {
-    if (pathname && posthogClient) {
-      let url = window.origin + pathname;
-      if (searchParams.toString()) {
-        url += "?" + searchParams.toString();
-      }
-      posthogClient.capture("$pageview", { $current_url: url });
-    }
-  }, [pathname, searchParams, posthogClient]);
+    if (!pathname || !ph) return;
+
+    const search = searchParams.toString();
+    const url = window.origin + pathname + (search ? `?${search}` : "");
+    ph.capture("$pageview", { $current_url: url });
+  }, [pathname, searchParams, ph]);
 
   return null;
 }
 
-function PostHogUserIdentify() {
+function UserIdentifier(): null {
   const { user, isLoaded } = useUser();
-  const posthogClient = usePostHog();
+  const ph = usePostHog();
 
   useEffect(() => {
-    if (!isLoaded || !posthogClient) return;
+    if (!isLoaded || !ph) return;
 
     if (user) {
-      posthogClient.identify(user.id, {
+      ph.identify(user.id, {
         email: user.primaryEmailAddress?.emailAddress,
         name: user.fullName,
         created_at: user.createdAt,
       });
     } else {
-      posthogClient.reset();
+      ph.reset();
     }
-  }, [user, isLoaded, posthogClient]);
+  }, [user, isLoaded, ph]);
 
   return null;
 }
 
-export function PostHogProvider({ children }: { children: React.ReactNode }) {
+export function PostHogProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}): React.ReactElement {
   return (
     <PHProvider client={posthog}>
       <Suspense fallback={null}>
-        <PostHogPageView />
+        <PageViewTracker />
       </Suspense>
-      <PostHogUserIdentify />
+      <UserIdentifier />
       {children}
     </PHProvider>
   );
