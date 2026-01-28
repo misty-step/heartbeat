@@ -73,6 +73,7 @@ export default defineConfig({
         "lib/convex-public.ts", // ISR infrastructure wrapper - integration tested via e2e
         "app/design-lab/**", // Design exploration pages - visual review, not unit tested
         "components/landing/**", // Landing page presentational components - visual review
+        "components/themes/**", // Status page theme components - visual review, tested via e2e
       ],
       thresholds: {
         lines: 80,
