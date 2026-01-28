@@ -71,7 +71,7 @@ export function getThemesForTier(tier: "pulse" | "vital"): ThemeDefinition[] {
   });
 }
 
-export function canUsetheme(theme: ThemeId, tier: "pulse" | "vital"): boolean {
+export function canUseTheme(theme: ThemeId, tier: "pulse" | "vital"): boolean {
   const themeDefn = THEMES[theme];
   if (!themeDefn) return false;
   if (tier === "vital") return true;
@@ -83,6 +83,6 @@ export function getThemeOrDefault(
   tier: "pulse" | "vital",
 ): ThemeId {
   if (!theme) return DEFAULT_THEME;
-  if (canUsetheme(theme, tier)) return theme;
+  if (canUseTheme(theme, tier)) return theme;
   return DEFAULT_THEME;
 }

@@ -166,15 +166,23 @@ export const create = mutation({
       );
     }
 
-    // Validate theme against tier
+    // Validate theme against tier (requires active Vital subscription)
     if (args.theme && args.theme !== "glass") {
       const subscription = await ctx.runQuery(
         internal.subscriptions.getByUserId,
         { userId: identity.subject },
       );
-      if (!subscription || subscription.tier !== "vital") {
+      const hasActiveAccess =
+        subscription &&
+        subscription.tier === "vital" &&
+        (subscription.status === "trialing" ||
+          subscription.status === "active" ||
+          ((subscription.status === "canceled" ||
+            subscription.status === "past_due") &&
+            subscription.currentPeriodEnd > Date.now()));
+      if (!hasActiveAccess) {
         throw new Error(
-          "Premium themes require a Vital subscription. Upgrade to use custom themes.",
+          "Premium themes require an active Vital subscription. Upgrade to use custom themes.",
         );
       }
     }
@@ -272,15 +280,23 @@ export const update = mutation({
       }
     }
 
-    // Validate theme against tier (if theme is being updated)
+    // Validate theme against tier (if theme is being updated, requires active Vital subscription)
     if (args.theme !== undefined && args.theme !== "glass") {
       const subscription = await ctx.runQuery(
         internal.subscriptions.getByUserId,
         { userId: identity.subject },
       );
-      if (!subscription || subscription.tier !== "vital") {
+      const hasActiveAccess =
+        subscription &&
+        subscription.tier === "vital" &&
+        (subscription.status === "trialing" ||
+          subscription.status === "active" ||
+          ((subscription.status === "canceled" ||
+            subscription.status === "past_due") &&
+            subscription.currentPeriodEnd > Date.now()));
+      if (!hasActiveAccess) {
         throw new Error(
-          "Premium themes require a Vital subscription. Upgrade to use custom themes.",
+          "Premium themes require an active Vital subscription. Upgrade to use custom themes.",
         );
       }
     }

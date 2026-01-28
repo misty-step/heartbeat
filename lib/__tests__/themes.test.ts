@@ -4,7 +4,7 @@ import {
   THEMES,
   DEFAULT_THEME,
   getThemesForTier,
-  canUsetheme,
+  canUseTheme,
   getThemeOrDefault,
   type ThemeId,
 } from "../themes";
@@ -73,9 +73,9 @@ describe("lib/themes", () => {
     });
   });
 
-  describe("canUsetheme", () => {
+  describe("canUseTheme", () => {
     it("allows glass theme for pulse tier", () => {
-      expect(canUsetheme("glass", "pulse")).toBe(true);
+      expect(canUseTheme("glass", "pulse")).toBe(true);
     });
 
     it("denies premium themes for pulse tier", () => {
@@ -88,19 +88,19 @@ describe("lib/themes", () => {
         "mission-control",
       ];
       premiumThemes.forEach((id) => {
-        expect(canUsetheme(id, "pulse")).toBe(false);
+        expect(canUseTheme(id, "pulse")).toBe(false);
       });
     });
 
     it("allows all themes for vital tier", () => {
       THEME_IDS.forEach((id) => {
-        expect(canUsetheme(id, "vital")).toBe(true);
+        expect(canUseTheme(id, "vital")).toBe(true);
       });
     });
 
     it("returns false for unknown theme id", () => {
       // @ts-expect-error - testing invalid input
-      expect(canUsetheme("nonexistent", "vital")).toBe(false);
+      expect(canUseTheme("nonexistent", "vital")).toBe(false);
     });
   });
 

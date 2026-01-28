@@ -201,19 +201,25 @@ export function BroadsheetStatusPage({
 
             <div className="bg-[#ebe7de] p-5 border border-[#1a1a1a]">
               <h3 className="mb-4 border-b-2 border-[#c41e3a] pb-2 font-['Playfair_Display'] text-base font-bold uppercase tracking-[0.08em]">
-                In This Report
+                Service Status
               </h3>
-              {[monitorName, ...serviceLines].slice(0, 4).map((line) => (
-                <div
-                  key={line}
-                  className="flex items-center justify-between border-b border-dotted border-[#1a1a1a] py-3 last:border-none"
+              <div className="flex items-center justify-between border-b border-dotted border-[#1a1a1a] py-3 last:border-none">
+                <span className="text-[0.7rem] uppercase tracking-[0.1em] text-[#6b6b6b]">
+                  {monitorName}
+                </span>
+                <span
+                  className={cn(
+                    "font-semibold",
+                    status === "up" ? "text-[#1e3a5f]" : "text-[#c41e3a]",
+                  )}
                 >
-                  <span className="text-[0.7rem] uppercase tracking-[0.1em] text-[#6b6b6b]">
-                    {line}
-                  </span>
-                  <span className="font-semibold text-[#1e3a5f]">✓ UP</span>
-                </div>
-              ))}
+                  {status === "up"
+                    ? "✓ UP"
+                    : status === "degraded"
+                      ? "⚠ DEGRADED"
+                      : "✗ DOWN"}
+                </span>
+              </div>
             </div>
           </aside>
         </div>

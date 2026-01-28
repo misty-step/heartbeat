@@ -112,8 +112,15 @@ export function UkiyoStatusPage({
           <section className="relative mb-6">
             <div className="pointer-events-none absolute inset-0 translate-x-[6px] translate-y-[6px] bg-[var(--color-moss)]" />
             <div className="relative border-[3px] border-[#1a1a1a] bg-[var(--color-cream)] p-6 sm:p-8">
-              <div className="absolute right-6 top-6 flex h-12 w-12 items-center justify-center border-2 border-[#1a1a1a] bg-[var(--color-brick)] text-[10px] font-bold uppercase leading-none tracking-[0.2em] text-[var(--color-cream)] sm:h-14 sm:w-14">
-                OK
+              <div
+                className={cn(
+                  "absolute right-6 top-6 flex h-12 w-12 items-center justify-center border-2 border-[#1a1a1a] text-[10px] font-bold uppercase leading-none tracking-[0.2em] text-[var(--color-cream)] sm:h-14 sm:w-14",
+                  status === "up"
+                    ? "bg-[var(--color-moss)]"
+                    : "bg-[var(--color-brick)]",
+                )}
+              >
+                {status === "up" ? "OK" : status === "degraded" ? "!" : "X"}
               </div>
               <h1 className="font-[var(--font-display)] text-[clamp(2rem,6vw,3.5rem)] font-bold leading-tight">
                 {monitorName}
