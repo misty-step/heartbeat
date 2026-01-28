@@ -57,7 +57,12 @@ export function BroadsheetStatusPage({
     .filter((value) => Number.isFinite(value));
   const maxResponse = Math.max(1, ...responseTimes);
   const minResponse = Math.min(...responseTimes, maxResponse);
-  const leadParagraph = `${monitorName} continues to operate at peak reliability, sustaining service continuity across its primary corridors with unwavering consistency.`;
+  const leadParagraph =
+    status === "up"
+      ? `${monitorName} continues to operate at peak reliability, sustaining service continuity across its primary corridors with unwavering consistency.`
+      : status === "degraded"
+        ? `${monitorName} is experiencing intermittent service disruptions. Engineering teams are monitoring the situation closely as performance metrics fluctuate.`
+        : `${monitorName} is currently experiencing a service outage. Our engineering teams have been mobilized and are working to restore normal operations.`;
   const incidentLine =
     incidents.length === 0
       ? "No incidents have been recorded in the current monitoring window."

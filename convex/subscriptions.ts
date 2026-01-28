@@ -10,7 +10,7 @@ import { TIERS } from "./constants";
  * 2. Status is "canceled" but still within paid period (currentPeriodEnd > now)
  * 3. Status is "past_due" but still within grace period (currentPeriodEnd > now)
  */
-function hasActiveAccess(subscription: {
+export function hasActiveAccess(subscription: {
   status: "trialing" | "active" | "past_due" | "canceled" | "expired";
   currentPeriodEnd: number;
 }): boolean {

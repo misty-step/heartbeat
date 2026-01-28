@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { cn } from "@/lib/cn";
 import { formatRelativeTime } from "@/lib/domain/formatting";
 import { type StatusPageThemeProps } from "./types";
@@ -29,9 +30,9 @@ const monoFont =
 const titleFont =
   "'Chakra Petch','Share Tech Mono',ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,'Liberation Mono','Courier New',monospace";
 
-const formatCountdown = (timestamp?: number) => {
+const formatCountdown = (timestamp: number | undefined, now: number) => {
   if (!timestamp) return "T-MINUS 00:00:00";
-  const deltaSeconds = Math.max(0, Math.floor((Date.now() - timestamp) / 1000));
+  const deltaSeconds = Math.max(0, Math.floor((now - timestamp) / 1000));
   const minutes = Math.floor(deltaSeconds / 60)
     .toString()
     .padStart(2, "0");
@@ -60,9 +61,18 @@ export function MissionControlStatusPage({
   chartData,
   incidents,
 }: StatusPageThemeProps) {
+  // Client-side time to avoid hydration mismatch
+  const [now, setNow] = useState<number | null>(null);
+  useEffect(() => {
+    setNow(Date.now());
+  }, []);
+
   const last30Days = chartData.slice(-30);
   const statusText = statusStyles[status].label;
-  const countdownLabel = formatCountdown(lastCheckAt);
+  // Use placeholder during SSR, actual countdown on client
+  const countdownLabel = now
+    ? formatCountdown(lastCheckAt, now)
+    : "T-MINUS 00:00:00";
   const lastCheckLabel = lastCheckAt
     ? formatRelativeTime(lastCheckAt).toUpperCase()
     : "—";

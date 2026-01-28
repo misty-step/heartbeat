@@ -1,10 +1,11 @@
 import { v } from "convex/values";
 import { query, mutation, internalQuery } from "./_generated/server";
 import { internal } from "./_generated/api";
-import { toPublicMonitor } from "./publicTypes";
+import { toPublicMonitor, computeMonitorStatus } from "./publicTypes";
 import { generateUniqueStatusSlug } from "./slugs";
 import { isPubliclyVisible } from "./lib/visibility";
 import { validateMonitorUrl } from "./lib/urlValidation";
+import { hasActiveAccess } from "./subscriptions";
 
 const MIN_TIMEOUT_MS = 1000;
 const MAX_TIMEOUT_MS = 60000;
@@ -95,7 +96,34 @@ export const getPublicMonitorByStatusSlug = query({
       return null;
     }
 
-    return toPublicMonitor(monitor);
+    // For premium themes, verify owner still has active Vital subscription
+    // If not, fall back to default theme (glass)
+    let effectiveTheme = monitor.theme ?? "glass";
+    if (effectiveTheme !== "glass") {
+      const subscription = await ctx.db
+        .query("subscriptions")
+        .withIndex("by_user", (q) => q.eq("userId", monitor.userId))
+        .first();
+
+      const hasVitalAccess =
+        subscription &&
+        subscription.tier === "vital" &&
+        hasActiveAccess(subscription);
+
+      if (!hasVitalAccess) {
+        effectiveTheme = "glass";
+      }
+    }
+
+    // Return public monitor data with effective theme
+    return {
+      _id: monitor._id,
+      name: monitor.name,
+      status: computeMonitorStatus(monitor.consecutiveFailures),
+      lastCheckAt: monitor.lastCheckAt,
+      lastResponseTime: monitor.lastResponseTime,
+      theme: effectiveTheme,
+    };
   },
 });
 
@@ -172,15 +200,11 @@ export const create = mutation({
         internal.subscriptions.getByUserId,
         { userId: identity.subject },
       );
-      const hasActiveAccess =
+      const hasVitalAccess =
         subscription &&
         subscription.tier === "vital" &&
-        (subscription.status === "trialing" ||
-          subscription.status === "active" ||
-          ((subscription.status === "canceled" ||
-            subscription.status === "past_due") &&
-            subscription.currentPeriodEnd > Date.now()));
-      if (!hasActiveAccess) {
+        hasActiveAccess(subscription);
+      if (!hasVitalAccess) {
         throw new Error(
           "Premium themes require an active Vital subscription. Upgrade to use custom themes.",
         );
@@ -286,15 +310,11 @@ export const update = mutation({
         internal.subscriptions.getByUserId,
         { userId: identity.subject },
       );
-      const hasActiveAccess =
+      const hasVitalAccess =
         subscription &&
         subscription.tier === "vital" &&
-        (subscription.status === "trialing" ||
-          subscription.status === "active" ||
-          ((subscription.status === "canceled" ||
-            subscription.status === "past_due") &&
-            subscription.currentPeriodEnd > Date.now()));
-      if (!hasActiveAccess) {
+        hasActiveAccess(subscription);
+      if (!hasVitalAccess) {
         throw new Error(
           "Premium themes require an active Vital subscription. Upgrade to use custom themes.",
         );
