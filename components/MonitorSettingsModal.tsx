@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, FormEvent, useEffect } from "react";
-import { useMutation } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "../convex/_generated/api";
 import { Id } from "../convex/_generated/dataModel";
 import { X } from "lucide-react";
+import { cn } from "@/lib/cn";
 import { validateMonitorForm, type ValidationErrors } from "@/lib/domain";
+import { THEMES, type ThemeId, getThemesForTier } from "@/lib/themes";
 
 /**
  * MonitorSettingsModal - Kyoto Moss Design System
@@ -21,6 +23,7 @@ interface Monitor {
   timeout: number;
   expectedStatusCode?: number;
   visibility?: "public" | "private";
+  theme?: ThemeId;
 }
 
 interface MonitorSettingsModalProps {
@@ -36,6 +39,9 @@ export function MonitorSettingsModal({
 }: MonitorSettingsModalProps) {
   const updateMonitor = useMutation(api.monitors.update);
   const removeMonitor = useMutation(api.monitors.remove);
+  const subscription = useQuery(api.subscriptions.getSubscription);
+  const userTier = subscription?.tier ?? "pulse";
+  const availableThemes = getThemesForTier(userTier);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -47,6 +53,7 @@ export function MonitorSettingsModal({
     timeout: Math.floor(monitor.timeout / 1000),
     expectedStatusCode: monitor.expectedStatusCode?.toString() || "",
     visibility: monitor.visibility,
+    theme: (monitor.theme ?? "glass") as ThemeId,
   });
 
   const [errors, setErrors] = useState<ValidationErrors>({});
@@ -86,6 +93,7 @@ export function MonitorSettingsModal({
           ? parseInt(formData.expectedStatusCode)
           : undefined,
         visibility: formData.visibility,
+        theme: formData.theme,
       });
 
       onClose();
@@ -313,6 +321,81 @@ export function MonitorSettingsModal({
                 ? "This monitor is visible on your public status page"
                 : "This monitor is hidden from your public status page"}
             </p>
+          </div>
+
+          {/* Theme Selection */}
+          <div className="space-y-3">
+            <label className="block text-sm font-medium text-[var(--color-text-secondary)]">
+              Status Page Theme
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              {Object.values(THEMES).map((theme) => {
+                const isAvailable = availableThemes.some(
+                  (t) => t.id === theme.id,
+                );
+                const isSelected = formData.theme === theme.id;
+
+                return (
+                  <button
+                    key={theme.id}
+                    type="button"
+                    onClick={() =>
+                      isAvailable &&
+                      setFormData({ ...formData, theme: theme.id })
+                    }
+                    disabled={!isAvailable}
+                    className={cn(
+                      "relative p-3 border rounded-[var(--radius-md)] text-left transition-all",
+                      isSelected
+                        ? "border-[var(--color-accent-primary)] bg-[var(--color-accent-primary)]/5"
+                        : isAvailable
+                          ? "border-[var(--color-border-default)] hover:border-[var(--color-border-strong)]"
+                          : "border-[var(--color-border-subtle)] opacity-50 cursor-not-allowed",
+                    )}
+                  >
+                    <div className="font-medium text-sm text-[var(--color-text-primary)]">
+                      {theme.name}
+                    </div>
+                    <div className="text-xs text-[var(--color-text-muted)] mt-0.5 line-clamp-2">
+                      {theme.description}
+                    </div>
+                    {!isAvailable && (
+                      <div className="absolute top-2 right-2 text-[10px] px-1.5 py-0.5 bg-[var(--color-accent-secondary)] text-white rounded">
+                        Vital
+                      </div>
+                    )}
+                    {isSelected && (
+                      <div className="absolute top-2 right-2 size-4 bg-[var(--color-accent-primary)] rounded-full flex items-center justify-center">
+                        <svg
+                          className="size-2.5 text-white"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth={3}
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M5 13l4 4L19 7"
+                          />
+                        </svg>
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+            {userTier === "pulse" && (
+              <p className="text-xs text-[var(--color-text-muted)]">
+                <a
+                  href="/dashboard/settings/billing"
+                  className="text-[var(--color-accent-primary)] hover:underline"
+                >
+                  Upgrade to Vital
+                </a>{" "}
+                to unlock premium themes
+              </p>
+            )}
           </div>
 
           {/* Action buttons */}

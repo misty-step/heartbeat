@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
 import { fetchPublicQuery } from "@/lib/convex-public";
 import { api } from "@/convex/_generated/api";
-import { GlassStatusPage } from "@/components/GlassStatusPage";
+import { ThemedStatusPage } from "@/components/themes";
+import { type ThemeId } from "@/lib/themes";
 
 // ISR Configuration
 export const revalidate = 60; // Revalidate every 60 seconds
@@ -78,7 +79,8 @@ export default async function IndividualStatusPage({ params }: PageProps) {
       : 0;
 
   return (
-    <GlassStatusPage
+    <ThemedStatusPage
+      theme={monitor.theme as ThemeId | undefined}
       monitorName={monitor.name}
       status={monitor.status}
       uptimePercentage={uptimeStats.uptimePercentage}

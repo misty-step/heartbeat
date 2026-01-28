@@ -21,6 +21,17 @@ const publicMonitorValidator = v.object({
   status: v.union(v.literal("up"), v.literal("degraded"), v.literal("down")),
   lastCheckAt: v.optional(v.number()),
   lastResponseTime: v.optional(v.number()),
+  theme: v.optional(
+    v.union(
+      v.literal("glass"),
+      v.literal("ukiyo"),
+      v.literal("memphis"),
+      v.literal("blueprint"),
+      v.literal("swiss"),
+      v.literal("broadsheet"),
+      v.literal("mission-control"),
+    ),
+  ),
 });
 
 export const list = query({
@@ -117,6 +128,17 @@ export const create = mutation({
     ),
     body: v.optional(v.string()),
     visibility: v.optional(v.union(v.literal("public"), v.literal("private"))),
+    theme: v.optional(
+      v.union(
+        v.literal("glass"),
+        v.literal("ukiyo"),
+        v.literal("memphis"),
+        v.literal("blueprint"),
+        v.literal("swiss"),
+        v.literal("broadsheet"),
+        v.literal("mission-control"),
+      ),
+    ),
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
@@ -144,6 +166,19 @@ export const create = mutation({
       );
     }
 
+    // Validate theme against tier
+    if (args.theme && args.theme !== "glass") {
+      const subscription = await ctx.runQuery(
+        internal.subscriptions.getByUserId,
+        { userId: identity.subject },
+      );
+      if (!subscription || subscription.tier !== "vital") {
+        throw new Error(
+          "Premium themes require a Vital subscription. Upgrade to use custom themes.",
+        );
+      }
+    }
+
     // Validate URL to prevent SSRF attacks
     const urlError = validateMonitorUrl(args.url);
     if (urlError) {
@@ -159,6 +194,7 @@ export const create = mutation({
       ...args,
       statusSlug,
       visibility: args.visibility ?? "public",
+      theme: args.theme ?? "glass",
       userId: identity.subject,
       enabled: true,
       consecutiveFailures: 0,
@@ -205,6 +241,17 @@ export const update = mutation({
     body: v.optional(v.string()),
     enabled: v.optional(v.boolean()),
     visibility: v.optional(v.union(v.literal("public"), v.literal("private"))),
+    theme: v.optional(
+      v.union(
+        v.literal("glass"),
+        v.literal("ukiyo"),
+        v.literal("memphis"),
+        v.literal("blueprint"),
+        v.literal("swiss"),
+        v.literal("broadsheet"),
+        v.literal("mission-control"),
+      ),
+    ),
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
@@ -221,6 +268,19 @@ export const update = mutation({
         const minMinutes = limits.minInterval / 60;
         throw new Error(
           `Minimum check interval is ${minMinutes} minutes on your plan. Upgrade to check more frequently.`,
+        );
+      }
+    }
+
+    // Validate theme against tier (if theme is being updated)
+    if (args.theme !== undefined && args.theme !== "glass") {
+      const subscription = await ctx.runQuery(
+        internal.subscriptions.getByUserId,
+        { userId: identity.subject },
+      );
+      if (!subscription || subscription.tier !== "vital") {
+        throw new Error(
+          "Premium themes require a Vital subscription. Upgrade to use custom themes.",
         );
       }
     }
