@@ -60,6 +60,26 @@ export default async function IndividualStatusPage({
       }),
     ]);
 
+  // Log failures for debugging while still rendering partial data
+  if (uptimeStatsResult.status === "rejected") {
+    console.error(
+      "[StatusPage] Failed to fetch uptime stats:",
+      uptimeStatsResult.reason,
+    );
+  }
+  if (recentChecksResult.status === "rejected") {
+    console.error(
+      "[StatusPage] Failed to fetch recent checks:",
+      recentChecksResult.reason,
+    );
+  }
+  if (incidentsResult.status === "rejected") {
+    console.error(
+      "[StatusPage] Failed to fetch incidents:",
+      incidentsResult.reason,
+    );
+  }
+
   // Extract values with sensible defaults for failed queries
   const uptimeStats =
     uptimeStatsResult.status === "fulfilled"
