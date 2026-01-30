@@ -43,20 +43,32 @@ export default async function IndividualStatusPage({
       ? (preview as ThemeId)
       : null;
 
-  const [uptimeStats, recentChecks, incidentsResponse] = await Promise.all([
-    fetchPublicQuery(api.checks.getPublicUptimeStats, {
-      monitorId: monitor._id,
-      days: 90, // 90-day history per TASK.md
-    }),
-    fetchPublicQuery(api.checks.getPublicChecksForMonitor, {
-      monitorId: monitor._id,
-      limit: 90,
-    }),
-    fetchPublicQuery(api.incidents.getPublicIncidentsForMonitor, {
-      monitorId: monitor._id,
-      limit: 20,
-    }),
-  ]);
+  // Use allSettled for graceful degradation - show partial data if some queries fail
+  const [uptimeStatsResult, recentChecksResult, incidentsResult] =
+    await Promise.allSettled([
+      fetchPublicQuery(api.checks.getPublicUptimeStats, {
+        monitorId: monitor._id,
+        days: 90, // 90-day history per TASK.md
+      }),
+      fetchPublicQuery(api.checks.getPublicChecksForMonitor, {
+        monitorId: monitor._id,
+        limit: 90,
+      }),
+      fetchPublicQuery(api.incidents.getPublicIncidentsForMonitor, {
+        monitorId: monitor._id,
+        limit: 20,
+      }),
+    ]);
+
+  // Extract values with sensible defaults for failed queries
+  const uptimeStats =
+    uptimeStatsResult.status === "fulfilled"
+      ? uptimeStatsResult.value
+      : { uptimePercentage: 100, totalChecks: 0 };
+  const recentChecks =
+    recentChecksResult.status === "fulfilled" ? recentChecksResult.value : [];
+  const incidentsResponse =
+    incidentsResult.status === "fulfilled" ? incidentsResult.value : [];
 
   // Transform checks into chart data format
   const chartData = recentChecks.reverse().map((check) => ({
