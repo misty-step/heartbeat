@@ -32,6 +32,17 @@ export default defineSchema({
     projectSlug: v.string(),
     statusSlug: v.optional(v.string()), // optional during migration; enforce in application layer
     visibility: v.optional(v.union(v.literal("public"), v.literal("private"))), // optional during migration
+    theme: v.optional(
+      v.union(
+        v.literal("glass"),
+        v.literal("ukiyo"),
+        v.literal("memphis"),
+        v.literal("blueprint"),
+        v.literal("swiss"),
+        v.literal("broadsheet"),
+        v.literal("mission-control"),
+      ),
+    ),
     userId: v.string(),
     consecutiveFailures: v.number(),
     lastCheckAt: v.optional(v.number()),

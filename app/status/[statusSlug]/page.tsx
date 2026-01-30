@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
 import { fetchPublicQuery } from "@/lib/convex-public";
 import { api } from "@/convex/_generated/api";
-import { GlassStatusPage } from "@/components/GlassStatusPage";
+import { ThemedStatusPage } from "@/components/themes";
+import { THEME_IDS, type ThemeId } from "@/lib/themes";
 
 // ISR Configuration
 export const revalidate = 60; // Revalidate every 60 seconds
@@ -9,6 +10,7 @@ export const dynamicParams = true; // Allow new slugs not in generateStaticParam
 
 interface PageProps {
   params: Promise<{ statusSlug: string }>;
+  searchParams: Promise<{ preview?: string }>;
 }
 
 export async function generateStaticParams() {
@@ -16,8 +18,12 @@ export async function generateStaticParams() {
   return [];
 }
 
-export default async function IndividualStatusPage({ params }: PageProps) {
+export default async function IndividualStatusPage({
+  params,
+  searchParams,
+}: PageProps) {
   const { statusSlug } = await params;
+  const { preview } = await searchParams;
 
   const monitor = await fetchPublicQuery(
     api.monitors.getPublicMonitorByStatusSlug,
@@ -29,6 +35,13 @@ export default async function IndividualStatusPage({ params }: PageProps) {
   if (!monitor) {
     notFound();
   }
+
+  // Preview mode: allow previewing any valid theme ID
+  // Ownership validation happens client-side when applying the theme
+  const previewTheme =
+    preview && THEME_IDS.includes(preview as ThemeId)
+      ? (preview as ThemeId)
+      : null;
 
   // Fetch uptime stats
   const uptimeStats = await fetchPublicQuery(api.checks.getPublicUptimeStats, {
@@ -77,8 +90,12 @@ export default async function IndividualStatusPage({ params }: PageProps) {
         recentChecks.length
       : 0;
 
+  // Use preview theme if owner is previewing, otherwise use saved theme
+  const effectiveTheme = previewTheme ?? (monitor.theme as ThemeId | undefined);
+
   return (
-    <GlassStatusPage
+    <ThemedStatusPage
+      theme={effectiveTheme}
       monitorName={monitor.name}
       status={monitor.status}
       uptimePercentage={uptimeStats.uptimePercentage}
@@ -86,6 +103,10 @@ export default async function IndividualStatusPage({ params }: PageProps) {
       lastCheckAt={monitor.lastCheckAt}
       chartData={chartData}
       incidents={incidents}
+      previewMode={previewTheme !== null}
+      previewThemeId={previewTheme ?? undefined}
+      monitorId={monitor._id}
+      statusSlug={statusSlug}
     />
   );
 }

@@ -6,6 +6,14 @@ export type PublicMonitor = {
   status: "up" | "degraded" | "down";
   lastCheckAt?: number;
   lastResponseTime?: number;
+  theme?:
+    | "glass"
+    | "ukiyo"
+    | "memphis"
+    | "blueprint"
+    | "swiss"
+    | "broadsheet"
+    | "mission-control";
 };
 
 export type PublicCheck = {
@@ -24,7 +32,7 @@ export type PublicIncident = {
 };
 
 export function computeMonitorStatus(
-  consecutiveFailures: number
+  consecutiveFailures: number,
 ): "up" | "degraded" | "down" {
   if (consecutiveFailures === 0) return "up";
   if (consecutiveFailures < 3) return "degraded";
@@ -38,6 +46,7 @@ export function toPublicMonitor(monitor: Doc<"monitors">): PublicMonitor {
     status: computeMonitorStatus(monitor.consecutiveFailures),
     lastCheckAt: monitor.lastCheckAt,
     lastResponseTime: monitor.lastResponseTime,
+    theme: monitor.theme ?? "glass",
   };
 }
 

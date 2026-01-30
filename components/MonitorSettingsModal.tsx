@@ -1,11 +1,17 @@
 "use client";
 
 import { useState, FormEvent, useEffect } from "react";
-import { useMutation } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "../convex/_generated/api";
 import { Id } from "../convex/_generated/dataModel";
 import { X } from "lucide-react";
+import { cn } from "@/lib/cn";
 import { validateMonitorForm, type ValidationErrors } from "@/lib/domain";
+import { THEMES, type ThemeId, canUseTheme } from "@/lib/themes";
+import { ThemeSelector } from "./ThemeSelector";
+import { ThemeUpgradePrompt } from "./ThemeUpgradePrompt";
+import { ExternalLink } from "lucide-react";
+import { usePostHog } from "posthog-js/react";
 
 /**
  * MonitorSettingsModal - Kyoto Moss Design System
@@ -21,6 +27,8 @@ interface Monitor {
   timeout: number;
   expectedStatusCode?: number;
   visibility?: "public" | "private";
+  theme?: ThemeId;
+  statusSlug?: string;
 }
 
 interface MonitorSettingsModalProps {
@@ -36,9 +44,13 @@ export function MonitorSettingsModal({
 }: MonitorSettingsModalProps) {
   const updateMonitor = useMutation(api.monitors.update);
   const removeMonitor = useMutation(api.monitors.remove);
+  const subscription = useQuery(api.subscriptions.getSubscription);
+  const userTier = subscription?.tier ?? "pulse";
+  const posthog = usePostHog();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
 
   const [formData, setFormData] = useState({
     name: monitor.name,
@@ -47,6 +59,7 @@ export function MonitorSettingsModal({
     timeout: Math.floor(monitor.timeout / 1000),
     expectedStatusCode: monitor.expectedStatusCode?.toString() || "",
     visibility: monitor.visibility,
+    theme: (monitor.theme ?? "glass") as ThemeId,
   });
 
   const [errors, setErrors] = useState<ValidationErrors>({});
@@ -74,6 +87,21 @@ export function MonitorSettingsModal({
 
     if (!validateForm()) return;
 
+    // Check if user is trying to save a premium theme on free tier
+    const selectedTheme = THEMES[formData.theme];
+    if (
+      userTier === "pulse" &&
+      selectedTheme.minTier === "vital" &&
+      formData.theme !== monitor.theme // Only show if theme actually changed
+    ) {
+      setShowUpgradePrompt(true);
+      return;
+    }
+
+    await saveMonitor();
+  };
+
+  const saveMonitor = async () => {
     setIsSubmitting(true);
     try {
       await updateMonitor({
@@ -86,6 +114,7 @@ export function MonitorSettingsModal({
           ? parseInt(formData.expectedStatusCode)
           : undefined,
         visibility: formData.visibility,
+        theme: formData.theme,
       });
 
       onClose();
@@ -95,6 +124,12 @@ export function MonitorSettingsModal({
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleKeepCurrentTheme = () => {
+    // Revert to saved theme and close prompt
+    setFormData({ ...formData, theme: (monitor.theme ?? "glass") as ThemeId });
+    setShowUpgradePrompt(false);
   };
 
   const handleDeleteClick = async () => {
@@ -315,6 +350,62 @@ export function MonitorSettingsModal({
             </p>
           </div>
 
+          {/* Theme Selection */}
+          <div className="space-y-3">
+            <label className="block text-sm font-medium text-[var(--color-text-secondary)]">
+              Status Page Theme
+            </label>
+            <div className="flex gap-3">
+              <div className="flex-1">
+                <ThemeSelector
+                  value={formData.theme}
+                  onChange={(theme) => setFormData({ ...formData, theme })}
+                  userTier={userTier}
+                />
+              </div>
+              {monitor.statusSlug && (
+                <a
+                  href={`/status/${monitor.statusSlug}?preview=${formData.theme}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => {
+                    posthog?.capture("theme_preview_viewed", {
+                      theme_id: formData.theme,
+                      theme_name: THEMES[formData.theme].name,
+                      is_premium: THEMES[formData.theme].minTier === "vital",
+                    });
+                  }}
+                  className={cn(
+                    "inline-flex items-center gap-2 px-4 py-3",
+                    "border border-[var(--color-border-default)] rounded-[var(--radius-md)]",
+                    "text-sm font-medium text-[var(--color-text-secondary)]",
+                    "hover:bg-[var(--color-bg-tertiary)] hover:border-[var(--color-border-strong)]",
+                    "transition-colors",
+                  )}
+                >
+                  Preview
+                  <ExternalLink className="size-3.5" />
+                </a>
+              )}
+            </div>
+            <p className="text-xs text-[var(--color-text-muted)]">
+              {userTier === "pulse" ? (
+                <>
+                  Preview any theme, then{" "}
+                  <a
+                    href="/dashboard/settings/billing"
+                    className="text-[var(--color-accent-primary)] hover:underline"
+                  >
+                    upgrade to Vital
+                  </a>{" "}
+                  to apply premium themes
+                </>
+              ) : (
+                "Select a theme for your public status page"
+              )}
+            </p>
+          </div>
+
           {/* Action buttons */}
           <div className="flex items-center justify-between pt-4 border-t border-[var(--color-border-subtle)]">
             <button
@@ -345,6 +436,15 @@ export function MonitorSettingsModal({
           </div>
         </form>
       </div>
+
+      {/* Theme Upgrade Prompt */}
+      {showUpgradePrompt && (
+        <ThemeUpgradePrompt
+          themeId={formData.theme}
+          onKeepCurrent={handleKeepCurrentTheme}
+          onClose={() => setShowUpgradePrompt(false)}
+        />
+      )}
     </div>
   );
 }

@@ -74,3 +74,37 @@ vi.mock("next-themes", () => ({
     setTheme: vi.fn(),
   }),
 }));
+
+// Mock next/font/google for theme components that use custom fonts
+vi.mock("next/font/google", () => ({
+  Fraunces: () => ({
+    className: "mock-fraunces",
+    variable: "--font-display",
+    style: { fontFamily: "mock-fraunces" },
+  }),
+  Instrument_Serif: () => ({
+    className: "mock-instrument-serif",
+    variable: "--font-body",
+    style: { fontFamily: "mock-instrument-serif" },
+  }),
+  Inter: () => ({
+    className: "mock-inter",
+    variable: "--font-inter",
+    style: { fontFamily: "mock-inter" },
+  }),
+  Space_Mono: () => ({
+    className: "mock-space-mono",
+    variable: "--font-mono",
+    style: { fontFamily: "mock-space-mono" },
+  }),
+  Space_Grotesk: () => ({
+    className: "mock-space-grotesk",
+    variable: "--font-grotesk",
+    style: { fontFamily: "mock-space-grotesk" },
+  }),
+  VT323: () => ({
+    className: "mock-vt323",
+    variable: "--font-terminal",
+    style: { fontFamily: "mock-vt323" },
+  }),
+}));

@@ -1,10 +1,11 @@
 import { v } from "convex/values";
 import { query, mutation, internalQuery } from "./_generated/server";
 import { internal } from "./_generated/api";
-import { toPublicMonitor } from "./publicTypes";
+import { toPublicMonitor, computeMonitorStatus } from "./publicTypes";
 import { generateUniqueStatusSlug } from "./slugs";
 import { isPubliclyVisible } from "./lib/visibility";
 import { validateMonitorUrl } from "./lib/urlValidation";
+import { hasActiveAccess } from "./subscriptions";
 
 const MIN_TIMEOUT_MS = 1000;
 const MAX_TIMEOUT_MS = 60000;
@@ -21,6 +22,17 @@ const publicMonitorValidator = v.object({
   status: v.union(v.literal("up"), v.literal("degraded"), v.literal("down")),
   lastCheckAt: v.optional(v.number()),
   lastResponseTime: v.optional(v.number()),
+  theme: v.optional(
+    v.union(
+      v.literal("glass"),
+      v.literal("ukiyo"),
+      v.literal("memphis"),
+      v.literal("blueprint"),
+      v.literal("swiss"),
+      v.literal("broadsheet"),
+      v.literal("mission-control"),
+    ),
+  ),
 });
 
 export const list = query({
@@ -84,7 +96,34 @@ export const getPublicMonitorByStatusSlug = query({
       return null;
     }
 
-    return toPublicMonitor(monitor);
+    // For premium themes, verify owner still has active Vital subscription
+    // If not, fall back to default theme (glass)
+    let effectiveTheme = monitor.theme ?? "glass";
+    if (effectiveTheme !== "glass") {
+      const subscription = await ctx.db
+        .query("subscriptions")
+        .withIndex("by_user", (q) => q.eq("userId", monitor.userId))
+        .first();
+
+      const hasVitalAccess =
+        subscription &&
+        subscription.tier === "vital" &&
+        hasActiveAccess(subscription);
+
+      if (!hasVitalAccess) {
+        effectiveTheme = "glass";
+      }
+    }
+
+    // Return public monitor data with effective theme
+    return {
+      _id: monitor._id,
+      name: monitor.name,
+      status: computeMonitorStatus(monitor.consecutiveFailures),
+      lastCheckAt: monitor.lastCheckAt,
+      lastResponseTime: monitor.lastResponseTime,
+      theme: effectiveTheme,
+    };
   },
 });
 
@@ -117,6 +156,17 @@ export const create = mutation({
     ),
     body: v.optional(v.string()),
     visibility: v.optional(v.union(v.literal("public"), v.literal("private"))),
+    theme: v.optional(
+      v.union(
+        v.literal("glass"),
+        v.literal("ukiyo"),
+        v.literal("memphis"),
+        v.literal("blueprint"),
+        v.literal("swiss"),
+        v.literal("broadsheet"),
+        v.literal("mission-control"),
+      ),
+    ),
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
@@ -144,6 +194,23 @@ export const create = mutation({
       );
     }
 
+    // Validate theme against tier (requires active Vital subscription)
+    if (args.theme && args.theme !== "glass") {
+      const subscription = await ctx.runQuery(
+        internal.subscriptions.getByUserId,
+        { userId: identity.subject },
+      );
+      const hasVitalAccess =
+        subscription &&
+        subscription.tier === "vital" &&
+        hasActiveAccess(subscription);
+      if (!hasVitalAccess) {
+        throw new Error(
+          "Premium themes require an active Vital subscription. Upgrade to use custom themes.",
+        );
+      }
+    }
+
     // Validate URL to prevent SSRF attacks
     const urlError = validateMonitorUrl(args.url);
     if (urlError) {
@@ -159,6 +226,7 @@ export const create = mutation({
       ...args,
       statusSlug,
       visibility: args.visibility ?? "public",
+      theme: args.theme ?? "glass",
       userId: identity.subject,
       enabled: true,
       consecutiveFailures: 0,
@@ -205,6 +273,17 @@ export const update = mutation({
     body: v.optional(v.string()),
     enabled: v.optional(v.boolean()),
     visibility: v.optional(v.union(v.literal("public"), v.literal("private"))),
+    theme: v.optional(
+      v.union(
+        v.literal("glass"),
+        v.literal("ukiyo"),
+        v.literal("memphis"),
+        v.literal("blueprint"),
+        v.literal("swiss"),
+        v.literal("broadsheet"),
+        v.literal("mission-control"),
+      ),
+    ),
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
@@ -221,6 +300,23 @@ export const update = mutation({
         const minMinutes = limits.minInterval / 60;
         throw new Error(
           `Minimum check interval is ${minMinutes} minutes on your plan. Upgrade to check more frequently.`,
+        );
+      }
+    }
+
+    // Validate theme against tier (if theme is being updated, requires active Vital subscription)
+    if (args.theme !== undefined && args.theme !== "glass") {
+      const subscription = await ctx.runQuery(
+        internal.subscriptions.getByUserId,
+        { userId: identity.subject },
+      );
+      const hasVitalAccess =
+        subscription &&
+        subscription.tier === "vital" &&
+        hasActiveAccess(subscription);
+      if (!hasVitalAccess) {
+        throw new Error(
+          "Premium themes require an active Vital subscription. Upgrade to use custom themes.",
         );
       }
     }

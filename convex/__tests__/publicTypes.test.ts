@@ -1,16 +1,16 @@
-import { describe, expect, test } from 'vitest';
-import { Doc, Id } from '../_generated/dataModel';
+import { describe, expect, test } from "vitest";
+import { Doc, Id } from "../_generated/dataModel";
 import {
   computeMonitorStatus,
   toPublicCheck,
   toPublicIncident,
   toPublicMonitor,
-} from '../publicTypes';
+} from "../publicTypes";
 
 const monitorId = "monitor_1" as Id<"monitors">;
 
 const createMonitorDoc = (
-  overrides: Partial<Doc<"monitors">> = {}
+  overrides: Partial<Doc<"monitors">> = {},
 ): Doc<"monitors"> => ({
   _id: monitorId,
   _creationTime: 0,
@@ -35,7 +35,7 @@ const createMonitorDoc = (
 });
 
 const createCheckDoc = (
-  overrides: Partial<Doc<"checks">> = {}
+  overrides: Partial<Doc<"checks">> = {},
 ): Doc<"checks"> => ({
   _id: "check_1" as Id<"checks">,
   _creationTime: 0,
@@ -49,7 +49,7 @@ const createCheckDoc = (
 });
 
 const createIncidentDoc = (
-  overrides: Partial<Doc<"incidents">> = {}
+  overrides: Partial<Doc<"incidents">> = {},
 ): Doc<"incidents"> => ({
   _id: "incident_1" as Id<"incidents">,
   _creationTime: 0,
@@ -63,8 +63,8 @@ const createIncidentDoc = (
   ...overrides,
 });
 
-describe('computeMonitorStatus', () => {
-  test('uses thresholded failure levels', () => {
+describe("computeMonitorStatus", () => {
+  test("uses thresholded failure levels", () => {
     expect(computeMonitorStatus(0)).toBe("up");
     expect(computeMonitorStatus(1)).toBe("degraded");
     expect(computeMonitorStatus(2)).toBe("degraded");
@@ -73,8 +73,8 @@ describe('computeMonitorStatus', () => {
   });
 });
 
-describe('toPublicMonitor', () => {
-  test('projects only safe monitor fields', () => {
+describe("toPublicMonitor", () => {
+  test("projects only safe monitor fields", () => {
     const monitor = createMonitorDoc();
 
     const result = toPublicMonitor(monitor);
@@ -85,6 +85,7 @@ describe('toPublicMonitor', () => {
       status: "degraded",
       lastCheckAt: monitor.lastCheckAt,
       lastResponseTime: monitor.lastResponseTime,
+      theme: "glass",
     });
 
     expect(result).not.toHaveProperty("url");
@@ -101,8 +102,8 @@ describe('toPublicMonitor', () => {
   });
 });
 
-describe('toPublicCheck', () => {
-  test('collapses status and removes sensitive fields', () => {
+describe("toPublicCheck", () => {
+  test("collapses status and removes sensitive fields", () => {
     const check = createCheckDoc();
 
     const result = toPublicCheck(check);
@@ -119,8 +120,8 @@ describe('toPublicCheck', () => {
   });
 });
 
-describe('toPublicIncident', () => {
-  test('removes incident fields not safe for public', () => {
+describe("toPublicIncident", () => {
+  test("removes incident fields not safe for public", () => {
     const incident = createIncidentDoc();
 
     const result = toPublicIncident(incident);
