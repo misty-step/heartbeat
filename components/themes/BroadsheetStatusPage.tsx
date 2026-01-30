@@ -28,13 +28,6 @@ const statusConfig = {
   },
 };
 
-const serviceLines = [
-  "Auth Service",
-  "Database Core",
-  "Edge Network",
-  "Incident Desk",
-];
-
 export function BroadsheetStatusPage({
   monitorName,
   status,
@@ -97,8 +90,7 @@ export function BroadsheetStatusPage({
             <p className="mt-2 font-['IM_Fell_English'] text-sm italic text-[#6b6b6b]">
               &quot;All the uptime that&apos;s fit to print&quot;
             </p>
-            <div className="mt-5 flex flex-wrap items-center justify-between gap-2 border-t border-[#1a1a1a] pt-3 text-[0.7rem] uppercase tracking-[0.2em]">
-              <span>Founded 2024</span>
+            <div className="mt-5 flex flex-wrap items-center justify-center gap-4 border-t border-[#1a1a1a] pt-3 text-[0.7rem] uppercase tracking-[0.2em]">
               <span className="bg-[#1a1a1a] px-3 py-1 font-semibold text-[#f5f2eb]">
                 Extra Edition
               </span>

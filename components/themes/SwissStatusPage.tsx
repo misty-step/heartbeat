@@ -42,25 +42,6 @@ export function SwissStatusPage({
   const maxResponse = responseTimes.length ? Math.max(...responseTimes) : 0;
   const responseRange = Math.max(1, maxResponse - minResponse);
 
-  const serviceItems = [
-    {
-      label: monitorName,
-      status: statusLabel,
-    },
-    {
-      label: "Authentication",
-      status: incidents.length > 0 ? "CHECK" : "ONLINE",
-    },
-    {
-      label: "Database",
-      status: avgResponseTime > 800 ? "CHECK" : "ONLINE",
-    },
-    {
-      label: "CDN",
-      status: uptimePercentage < 99 ? "CHECK" : "ONLINE",
-    },
-  ];
-
   return (
     <div
       className="relative min-h-screen bg-white text-[#1a1a1a]"
@@ -149,31 +130,14 @@ export function SwissStatusPage({
           <aside className="col-span-full flex flex-col gap-6 lg:col-span-5">
             <div className="border-t-4 border-[#1a1a1a] pt-4">
               <h2 className="text-[0.75rem] font-medium uppercase tracking-[0.3em]">
-                Services
+                Service
               </h2>
-              <ul className="mt-4 space-y-2">
-                {serviceItems.map((service) => (
-                  <li
-                    key={service.label}
-                    className="flex items-center justify-between border-b border-[#1a1a1a]/20 pb-2 text-[0.9rem]"
-                  >
-                    <span>{service.label}</span>
-                    <span className="text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-[#e30613]">
-                      {service.status}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="border-t-4 border-[#1a1a1a] pt-4">
-              <h2 className="text-[0.75rem] font-medium uppercase tracking-[0.3em]">
-                Location
-              </h2>
-              <p className="mt-4 text-lg font-semibold">Zurich, CH</p>
-              <p className="mt-2 text-[0.65rem] uppercase tracking-[0.3em] text-[#1a1a1a]/60">
-                47.3769° N, 8.5417° E
-              </p>
+              <div className="mt-4 flex items-center justify-between border-b border-[#1a1a1a]/20 pb-2 text-[0.9rem]">
+                <span>{monitorName}</span>
+                <span className="text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-[#e30613]">
+                  {statusLabel}
+                </span>
+              </div>
             </div>
           </aside>
 

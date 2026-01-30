@@ -119,28 +119,10 @@ export function MissionControlStatusPage({
 
   const serviceRows = [
     {
-      name: `${monitorName} Primary`,
+      name: monitorName,
       tone: status,
       uptime: `${uptimePercentage.toFixed(2)}%`,
       latency: `${Math.round(avgResponseTime)}ms`,
-    },
-    {
-      name: "Authentication Module",
-      tone: uptimeTone(uptimePercentage),
-      uptime: `${uptimePercentage.toFixed(2)}%`,
-      latency: `${Math.round(avgResponseTime * 0.7)}ms`,
-    },
-    {
-      name: "Database Cluster",
-      tone: responseTone(avgResponseTime),
-      uptime: `${Math.max(99, uptimePercentage).toFixed(2)}%`,
-      latency: `${Math.round(avgResponseTime * 0.3)}ms`,
-    },
-    {
-      name: "CDN Edge Nodes",
-      tone: incidentTone(incidents.length),
-      uptime: `${uptimePercentage.toFixed(2)}%`,
-      latency: `${Math.round(avgResponseTime * 0.45)}ms`,
     },
   ] satisfies Array<{
     name: string;
@@ -213,7 +195,7 @@ export function MissionControlStatusPage({
             {monitorName}
           </h1>
           <p className="mt-2 text-[11px] uppercase tracking-[0.35em] text-[#1a8000]">
-            Telemetry Monitoring Station // Heartbeat OS v4.2
+            Telemetry Monitoring Station
           </p>
         </header>
 
@@ -256,7 +238,7 @@ export function MissionControlStatusPage({
               30-Day Telemetry History
             </span>
             <span className="text-[10px] uppercase tracking-[0.3em] text-[#1a8000]">
-              Mission Day 234-263
+              Last 30 Days
             </span>
           </div>
 
@@ -369,7 +351,7 @@ export function MissionControlStatusPage({
           </div>
           <div className="text-[#ffb000]">LAST CHECK: {lastCheckLabel}</div>
           <div>SIGNAL: {signalLabel(status)}</div>
-          <div>NODE: US-EAST-1</div>
+          <div>HEARTBEAT</div>
         </footer>
       </div>
     </div>
