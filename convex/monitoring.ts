@@ -379,27 +379,30 @@ export const runHeartbeat = internalAction({
 
 /**
  * Cleanup old check records to keep database size manageable.
- * Runs daily via cron. Paginates through all old checks to ensure
- * complete cleanup even when backlog exceeds batch size.
+ * Runs daily via cron. Paginates through old checks with a batch cap
+ * to avoid Convex's 10-minute action timeout. Reschedules itself if
+ * more work remains.
  */
 export const cleanupOldChecks = internalAction({
   args: {},
   handler: async (ctx) => {
     const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
+    const maxBatchesPerRun = 20; // Cap to stay well under 10-min timeout
 
     console.log("[Cleanup] Starting cleanup of checks older than 30 days...");
 
     let totalDeleted = 0;
     let batchNumber = 0;
 
-    // Paginate through all old checks until none remain
-    while (true) {
+    // Process up to maxBatchesPerRun batches, then reschedule if more remain
+    while (batchNumber < maxBatchesPerRun) {
       const oldChecks = await ctx.runQuery(internal.monitoring.getOldChecks, {
         beforeTimestamp: thirtyDaysAgo,
       });
 
       if (oldChecks.length === 0) {
-        break;
+        console.log(`[Cleanup] Complete: deleted ${totalDeleted} checks total`);
+        return;
       }
 
       batchNumber++;
@@ -419,7 +422,11 @@ export const cleanupOldChecks = internalAction({
       totalDeleted += oldChecks.length;
     }
 
-    console.log(`[Cleanup] Complete: deleted ${totalDeleted} checks total`);
+    // More work remains - reschedule to continue
+    await ctx.scheduler.runAfter(0, internal.monitoring.cleanupOldChecks, {});
+    console.log(
+      `[Cleanup] Paused after ${batchNumber} batches (${totalDeleted} deleted); rescheduled to continue`,
+    );
   },
 });
 
