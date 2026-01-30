@@ -43,20 +43,20 @@ export default async function IndividualStatusPage({
       ? (preview as ThemeId)
       : null;
 
-  // Fetch uptime stats
-  const uptimeStats = await fetchPublicQuery(api.checks.getPublicUptimeStats, {
-    monitorId: monitor._id,
-    days: 90, // 90-day history per TASK.md
-  });
-
-  // Fetch recent checks for chart
-  const recentChecks = await fetchPublicQuery(
-    api.checks.getPublicChecksForMonitor,
-    {
+  const [uptimeStats, recentChecks, incidentsResponse] = await Promise.all([
+    fetchPublicQuery(api.checks.getPublicUptimeStats, {
+      monitorId: monitor._id,
+      days: 90, // 90-day history per TASK.md
+    }),
+    fetchPublicQuery(api.checks.getPublicChecksForMonitor, {
       monitorId: monitor._id,
       limit: 90,
-    },
-  );
+    }),
+    fetchPublicQuery(api.incidents.getPublicIncidentsForMonitor, {
+      monitorId: monitor._id,
+      limit: 20,
+    }),
+  ]);
 
   // Transform checks into chart data format
   const chartData = recentChecks.reverse().map((check) => ({
@@ -64,15 +64,6 @@ export default async function IndividualStatusPage({
     responseTime: check.responseTime,
     status: check.status === "up" ? ("up" as const) : ("down" as const),
   }));
-
-  // Fetch incidents for this monitor
-  const incidentsResponse = await fetchPublicQuery(
-    api.incidents.getPublicIncidentsForMonitor,
-    {
-      monitorId: monitor._id,
-      limit: 20,
-    },
-  );
 
   const incidents = incidentsResponse.map((incident) => ({
     id: incident._id,
