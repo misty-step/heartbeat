@@ -65,7 +65,8 @@ export default defineSchema({
     checkedAt: v.number(),
   })
     .index("by_monitor", ["monitorId", "checkedAt"])
-    .index("by_monitor_and_status", ["monitorId", "status", "checkedAt"]),
+    .index("by_monitor_and_status", ["monitorId", "status", "checkedAt"])
+    .index("by_checked_at", ["checkedAt"]),
 
   incidents: defineTable({
     monitorId: v.id("monitors"),

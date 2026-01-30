@@ -416,8 +416,12 @@ export const getOldChecks = internalQuery({
     beforeTimestamp: v.number(),
   },
   handler: async (ctx, args) => {
-    const allChecks = await ctx.db.query("checks").collect();
-    return allChecks.filter((check) => check.checkedAt < args.beforeTimestamp);
+    return ctx.db
+      .query("checks")
+      .withIndex("by_checked_at", (q) =>
+        q.lt("checkedAt", args.beforeTimestamp),
+      )
+      .take(1000);
   },
 });
 
