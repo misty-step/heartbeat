@@ -125,11 +125,20 @@ await ctx.runMutation(internal.deleteItems, { ids: batch.map((b) => b._id) });
 Use `Promise.allSettled` (not `Promise.all`) for ISR/SSR pages with multiple data sources. This enables graceful degradation — show partial data rather than full error page.
 
 ```typescript
-// ✅ Graceful degradation
+// ✅ Graceful degradation with error logging
 const [statsResult, checksResult] = await Promise.allSettled([
   fetchStats(),
   fetchChecks(),
 ]);
+
+// Log failures for debugging while still rendering partial data
+if (statsResult.status === "rejected") {
+  console.error("Failed to fetch stats:", statsResult.reason);
+}
+if (checksResult.status === "rejected") {
+  console.error("Failed to fetch checks:", checksResult.reason);
+}
+
 const stats =
   statsResult.status === "fulfilled" ? statsResult.value : defaultStats;
 const checks = checksResult.status === "fulfilled" ? checksResult.value : [];
