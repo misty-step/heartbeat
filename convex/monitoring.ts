@@ -379,7 +379,8 @@ export const runHeartbeat = internalAction({
 
 /**
  * Cleanup old check records to keep database size manageable.
- * Runs daily via cron.
+ * Runs daily via cron. Paginates through all old checks to ensure
+ * complete cleanup even when backlog exceeds batch size.
  */
 export const cleanupOldChecks = internalAction({
   args: {},
@@ -388,23 +389,37 @@ export const cleanupOldChecks = internalAction({
 
     console.log("[Cleanup] Starting cleanup of checks older than 30 days...");
 
-    // Query old checks
-    const oldChecks = await ctx.runQuery(internal.monitoring.getOldChecks, {
-      beforeTimestamp: thirtyDaysAgo,
-    });
+    let totalDeleted = 0;
+    let batchNumber = 0;
 
-    console.log(`[Cleanup] Found ${oldChecks.length} checks to delete`);
-
-    // Delete in batches to avoid timeout
-    const batchSize = 100;
-    for (let i = 0; i < oldChecks.length; i += batchSize) {
-      const batch = oldChecks.slice(i, i + batchSize);
-      await ctx.runMutation(internal.monitoring.deleteChecks, {
-        checkIds: batch.map((c) => c._id),
+    // Paginate through all old checks until none remain
+    while (true) {
+      const oldChecks = await ctx.runQuery(internal.monitoring.getOldChecks, {
+        beforeTimestamp: thirtyDaysAgo,
       });
+
+      if (oldChecks.length === 0) {
+        break;
+      }
+
+      batchNumber++;
+      console.log(
+        `[Cleanup] Batch ${batchNumber}: deleting ${oldChecks.length} checks`,
+      );
+
+      // Delete in sub-batches to avoid mutation size limits
+      const deleteBatchSize = 100;
+      for (let i = 0; i < oldChecks.length; i += deleteBatchSize) {
+        const batch = oldChecks.slice(i, i + deleteBatchSize);
+        await ctx.runMutation(internal.monitoring.deleteChecks, {
+          checkIds: batch.map((c) => c._id),
+        });
+      }
+
+      totalDeleted += oldChecks.length;
     }
 
-    console.log("[Cleanup] Cleanup complete");
+    console.log(`[Cleanup] Complete: deleted ${totalDeleted} checks total`);
   },
 });
 
