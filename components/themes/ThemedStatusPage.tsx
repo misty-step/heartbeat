@@ -9,9 +9,15 @@ import { BlueprintStatusPage } from "./BlueprintStatusPage";
 import { SwissStatusPage } from "./SwissStatusPage";
 import { BroadsheetStatusPage } from "./BroadsheetStatusPage";
 import { MissionControlStatusPage } from "./MissionControlStatusPage";
+import { StatusPagePreviewBanner } from "@/components/StatusPagePreviewBanner";
+import { Id } from "@/convex/_generated/dataModel";
 
 export interface ThemedStatusPageProps extends StatusPageThemeProps {
   theme?: ThemeId | null;
+  previewMode?: boolean;
+  previewThemeId?: ThemeId;
+  monitorId?: Id<"monitors">;
+  statusSlug?: string;
 }
 
 const THEME_COMPONENTS: Record<
@@ -27,9 +33,32 @@ const THEME_COMPONENTS: Record<
   "mission-control": MissionControlStatusPage,
 };
 
-export function ThemedStatusPage({ theme, ...props }: ThemedStatusPageProps) {
+export function ThemedStatusPage({
+  theme,
+  previewMode,
+  previewThemeId,
+  monitorId,
+  statusSlug,
+  ...props
+}: ThemedStatusPageProps) {
   const ThemeComponent = theme ? THEME_COMPONENTS[theme] : GlassStatusPage;
   const Component = ThemeComponent ?? GlassStatusPage;
 
-  return <Component {...props} />;
+  const showPreviewBanner =
+    previewMode && previewThemeId && monitorId && statusSlug;
+
+  return (
+    <>
+      {showPreviewBanner && (
+        <StatusPagePreviewBanner
+          themeId={previewThemeId}
+          monitorId={monitorId}
+          statusSlug={statusSlug}
+        />
+      )}
+      {/* Spacer to prevent banner from overlapping content */}
+      {showPreviewBanner && <div className="h-12" />}
+      <Component {...props} />
+    </>
+  );
 }

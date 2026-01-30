@@ -7,7 +7,11 @@ import { Id } from "../convex/_generated/dataModel";
 import { X } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { validateMonitorForm, type ValidationErrors } from "@/lib/domain";
-import { THEMES, type ThemeId, getThemesForTier } from "@/lib/themes";
+import { THEMES, type ThemeId, canUseTheme } from "@/lib/themes";
+import { ThemeSelector } from "./ThemeSelector";
+import { ThemeUpgradePrompt } from "./ThemeUpgradePrompt";
+import { ExternalLink } from "lucide-react";
+import { usePostHog } from "posthog-js/react";
 
 /**
  * MonitorSettingsModal - Kyoto Moss Design System
@@ -24,6 +28,7 @@ interface Monitor {
   expectedStatusCode?: number;
   visibility?: "public" | "private";
   theme?: ThemeId;
+  statusSlug?: string;
 }
 
 interface MonitorSettingsModalProps {
@@ -41,10 +46,11 @@ export function MonitorSettingsModal({
   const removeMonitor = useMutation(api.monitors.remove);
   const subscription = useQuery(api.subscriptions.getSubscription);
   const userTier = subscription?.tier ?? "pulse";
-  const availableThemes = getThemesForTier(userTier);
+  const posthog = usePostHog();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
 
   const [formData, setFormData] = useState({
     name: monitor.name,
@@ -81,6 +87,21 @@ export function MonitorSettingsModal({
 
     if (!validateForm()) return;
 
+    // Check if user is trying to save a premium theme on free tier
+    const selectedTheme = THEMES[formData.theme];
+    if (
+      userTier === "pulse" &&
+      selectedTheme.minTier === "vital" &&
+      formData.theme !== monitor.theme // Only show if theme actually changed
+    ) {
+      setShowUpgradePrompt(true);
+      return;
+    }
+
+    await saveMonitor();
+  };
+
+  const saveMonitor = async () => {
     setIsSubmitting(true);
     try {
       await updateMonitor({
@@ -103,6 +124,12 @@ export function MonitorSettingsModal({
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleKeepCurrentTheme = () => {
+    // Revert to saved theme and close prompt
+    setFormData({ ...formData, theme: (monitor.theme ?? "glass") as ThemeId });
+    setShowUpgradePrompt(false);
   };
 
   const handleDeleteClick = async () => {
@@ -328,74 +355,55 @@ export function MonitorSettingsModal({
             <label className="block text-sm font-medium text-[var(--color-text-secondary)]">
               Status Page Theme
             </label>
-            <div className="grid grid-cols-2 gap-3">
-              {Object.values(THEMES).map((theme) => {
-                const isAvailable = availableThemes.some(
-                  (t) => t.id === theme.id,
-                );
-                const isSelected = formData.theme === theme.id;
-
-                return (
-                  <button
-                    key={theme.id}
-                    type="button"
-                    onClick={() =>
-                      isAvailable &&
-                      setFormData({ ...formData, theme: theme.id })
-                    }
-                    disabled={!isAvailable}
-                    className={cn(
-                      "relative p-3 border rounded-[var(--radius-md)] text-left transition-all",
-                      isSelected
-                        ? "border-[var(--color-accent-primary)] bg-[var(--color-accent-primary)]/5"
-                        : isAvailable
-                          ? "border-[var(--color-border-default)] hover:border-[var(--color-border-strong)]"
-                          : "border-[var(--color-border-subtle)] opacity-50 cursor-not-allowed",
-                    )}
-                  >
-                    <div className="font-medium text-sm text-[var(--color-text-primary)]">
-                      {theme.name}
-                    </div>
-                    <div className="text-xs text-[var(--color-text-muted)] mt-0.5 line-clamp-2">
-                      {theme.description}
-                    </div>
-                    {!isAvailable && (
-                      <div className="absolute top-2 right-2 text-[10px] px-1.5 py-0.5 bg-[var(--color-accent-secondary)] text-white rounded">
-                        Vital
-                      </div>
-                    )}
-                    {isSelected && (
-                      <div className="absolute top-2 right-2 size-4 bg-[var(--color-accent-primary)] rounded-full flex items-center justify-center">
-                        <svg
-                          className="size-2.5 text-white"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                          strokeWidth={3}
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M5 13l4 4L19 7"
-                          />
-                        </svg>
-                      </div>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-            {userTier === "pulse" && (
-              <p className="text-xs text-[var(--color-text-muted)]">
+            <div className="flex gap-3">
+              <div className="flex-1">
+                <ThemeSelector
+                  value={formData.theme}
+                  onChange={(theme) => setFormData({ ...formData, theme })}
+                  userTier={userTier}
+                />
+              </div>
+              {monitor.statusSlug && (
                 <a
-                  href="/dashboard/settings/billing"
-                  className="text-[var(--color-accent-primary)] hover:underline"
+                  href={`/status/${monitor.statusSlug}?preview=${formData.theme}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => {
+                    posthog?.capture("theme_preview_viewed", {
+                      theme_id: formData.theme,
+                      theme_name: THEMES[formData.theme].name,
+                      is_premium: THEMES[formData.theme].minTier === "vital",
+                    });
+                  }}
+                  className={cn(
+                    "inline-flex items-center gap-2 px-4 py-3",
+                    "border border-[var(--color-border-default)] rounded-[var(--radius-md)]",
+                    "text-sm font-medium text-[var(--color-text-secondary)]",
+                    "hover:bg-[var(--color-bg-tertiary)] hover:border-[var(--color-border-strong)]",
+                    "transition-colors",
+                  )}
                 >
-                  Upgrade to Vital
-                </a>{" "}
-                to unlock premium themes
-              </p>
-            )}
+                  Preview
+                  <ExternalLink className="size-3.5" />
+                </a>
+              )}
+            </div>
+            <p className="text-xs text-[var(--color-text-muted)]">
+              {userTier === "pulse" ? (
+                <>
+                  Preview any theme, then{" "}
+                  <a
+                    href="/dashboard/settings/billing"
+                    className="text-[var(--color-accent-primary)] hover:underline"
+                  >
+                    upgrade to Vital
+                  </a>{" "}
+                  to apply premium themes
+                </>
+              ) : (
+                "Select a theme for your public status page"
+              )}
+            </p>
           </div>
 
           {/* Action buttons */}
@@ -428,6 +436,15 @@ export function MonitorSettingsModal({
           </div>
         </form>
       </div>
+
+      {/* Theme Upgrade Prompt */}
+      {showUpgradePrompt && (
+        <ThemeUpgradePrompt
+          themeId={formData.theme}
+          onKeepCurrent={handleKeepCurrentTheme}
+          onClose={() => setShowUpgradePrompt(false)}
+        />
+      )}
     </div>
   );
 }
