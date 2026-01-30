@@ -61,7 +61,11 @@ export function AddMonitorForm({ onSuccess }: { onSuccess?: () => void }) {
       }
     } catch (err) {
       console.error("Failed to create monitor:", err);
-      setError("Failed to create monitor. Please try again.");
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Failed to create monitor. Please try again.";
+      setError(message);
     } finally {
       setIsSubmitting(false);
     }
