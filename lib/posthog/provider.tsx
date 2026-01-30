@@ -14,7 +14,7 @@ if (typeof window !== "undefined" && process.env.NEXT_PUBLIC_POSTHOG_KEY) {
     ui_host: "https://us.posthog.com",
     capture_pageview: false,
     capture_pageleave: true,
-    persistence: "localStorage+cookie",
+    persistence: "localStorage",
     disable_session_recording: process.env.NODE_ENV !== "production",
     session_recording: {
       maskAllInputs: true,
