@@ -43,20 +43,52 @@ export default async function IndividualStatusPage({
       ? (preview as ThemeId)
       : null;
 
-  // Fetch uptime stats
-  const uptimeStats = await fetchPublicQuery(api.checks.getPublicUptimeStats, {
-    monitorId: monitor._id,
-    days: 90, // 90-day history per TASK.md
-  });
+  // Use allSettled for graceful degradation - show partial data if some queries fail
+  const [uptimeStatsResult, recentChecksResult, incidentsResult] =
+    await Promise.allSettled([
+      fetchPublicQuery(api.checks.getPublicUptimeStats, {
+        monitorId: monitor._id,
+        days: 90, // 90-day history per TASK.md
+      }),
+      fetchPublicQuery(api.checks.getPublicChecksForMonitor, {
+        monitorId: monitor._id,
+        limit: 90,
+      }),
+      fetchPublicQuery(api.incidents.getPublicIncidentsForMonitor, {
+        monitorId: monitor._id,
+        limit: 20,
+      }),
+    ]);
 
-  // Fetch recent checks for chart
-  const recentChecks = await fetchPublicQuery(
-    api.checks.getPublicChecksForMonitor,
-    {
-      monitorId: monitor._id,
-      limit: 90,
-    },
-  );
+  // Log failures for debugging while still rendering partial data
+  if (uptimeStatsResult.status === "rejected") {
+    console.error(
+      "[StatusPage] Failed to fetch uptime stats:",
+      uptimeStatsResult.reason,
+    );
+  }
+  if (recentChecksResult.status === "rejected") {
+    console.error(
+      "[StatusPage] Failed to fetch recent checks:",
+      recentChecksResult.reason,
+    );
+  }
+  if (incidentsResult.status === "rejected") {
+    console.error(
+      "[StatusPage] Failed to fetch incidents:",
+      incidentsResult.reason,
+    );
+  }
+
+  // Extract values with sensible defaults for failed queries
+  const uptimeStats =
+    uptimeStatsResult.status === "fulfilled"
+      ? uptimeStatsResult.value
+      : { uptimePercentage: 100, totalChecks: 0 };
+  const recentChecks =
+    recentChecksResult.status === "fulfilled" ? recentChecksResult.value : [];
+  const incidentsResponse =
+    incidentsResult.status === "fulfilled" ? incidentsResult.value : [];
 
   // Transform checks into chart data format
   const chartData = recentChecks.reverse().map((check) => ({
@@ -64,15 +96,6 @@ export default async function IndividualStatusPage({
     responseTime: check.responseTime,
     status: check.status === "up" ? ("up" as const) : ("down" as const),
   }));
-
-  // Fetch incidents for this monitor
-  const incidentsResponse = await fetchPublicQuery(
-    api.incidents.getPublicIncidentsForMonitor,
-    {
-      monitorId: monitor._id,
-      limit: 20,
-    },
-  );
 
   const incidents = incidentsResponse.map((incident) => ({
     id: incident._id,
