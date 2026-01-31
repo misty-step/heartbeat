@@ -379,32 +379,54 @@ export const runHeartbeat = internalAction({
 
 /**
  * Cleanup old check records to keep database size manageable.
- * Runs daily via cron.
+ * Runs daily via cron. Paginates through old checks with a batch cap
+ * to avoid Convex's 10-minute action timeout. Reschedules itself if
+ * more work remains.
  */
 export const cleanupOldChecks = internalAction({
   args: {},
   handler: async (ctx) => {
     const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
+    const maxBatchesPerRun = 20; // Cap to stay well under 10-min timeout
 
     console.log("[Cleanup] Starting cleanup of checks older than 30 days...");
 
-    // Query old checks
-    const oldChecks = await ctx.runQuery(internal.monitoring.getOldChecks, {
-      beforeTimestamp: thirtyDaysAgo,
-    });
+    let totalDeleted = 0;
+    let batchNumber = 0;
 
-    console.log(`[Cleanup] Found ${oldChecks.length} checks to delete`);
-
-    // Delete in batches to avoid timeout
-    const batchSize = 100;
-    for (let i = 0; i < oldChecks.length; i += batchSize) {
-      const batch = oldChecks.slice(i, i + batchSize);
-      await ctx.runMutation(internal.monitoring.deleteChecks, {
-        checkIds: batch.map((c) => c._id),
+    // Process up to maxBatchesPerRun batches, then reschedule if more remain
+    while (batchNumber < maxBatchesPerRun) {
+      const oldChecks = await ctx.runQuery(internal.monitoring.getOldChecks, {
+        beforeTimestamp: thirtyDaysAgo,
       });
+
+      if (oldChecks.length === 0) {
+        console.log(`[Cleanup] Complete: deleted ${totalDeleted} checks total`);
+        return;
+      }
+
+      batchNumber++;
+      console.log(
+        `[Cleanup] Batch ${batchNumber}: deleting ${oldChecks.length} checks`,
+      );
+
+      // Delete in sub-batches to avoid mutation size limits
+      const deleteBatchSize = 100;
+      for (let i = 0; i < oldChecks.length; i += deleteBatchSize) {
+        const batch = oldChecks.slice(i, i + deleteBatchSize);
+        await ctx.runMutation(internal.monitoring.deleteChecks, {
+          checkIds: batch.map((c) => c._id),
+        });
+      }
+
+      totalDeleted += oldChecks.length;
     }
 
-    console.log("[Cleanup] Cleanup complete");
+    // More work remains - reschedule to continue
+    await ctx.scheduler.runAfter(0, internal.monitoring.cleanupOldChecks, {});
+    console.log(
+      `[Cleanup] Paused after ${batchNumber} batches (${totalDeleted} deleted); rescheduled to continue`,
+    );
   },
 });
 
@@ -416,8 +438,12 @@ export const getOldChecks = internalQuery({
     beforeTimestamp: v.number(),
   },
   handler: async (ctx, args) => {
-    const allChecks = await ctx.db.query("checks").collect();
-    return allChecks.filter((check) => check.checkedAt < args.beforeTimestamp);
+    return ctx.db
+      .query("checks")
+      .withIndex("by_checked_at", (q) =>
+        q.lt("checkedAt", args.beforeTimestamp),
+      )
+      .take(1000);
   },
 });
 
