@@ -106,13 +106,13 @@ function Navigation() {
       <div className="hidden items-center gap-8 md:flex">
         <Link
           href="/pricing"
-          className="font-body text-sm text-[var(--color-text-secondary)] transition-colors hover:text-accent"
+          className="font-body text-sm text-secondary transition-colors hover:text-accent"
         >
           Pricing
         </Link>
         <a
           href="#features"
-          className="font-body text-sm text-[var(--color-text-secondary)] transition-colors hover:text-accent"
+          className="font-body text-sm text-secondary transition-colors hover:text-accent"
         >
           Features
         </a>
@@ -157,8 +157,9 @@ function HeroSection() {
           <motion.div variants={animationProps} className="col-span-full">
             <div
               className={cn(
-                "relative overflow-hidden rounded-2xl bg-[var(--color-bg-inverse)] p-8 sm:p-12 lg:p-16",
+                "relative overflow-hidden rounded-2xl p-8 sm:p-12 lg:p-16",
                 "flex min-h-[420px] flex-col justify-between lg:min-h-[520px]",
+                "bg-[#2d4a3e] dark:bg-[#f5f2eb]",
               )}
             >
               {/* Subtle grid pattern */}
@@ -171,16 +172,22 @@ function HeroSection() {
                 }}
               />
 
+              {/* Decorative vertical accent line */}
+              <div
+                className="pointer-events-none absolute left-8 top-1/2 hidden h-32 w-px -translate-y-1/2 bg-gradient-to-b from-transparent via-white/20 to-transparent lg:block dark:via-black/20"
+                aria-hidden="true"
+              />
+
               <div className="relative z-10">
-                <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 font-mono text-xs text-white/70">
-                  <span className="size-1.5 rounded-full bg-emerald-400" />
+                <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 font-mono text-xs text-white/70 dark:bg-black/10 dark:text-black/60">
+                  <span className="size-1.5 rounded-full bg-emerald-400 dark:bg-emerald-600" />
                   Now with public status pages
                 </span>
               </div>
 
               <div className="relative z-10 mt-8">
-                <h1 className="text-balance font-display text-4xl font-light leading-[1.1] tracking-tight text-[var(--color-text-inverse)] sm:text-5xl lg:text-6xl">
-                  <span className="mb-4 block font-mono text-xs uppercase tracking-[0.3em] opacity-60">
+                <h1 className="text-balance font-display text-4xl font-medium leading-[1.1] tracking-tight text-[#f5f2eb] drop-shadow-lg dark:text-[#1a1f1c] dark:drop-shadow-none sm:text-5xl lg:text-6xl">
+                  <span className="mb-4 block font-mono text-xs font-normal uppercase tracking-[0.3em] opacity-60">
                     Uptime, distilled
                   </span>
                   Know before
@@ -190,13 +197,13 @@ function HeroSection() {
                   <span className="opacity-50">do.</span>
                 </h1>
 
-                <p className="text-pretty mt-6 max-w-md font-body text-lg leading-relaxed text-[var(--color-text-inverse)]/70">
+                <p className="text-pretty mt-6 max-w-md font-body text-lg leading-relaxed text-[#f5f2eb]/70 dark:text-[#1a1f1c]/70">
                   60-second checks. Three-strike confirmation. Alerts in under
                   30 seconds.
                 </p>
 
                 {/* Value reinforcement near CTA */}
-                <div className="mb-4 flex items-center gap-2 text-sm text-[var(--color-text-inverse)]/60">
+                <div className="mb-4 flex items-center gap-2 text-sm text-[#f5f2eb]/60 dark:text-[#1a1f1c]/60">
                   <Shield className="size-4" />
                   <span className="font-body">
                     14-day free trial · No credit card to start · Setup in 60
@@ -218,9 +225,9 @@ function HeroSection() {
                   <a
                     href="#features"
                     className={cn(
-                      "inline-flex h-12 items-center justify-center border border-white/20 px-8",
-                      "font-body text-sm font-medium text-[var(--color-text-inverse)] transition-all",
-                      "hover:bg-white/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/50",
+                      "inline-flex h-12 items-center justify-center border border-white/20 px-8 dark:border-black/20",
+                      "font-body text-sm font-medium text-[#f5f2eb] transition-all dark:text-[#1a1f1c]",
+                      "hover:bg-white/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/50 dark:hover:bg-black/5",
                     )}
                   >
                     See features
@@ -232,24 +239,24 @@ function HeroSection() {
 
           {/* Key Benefits Bar */}
           <motion.div variants={animationProps} className="mt-6 lg:col-span-12">
-            <div className="flex flex-col items-center justify-center gap-4 rounded-xl bg-[var(--color-bg-secondary)] px-6 py-4 sm:flex-row sm:gap-8">
+            <div className="flex flex-col items-center justify-center gap-4 rounded-xl bg-surface-elevated px-6 py-4 sm:flex-row sm:gap-8">
               <div className="flex items-center gap-2">
                 <Shield className="size-4 text-accent" />
-                <span className="font-body text-sm text-[var(--color-text-secondary)]">
+                <span className="font-body text-sm text-secondary">
                   No false alarms
                 </span>
               </div>
               <div className="hidden h-4 w-px bg-border sm:block" />
               <div className="flex items-center gap-2">
                 <Clock className="size-4 text-accent" />
-                <span className="font-body text-sm text-[var(--color-text-secondary)]">
+                <span className="font-body text-sm text-secondary">
                   60-second checks
                 </span>
               </div>
               <div className="hidden h-4 w-px bg-border sm:block" />
               <div className="flex items-center gap-2">
                 <Zap className="size-4 text-accent" />
-                <span className="font-body text-sm text-[var(--color-text-secondary)]">
+                <span className="font-body text-sm text-secondary">
                   Alerts in under 30 seconds
                 </span>
               </div>
@@ -289,7 +296,7 @@ function TrustBar() {
               <span className="block font-display text-3xl font-light tabular-nums tracking-tight text-accent">
                 {stat.value}
               </span>
-              <span className="mt-1 block font-body text-xs uppercase tracking-widest text-[var(--color-text-muted)]">
+              <span className="mt-1 block font-body text-xs uppercase tracking-[0.2em] text-muted">
                 {stat.label}
               </span>
             </div>
@@ -318,15 +325,13 @@ function BentoFeatures() {
           transition={{ duration: 0.5 }}
           className="mb-16 text-center"
         >
-          <span className="mb-4 block font-body text-xs uppercase tracking-[0.2em] text-[var(--color-text-muted)]">
+          <span className="mb-4 block font-body text-xs uppercase tracking-[0.3em] text-muted">
             Features
           </span>
           <h2 className="text-balance font-display text-3xl font-light tracking-tight text-foreground sm:text-4xl">
             Everything you need,
             <br />
-            <span className="text-[var(--color-text-muted)]">
-              nothing you don't
-            </span>
+            <span className="text-muted">nothing you don&apos;t</span>
           </h2>
         </motion.div>
 
@@ -345,7 +350,7 @@ function BentoFeatures() {
             <BentoCard className="min-h-[400px]">
               <div className="flex h-full flex-col">
                 <div className="mb-6 flex items-center gap-3">
-                  <div className="flex size-10 items-center justify-center rounded-xl bg-up/10">
+                  <div className="flex size-10 items-center justify-center rounded-xl bg-accent/10">
                     <Globe className="size-5 text-accent" />
                   </div>
                   <h3 className="font-display text-xl font-medium text-foreground">
@@ -353,7 +358,7 @@ function BentoFeatures() {
                   </h3>
                 </div>
 
-                <p className="text-pretty mb-8 max-w-md font-body text-base leading-relaxed text-[var(--color-text-secondary)]">
+                <p className="text-pretty mb-8 max-w-md font-body text-base leading-relaxed text-secondary">
                   Check every minute for critical services, every hour for
                   everything else. You control the cadence. HTTP, HTTPS, TCP,
                   and ping supported.
@@ -380,7 +385,7 @@ function BentoFeatures() {
                   ].map((monitor, i) => (
                     <div
                       key={i}
-                      className="flex items-center justify-between rounded-lg bg-surface-elevated px-4 py-3"
+                      className="flex items-center justify-between rounded-lg bg-surface px-4 py-3"
                     >
                       <div className="flex items-center gap-3">
                         <span className="size-2 rounded-full bg-accent" />
@@ -389,10 +394,10 @@ function BentoFeatures() {
                         </span>
                       </div>
                       <div className="flex items-center gap-4">
-                        <span className="font-mono text-xs text-[var(--color-text-muted)]">
+                        <span className="font-mono text-xs text-muted">
                           {monitor.interval}
                         </span>
-                        <span className="font-mono text-xs tabular-nums text-[var(--color-text-muted)]">
+                        <span className="font-mono text-xs tabular-nums text-muted">
                           {monitor.last}
                         </span>
                       </div>
@@ -416,7 +421,7 @@ function BentoFeatures() {
             <BentoCard className="min-h-[400px]">
               <div className="flex h-full flex-col">
                 <div className="mb-6 flex items-center gap-3">
-                  <div className="flex size-10 items-center justify-center rounded-xl bg-up/10">
+                  <div className="flex size-10 items-center justify-center rounded-xl bg-accent/10">
                     <Bell className="size-5 text-accent" />
                   </div>
                   <h3 className="font-display text-xl font-medium text-foreground">
@@ -424,7 +429,7 @@ function BentoFeatures() {
                   </h3>
                 </div>
 
-                <p className="text-pretty mb-8 font-body text-base leading-relaxed text-[var(--color-text-secondary)]">
+                <p className="text-pretty mb-8 font-body text-base leading-relaxed text-secondary">
                   Three-strike rule eliminates false positives. Get notified
                   when it matters, not on every blip.
                 </p>
@@ -433,25 +438,25 @@ function BentoFeatures() {
                 <div className="mt-auto">
                   <div className="space-y-3">
                     <div className="flex items-center gap-4">
-                      <div className="flex size-8 items-center justify-center rounded-full bg-up/10 font-mono text-xs text-accent">
+                      <div className="flex size-8 items-center justify-center rounded-full bg-accent/10 font-mono text-xs text-accent">
                         1
                       </div>
-                      <span className="font-body text-sm text-[var(--color-text-secondary)]">
+                      <span className="font-body text-sm text-secondary">
                         First failure detected
                       </span>
                     </div>
                     <div className="ml-4 h-4 w-px bg-border" />
                     <div className="flex items-center gap-4">
-                      <div className="flex size-8 items-center justify-center rounded-full bg-up/10 font-mono text-xs text-accent">
+                      <div className="flex size-8 items-center justify-center rounded-full bg-accent/10 font-mono text-xs text-accent">
                         2
                       </div>
-                      <span className="font-body text-sm text-[var(--color-text-secondary)]">
+                      <span className="font-body text-sm text-secondary">
                         Second failure confirmed
                       </span>
                     </div>
                     <div className="ml-4 h-4 w-px bg-border" />
                     <div className="flex items-center gap-4">
-                      <div className="flex size-8 items-center justify-center rounded-full bg-accent font-mono text-xs text-[var(--color-text-inverse)]">
+                      <div className="flex size-8 items-center justify-center rounded-full bg-accent font-mono text-xs text-white dark:text-black">
                         3
                       </div>
                       <div>
@@ -481,19 +486,19 @@ function BentoFeatures() {
           >
             <BentoCard className="min-h-[280px]">
               <div className="flex h-full flex-col">
-                <div className="mb-4 flex size-10 items-center justify-center rounded-xl bg-up/10">
+                <div className="mb-4 flex size-10 items-center justify-center rounded-xl bg-accent/10">
                   <LayoutDashboard className="size-5 text-accent" />
                 </div>
                 <h3 className="mb-2 font-display text-lg font-medium text-foreground">
                   Public status pages
                 </h3>
-                <p className="text-pretty font-body text-sm leading-relaxed text-[var(--color-text-secondary)]">
+                <p className="text-pretty font-body text-sm leading-relaxed text-secondary">
                   Beautiful, simple status pages. Custom domain included.
                   Communicate downtime with transparency.
                 </p>
 
                 {/* Mini status preview */}
-                <div className="mt-auto rounded-lg bg-surface-elevated p-3">
+                <div className="mt-auto rounded-lg bg-surface p-3">
                   <div className="mb-2 flex items-center justify-between">
                     <span className="font-body text-xs font-medium text-foreground">
                       System Status
@@ -528,13 +533,13 @@ function BentoFeatures() {
           >
             <BentoCard className="min-h-[280px]">
               <div className="flex h-full flex-col">
-                <div className="mb-4 flex size-10 items-center justify-center rounded-xl bg-up/10">
+                <div className="mb-4 flex size-10 items-center justify-center rounded-xl bg-accent/10">
                   <History className="size-5 text-accent" />
                 </div>
                 <h3 className="mb-2 font-display text-lg font-medium text-foreground">
                   Forever history
                 </h3>
-                <p className="text-pretty font-body text-sm leading-relaxed text-[var(--color-text-secondary)]">
+                <p className="text-pretty font-body text-sm leading-relaxed text-secondary">
                   90 days of check history, response times, and incidents.
                   Searchable and exportable.
                 </p>
@@ -570,13 +575,13 @@ function BentoFeatures() {
           >
             <BentoCard className="min-h-[280px]">
               <div className="flex h-full flex-col">
-                <div className="mb-4 flex size-10 items-center justify-center rounded-xl bg-up/10">
+                <div className="mb-4 flex size-10 items-center justify-center rounded-xl bg-accent/10">
                   <Zap className="size-5 text-accent" />
                 </div>
                 <h3 className="mb-2 font-display text-lg font-medium text-foreground">
                   Lightning fast
                 </h3>
-                <p className="text-pretty font-body text-sm leading-relaxed text-[var(--color-text-secondary)]">
+                <p className="text-pretty font-body text-sm leading-relaxed text-secondary">
                   Global check infrastructure. Sub-30 second alert delivery. No
                   false positives.
                 </p>
@@ -586,7 +591,7 @@ function BentoFeatures() {
                     <span className="block font-display text-2xl font-light tabular-nums text-accent">
                       24ms
                     </span>
-                    <span className="font-body text-xs text-[var(--color-text-muted)]">
+                    <span className="font-body text-xs text-muted">
                       Avg response
                     </span>
                   </div>
@@ -594,7 +599,7 @@ function BentoFeatures() {
                     <span className="block font-display text-2xl font-light tabular-nums text-accent">
                       12
                     </span>
-                    <span className="font-body text-xs text-[var(--color-text-muted)]">
+                    <span className="font-body text-xs text-muted">
                       Global nodes
                     </span>
                   </div>
@@ -622,8 +627,8 @@ function BentoCard({
   return (
     <div
       className={cn(
-        "h-full rounded-2xl border border-border p-6 transition-shadow duration-300",
-        "bg-[var(--color-bg-secondary)]",
+        "h-full rounded-2xl border border-border p-6 transition-shadow duration-200",
+        "bg-surface",
         "hover:shadow-lg focus-within:shadow-lg",
         className,
       )}
@@ -673,15 +678,12 @@ function ValueSection() {
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.5 }}
           >
-            <span className="mb-4 block font-body text-xs uppercase tracking-[0.2em] text-[var(--color-text-muted)]">
+            <span className="mb-4 block font-body text-xs uppercase tracking-[0.3em] text-muted">
               Why Heartbeat
             </span>
             <h2 className="text-balance font-display text-3xl font-light leading-snug tracking-tight text-foreground">
               Built for teams who value
-              <span className="text-[var(--color-text-muted)]">
-                {" "}
-                focus over complexity
-              </span>
+              <span className="text-muted"> focus over complexity</span>
             </h2>
           </motion.div>
 
@@ -697,14 +699,14 @@ function ValueSection() {
           >
             {values.map((value, i) => (
               <div key={i} className="flex gap-5">
-                <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-up/10">
+                <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-accent/10">
                   <value.icon className="size-5 text-accent" />
                 </div>
                 <div>
                   <h3 className="mb-1 font-display text-base font-medium text-foreground">
                     {value.title}
                   </h3>
-                  <p className="text-pretty font-body text-sm leading-relaxed text-[var(--color-text-secondary)]">
+                  <p className="text-pretty font-body text-sm leading-relaxed text-secondary">
                     {value.description}
                   </p>
                 </div>
@@ -725,7 +727,7 @@ function CTASection() {
   const shouldReduceMotion = useReducedMotion() ?? false;
 
   return (
-    <section className="bg-[var(--color-bg-inverse)] px-6 py-24 lg:px-8">
+    <section className="bg-[#2d4a3e] px-6 py-24 dark:bg-[#f5f2eb] lg:px-8">
       <motion.div
         initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 24 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -733,15 +735,15 @@ function CTASection() {
         transition={{ duration: 0.6 }}
         className="mx-auto max-w-2xl text-center"
       >
-        <h2 className="text-balance font-display text-3xl font-light tracking-tight text-[var(--color-text-inverse)] sm:text-4xl">
+        <h2 className="text-balance font-display text-3xl font-medium tracking-tight text-[#f5f2eb] drop-shadow-lg dark:text-[#1a1f1c] dark:drop-shadow-none sm:text-4xl">
           Start monitoring in seconds
         </h2>
-        <p className="text-pretty mx-auto mb-8 mt-4 max-w-md font-body text-[var(--color-text-inverse)]/70">
+        <p className="text-pretty mx-auto mb-8 mt-4 max-w-md font-body text-[#f5f2eb]/70 dark:text-[#1a1f1c]/70">
           14 days free, full access. No credit card to start.
         </p>
 
         {/* Value reinforcement */}
-        <div className="mb-6 flex items-center justify-center gap-2 text-sm text-[var(--color-text-inverse)]/70">
+        <div className="mb-6 flex items-center justify-center gap-2 text-sm text-[#f5f2eb]/70 dark:text-[#1a1f1c]/70">
           <Zap className="size-4" />
           <span className="font-body">
             Setup takes 60 seconds. Know before your users do.
@@ -759,7 +761,7 @@ function CTASection() {
           Start 14-Day Trial
         </Link>
 
-        <p className="mt-6 font-body text-xs text-[var(--color-text-inverse)]/40">
+        <p className="mt-6 font-body text-xs text-[#f5f2eb]/40 dark:text-[#1a1f1c]/40">
           Plans from $9/mo after trial. Cancel anytime.
         </p>
       </motion.div>
@@ -785,9 +787,7 @@ function Footer() {
         {/* Logo */}
         <div className="flex items-center gap-3">
           <div className="size-2 rounded-full bg-accent opacity-50" />
-          <span className="font-display text-sm text-[var(--color-text-muted)]">
-            Heartbeat
-          </span>
+          <span className="font-display text-sm text-muted">Heartbeat</span>
         </div>
 
         {/* Links */}
@@ -796,7 +796,7 @@ function Footer() {
             <Link
               key={link.label}
               href={link.href}
-              className="font-body text-xs text-[var(--color-text-muted)] transition-colors hover:text-accent"
+              className="font-body text-xs text-muted transition-colors hover:text-accent"
             >
               {link.label}
             </Link>
@@ -804,9 +804,7 @@ function Footer() {
         </div>
 
         {/* Copyright */}
-        <span className="font-mono text-xs text-[var(--color-text-muted)]">
-          © 2026 Misty Step
-        </span>
+        <span className="font-mono text-xs text-muted">© 2026 Misty Step</span>
       </div>
     </footer>
   );

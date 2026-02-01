@@ -23,6 +23,10 @@
   --color-surface: var(--color-bg-elevated);
   --color-surface-elevated: var(--color-bg-secondary);
 
+  /* Text hierarchy - semantic tokens for Tailwind v4 */
+  --color-secondary: var(--color-text-secondary);
+  --color-muted: var(--color-text-muted);
+
   /* Status semantic mapping */
   --color-up: var(--color-status-up);
   --color-degraded: var(--color-status-degraded);
