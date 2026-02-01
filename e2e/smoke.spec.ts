@@ -8,9 +8,9 @@ test("landing page has correct title and content", async ({ page }) => {
     page.getByRole("heading", { name: /Know before your users/i }),
   ).toBeVisible();
 
-  // Check for "Start Trial" button (primary CTA)
+  // Check for "Start Trial" button (primary CTA - use first() since there are multiple)
   await expect(
-    page.getByRole("link", { name: /Start 14-Day Trial/i }),
+    page.getByRole("link", { name: /Start 14-Day Trial/i }).first(),
   ).toBeVisible();
 
   // Check for footer links
