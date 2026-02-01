@@ -31,6 +31,7 @@ import {
   Shield,
   Zap,
 } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 // =============================================================================
 // ANIMATION CONFIG
@@ -117,17 +118,20 @@ function Navigation() {
         </a>
       </div>
 
-      {/* CTA */}
-      <Link
-        href="/sign-in"
-        className={cn(
-          "font-body text-sm font-medium text-accent transition-colors",
-          "border-b border-accent/30 pb-0.5",
-          "hover:border-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
-        )}
-      >
-        Sign in
-      </Link>
+      {/* Theme Toggle + CTA */}
+      <div className="flex items-center gap-4">
+        <ThemeToggle />
+        <Link
+          href="/sign-in"
+          className={cn(
+            "font-body text-sm font-medium text-accent transition-colors",
+            "border-b border-accent/30 pb-0.5",
+            "hover:border-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
+          )}
+        >
+          Sign in
+        </Link>
+      </div>
     </motion.nav>
   );
 }
@@ -228,7 +232,7 @@ function HeroSection() {
 
           {/* Key Benefits Bar */}
           <motion.div variants={animationProps} className="mt-6 lg:col-span-12">
-            <div className="flex flex-col items-center justify-center gap-4 rounded-xl bg-surface-elevated px-6 py-4 sm:flex-row sm:gap-8">
+            <div className="flex flex-col items-center justify-center gap-4 rounded-xl bg-[var(--color-bg-secondary)] px-6 py-4 sm:flex-row sm:gap-8">
               <div className="flex items-center gap-2">
                 <Shield className="size-4 text-accent" />
                 <span className="font-body text-sm text-[var(--color-text-secondary)]">
@@ -618,7 +622,8 @@ function BentoCard({
   return (
     <div
       className={cn(
-        "h-full rounded-2xl border border-border bg-background p-6 transition-shadow duration-300",
+        "h-full rounded-2xl border border-border p-6 transition-shadow duration-300",
+        "bg-[var(--color-bg-secondary)]",
         "hover:shadow-lg focus-within:shadow-lg",
         className,
       )}
