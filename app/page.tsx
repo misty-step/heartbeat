@@ -4,7 +4,7 @@
  * DNA: [bento, brand-tinted, editorial, scroll-triggered, spacious, solid]
  * Aesthetic: Apple's bento grid meets Japanese minimalism
  * - Asymmetric cards of varying sizes
- * - Kyoto Moss palette (moss green, warm paper, brick red accents)
+ * - Kyoto Moss palette with light/dark theme support
  * - Editorial typography with Noto Serif JP
  * - Generous whitespace, intentional negative space
  * - Scroll-triggered reveals for orchestrated motion
@@ -33,30 +33,6 @@ import {
 } from "lucide-react";
 
 // =============================================================================
-// DESIGN TOKENS
-// =============================================================================
-
-const COLORS = {
-  moss: "#2d4a3e",
-  paper: "#f5f2eb",
-  paperDark: "#ebe8e1",
-  brick: "#a94442",
-  amber: "#b08d57",
-  mossLight: "#3d5a4e",
-  mossMuted: "rgba(45, 74, 62, 0.08)",
-  textPrimary: "#21362e",
-  textSecondary: "#46544c",
-  textMuted: "#766555",
-  border: "#d5d2cb",
-} as const;
-
-const FONTS = {
-  display: "'Noto Serif JP', Georgia, serif",
-  body: "'Manrope', system-ui, sans-serif",
-  mono: "'IBM Plex Mono', monospace",
-} as const;
-
-// =============================================================================
 // ANIMATION CONFIG
 // =============================================================================
 
@@ -80,20 +56,13 @@ const staggerContainer = {
 
 export default function LandingPage() {
   return (
-    <main
-      className="min-h-dvh antialiased"
-      style={{
-        backgroundColor: COLORS.paper,
-        color: COLORS.textPrimary,
-      }}
-    >
+    <main className="min-h-dvh bg-background text-foreground antialiased">
       {/* Subtle paper texture */}
       <div
-        className="pointer-events-none fixed inset-0"
+        className="pointer-events-none fixed inset-0 opacity-[0.025] dark:opacity-[0.015]"
         aria-hidden="true"
         style={{
           backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
-          opacity: 0.025,
         }}
       />
 
@@ -124,19 +93,10 @@ function Navigation() {
       {/* Logo */}
       <Link href="/" className="flex items-center gap-3">
         <div className="relative size-2.5">
-          <span
-            className="absolute inset-0 size-2.5 animate-ping rounded-full opacity-30"
-            style={{ backgroundColor: COLORS.moss }}
-          />
-          <span
-            className="relative block size-2.5 rounded-full"
-            style={{ backgroundColor: COLORS.moss }}
-          />
+          <span className="absolute inset-0 size-2.5 animate-ping rounded-full bg-accent opacity-30" />
+          <span className="relative block size-2.5 rounded-full bg-accent" />
         </div>
-        <span
-          className="text-lg tracking-tight"
-          style={{ fontFamily: FONTS.display, color: COLORS.textPrimary }}
-        >
+        <span className="font-display text-lg tracking-tight text-foreground">
           Heartbeat
         </span>
       </Link>
@@ -145,15 +105,13 @@ function Navigation() {
       <div className="hidden items-center gap-8 md:flex">
         <Link
           href="/pricing"
-          className="text-sm transition-colors hover:text-[#2d4a3e]"
-          style={{ fontFamily: FONTS.body, color: COLORS.textSecondary }}
+          className="font-body text-sm text-[var(--color-text-secondary)] transition-colors hover:text-accent"
         >
           Pricing
         </Link>
         <a
           href="#features"
-          className="text-sm transition-colors hover:text-[#2d4a3e]"
-          style={{ fontFamily: FONTS.body, color: COLORS.textSecondary }}
+          className="font-body text-sm text-[var(--color-text-secondary)] transition-colors hover:text-accent"
         >
           Features
         </a>
@@ -163,15 +121,10 @@ function Navigation() {
       <Link
         href="/sign-in"
         className={cn(
-          "text-sm font-medium transition-colors",
-          "border-b border-[#2d4a3e]/30 pb-0.5",
-          "hover:border-[#2d4a3e] focus-visible:outline-2 focus-visible:outline-offset-2",
+          "font-body text-sm font-medium text-accent transition-colors",
+          "border-b border-accent/30 pb-0.5",
+          "hover:border-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
         )}
-        style={{
-          fontFamily: FONTS.body,
-          color: COLORS.moss,
-          outlineColor: COLORS.moss,
-        }}
       >
         Sign in
       </Link>
@@ -200,74 +153,48 @@ function HeroSection() {
           <motion.div variants={animationProps} className="col-span-full">
             <div
               className={cn(
-                "relative overflow-hidden rounded-2xl p-8 sm:p-12 lg:p-16",
+                "relative overflow-hidden rounded-2xl bg-[var(--color-bg-inverse)] p-8 sm:p-12 lg:p-16",
                 "flex min-h-[420px] flex-col justify-between lg:min-h-[520px]",
               )}
-              style={{ backgroundColor: COLORS.moss }}
             >
               {/* Subtle grid pattern */}
               <div
                 className="pointer-events-none absolute inset-0 opacity-10"
                 aria-hidden="true"
                 style={{
-                  backgroundImage: `radial-gradient(circle at 1px 1px, #ffffff 1px, transparent 0)`,
+                  backgroundImage: `radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)`,
                   backgroundSize: "32px 32px",
                 }}
               />
 
               <div className="relative z-10">
-                <span
-                  className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs"
-                  style={{
-                    fontFamily: FONTS.mono,
-                    backgroundColor: "rgba(255,255,255,0.1)",
-                    color: "rgba(255,255,255,0.7)",
-                  }}
-                >
+                <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 font-mono text-xs text-white/70">
                   <span className="size-1.5 rounded-full bg-emerald-400" />
                   Now with public status pages
                 </span>
               </div>
 
               <div className="relative z-10 mt-8">
-                <h1
-                  className="text-balance text-4xl font-light leading-[1.1] tracking-tight sm:text-5xl lg:text-6xl"
-                  style={{
-                    fontFamily: FONTS.display,
-                    color: COLORS.paper,
-                  }}
-                >
-                  <span
-                    className="mb-4 block text-xs uppercase tracking-[0.3em] opacity-60"
-                    style={{ fontFamily: FONTS.mono }}
-                  >
+                <h1 className="text-balance font-display text-4xl font-light leading-[1.1] tracking-tight text-[var(--color-text-inverse)] sm:text-5xl lg:text-6xl">
+                  <span className="mb-4 block font-mono text-xs uppercase tracking-[0.3em] opacity-60">
                     Uptime, distilled
                   </span>
                   Know before
                   <br />
                   your users
                   <br />
-                  <span style={{ color: "rgba(245,242,235,0.5)" }}>do.</span>
+                  <span className="opacity-50">do.</span>
                 </h1>
 
-                <p
-                  className="text-pretty mt-6 max-w-md text-lg leading-relaxed"
-                  style={{
-                    fontFamily: FONTS.body,
-                    color: "rgba(245,242,235,0.7)",
-                  }}
-                >
+                <p className="text-pretty mt-6 max-w-md font-body text-lg leading-relaxed text-[var(--color-text-inverse)]/70">
                   60-second checks. Three-strike confirmation. Alerts in under
                   30 seconds.
                 </p>
 
                 {/* Value reinforcement near CTA */}
-                <div
-                  className="mb-4 flex items-center gap-2 text-sm"
-                  style={{ color: "rgba(245,242,235,0.6)" }}
-                >
+                <div className="mb-4 flex items-center gap-2 text-sm text-[var(--color-text-inverse)]/60">
                   <Shield className="size-4" />
-                  <span style={{ fontFamily: FONTS.body }}>
+                  <span className="font-body">
                     14-day free trial · No credit card to start · Setup in 60
                     seconds
                   </span>
@@ -278,31 +205,19 @@ function HeroSection() {
                     href="/sign-up"
                     className={cn(
                       "inline-flex h-12 items-center justify-center px-8",
-                      "text-sm font-medium transition-all",
-                      "hover:shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2",
+                      "bg-background font-body text-sm font-medium text-accent transition-all",
+                      "hover:shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-background",
                     )}
-                    style={{
-                      fontFamily: FONTS.body,
-                      backgroundColor: COLORS.paper,
-                      color: COLORS.moss,
-                      outlineColor: COLORS.paper,
-                    }}
                   >
                     Start 14-Day Trial
                   </Link>
                   <a
                     href="#features"
                     className={cn(
-                      "inline-flex h-12 items-center justify-center border px-8",
-                      "text-sm font-medium transition-all",
-                      "hover:bg-white/5 focus-visible:outline-2 focus-visible:outline-offset-2",
+                      "inline-flex h-12 items-center justify-center border border-white/20 px-8",
+                      "font-body text-sm font-medium text-[var(--color-text-inverse)] transition-all",
+                      "hover:bg-white/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/50",
                     )}
-                    style={{
-                      fontFamily: FONTS.body,
-                      borderColor: "rgba(255,255,255,0.2)",
-                      color: COLORS.paper,
-                      outlineColor: "rgba(255,255,255,0.5)",
-                    }}
                   >
                     See features
                   </a>
@@ -313,51 +228,24 @@ function HeroSection() {
 
           {/* Key Benefits Bar */}
           <motion.div variants={animationProps} className="mt-6 lg:col-span-12">
-            <div
-              className="flex flex-col items-center justify-center gap-4 rounded-xl px-6 py-4 sm:flex-row sm:gap-8"
-              style={{ backgroundColor: COLORS.paperDark }}
-            >
+            <div className="flex flex-col items-center justify-center gap-4 rounded-xl bg-surface-elevated px-6 py-4 sm:flex-row sm:gap-8">
               <div className="flex items-center gap-2">
-                <Shield className="size-4" style={{ color: COLORS.moss }} />
-                <span
-                  className="text-sm"
-                  style={{
-                    fontFamily: FONTS.body,
-                    color: COLORS.textSecondary,
-                  }}
-                >
+                <Shield className="size-4 text-accent" />
+                <span className="font-body text-sm text-[var(--color-text-secondary)]">
                   No false alarms
                 </span>
               </div>
-              <div
-                className="hidden h-4 w-px sm:block"
-                style={{ backgroundColor: COLORS.border }}
-              />
+              <div className="hidden h-4 w-px bg-border sm:block" />
               <div className="flex items-center gap-2">
-                <Clock className="size-4" style={{ color: COLORS.moss }} />
-                <span
-                  className="text-sm"
-                  style={{
-                    fontFamily: FONTS.body,
-                    color: COLORS.textSecondary,
-                  }}
-                >
+                <Clock className="size-4 text-accent" />
+                <span className="font-body text-sm text-[var(--color-text-secondary)]">
                   60-second checks
                 </span>
               </div>
-              <div
-                className="hidden h-4 w-px sm:block"
-                style={{ backgroundColor: COLORS.border }}
-              />
+              <div className="hidden h-4 w-px bg-border sm:block" />
               <div className="flex items-center gap-2">
-                <Zap className="size-4" style={{ color: COLORS.moss }} />
-                <span
-                  className="text-sm"
-                  style={{
-                    fontFamily: FONTS.body,
-                    color: COLORS.textSecondary,
-                  }}
-                >
+                <Zap className="size-4 text-accent" />
+                <span className="font-body text-sm text-[var(--color-text-secondary)]">
                   Alerts in under 30 seconds
                 </span>
               </div>
@@ -388,29 +276,16 @@ function TrustBar() {
       whileInView={{ opacity: 1 }}
       viewport={{ once: true, margin: "-100px" }}
       transition={{ duration: 0.6 }}
-      className="border-y px-6 py-12 lg:px-8"
-      style={{ borderColor: COLORS.border }}
+      className="border-y border-border px-6 py-12 lg:px-8"
     >
       <div className="mx-auto max-w-7xl">
         <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
           {stats.map((stat, i) => (
             <div key={i} className="text-center">
-              <span
-                className="block text-3xl font-light tabular-nums tracking-tight"
-                style={{
-                  fontFamily: FONTS.display,
-                  color: COLORS.moss,
-                }}
-              >
+              <span className="block font-display text-3xl font-light tabular-nums tracking-tight text-accent">
                 {stat.value}
               </span>
-              <span
-                className="mt-1 block text-xs uppercase tracking-widest"
-                style={{
-                  fontFamily: FONTS.body,
-                  color: COLORS.textMuted,
-                }}
-              >
+              <span className="mt-1 block font-body text-xs uppercase tracking-widest text-[var(--color-text-muted)]">
                 {stat.label}
               </span>
             </div>
@@ -439,19 +314,15 @@ function BentoFeatures() {
           transition={{ duration: 0.5 }}
           className="mb-16 text-center"
         >
-          <span
-            className="mb-4 block text-xs uppercase tracking-[0.2em]"
-            style={{ fontFamily: FONTS.body, color: COLORS.textMuted }}
-          >
+          <span className="mb-4 block font-body text-xs uppercase tracking-[0.2em] text-[var(--color-text-muted)]">
             Features
           </span>
-          <h2
-            className="text-balance text-3xl font-light tracking-tight sm:text-4xl"
-            style={{ fontFamily: FONTS.display, color: COLORS.textPrimary }}
-          >
+          <h2 className="text-balance font-display text-3xl font-light tracking-tight text-foreground sm:text-4xl">
             Everything you need,
             <br />
-            <span style={{ color: COLORS.textMuted }}>nothing you don't</span>
+            <span className="text-[var(--color-text-muted)]">
+              nothing you don't
+            </span>
           </h2>
         </motion.div>
 
@@ -470,30 +341,15 @@ function BentoFeatures() {
             <BentoCard className="min-h-[400px]">
               <div className="flex h-full flex-col">
                 <div className="mb-6 flex items-center gap-3">
-                  <div
-                    className="flex size-10 items-center justify-center rounded-xl"
-                    style={{ backgroundColor: COLORS.mossMuted }}
-                  >
-                    <Globe className="size-5" style={{ color: COLORS.moss }} />
+                  <div className="flex size-10 items-center justify-center rounded-xl bg-up/10">
+                    <Globe className="size-5 text-accent" />
                   </div>
-                  <h3
-                    className="text-xl font-medium"
-                    style={{
-                      fontFamily: FONTS.display,
-                      color: COLORS.textPrimary,
-                    }}
-                  >
+                  <h3 className="font-display text-xl font-medium text-foreground">
                     Flexible monitoring
                   </h3>
                 </div>
 
-                <p
-                  className="text-pretty mb-8 max-w-md text-base leading-relaxed"
-                  style={{
-                    fontFamily: FONTS.body,
-                    color: COLORS.textSecondary,
-                  }}
-                >
+                <p className="text-pretty mb-8 max-w-md font-body text-base leading-relaxed text-[var(--color-text-secondary)]">
                   Check every minute for critical services, every hour for
                   everything else. You control the cadence. HTTP, HTTPS, TCP,
                   and ping supported.
@@ -520,41 +376,19 @@ function BentoFeatures() {
                   ].map((monitor, i) => (
                     <div
                       key={i}
-                      className="flex items-center justify-between rounded-lg px-4 py-3"
-                      style={{ backgroundColor: COLORS.paperDark }}
+                      className="flex items-center justify-between rounded-lg bg-surface-elevated px-4 py-3"
                     >
                       <div className="flex items-center gap-3">
-                        <span
-                          className="size-2 rounded-full"
-                          style={{ backgroundColor: COLORS.moss }}
-                        />
-                        <span
-                          className="text-sm"
-                          style={{
-                            fontFamily: FONTS.body,
-                            color: COLORS.textPrimary,
-                          }}
-                        >
+                        <span className="size-2 rounded-full bg-accent" />
+                        <span className="font-body text-sm text-foreground">
                           {monitor.name}
                         </span>
                       </div>
                       <div className="flex items-center gap-4">
-                        <span
-                          className="text-xs"
-                          style={{
-                            fontFamily: FONTS.mono,
-                            color: COLORS.textMuted,
-                          }}
-                        >
+                        <span className="font-mono text-xs text-[var(--color-text-muted)]">
                           {monitor.interval}
                         </span>
-                        <span
-                          className="text-xs tabular-nums"
-                          style={{
-                            fontFamily: FONTS.mono,
-                            color: COLORS.textMuted,
-                          }}
-                        >
+                        <span className="font-mono text-xs tabular-nums text-[var(--color-text-muted)]">
                           {monitor.last}
                         </span>
                       </div>
@@ -578,30 +412,15 @@ function BentoFeatures() {
             <BentoCard className="min-h-[400px]">
               <div className="flex h-full flex-col">
                 <div className="mb-6 flex items-center gap-3">
-                  <div
-                    className="flex size-10 items-center justify-center rounded-xl"
-                    style={{ backgroundColor: COLORS.mossMuted }}
-                  >
-                    <Bell className="size-5" style={{ color: COLORS.moss }} />
+                  <div className="flex size-10 items-center justify-center rounded-xl bg-up/10">
+                    <Bell className="size-5 text-accent" />
                   </div>
-                  <h3
-                    className="text-xl font-medium"
-                    style={{
-                      fontFamily: FONTS.display,
-                      color: COLORS.textPrimary,
-                    }}
-                  >
+                  <h3 className="font-display text-xl font-medium text-foreground">
                     Smart alerting
                   </h3>
                 </div>
 
-                <p
-                  className="text-pretty mb-8 text-base leading-relaxed"
-                  style={{
-                    fontFamily: FONTS.body,
-                    color: COLORS.textSecondary,
-                  }}
-                >
+                <p className="text-pretty mb-8 font-body text-base leading-relaxed text-[var(--color-text-secondary)]">
                   Three-strike rule eliminates false positives. Get notified
                   when it matters, not on every blip.
                 </p>
@@ -610,77 +429,32 @@ function BentoFeatures() {
                 <div className="mt-auto">
                   <div className="space-y-3">
                     <div className="flex items-center gap-4">
-                      <div
-                        className="flex size-8 items-center justify-center rounded-full text-xs"
-                        style={{
-                          backgroundColor: COLORS.mossMuted,
-                          fontFamily: FONTS.mono,
-                          color: COLORS.moss,
-                        }}
-                      >
+                      <div className="flex size-8 items-center justify-center rounded-full bg-up/10 font-mono text-xs text-accent">
                         1
                       </div>
-                      <span
-                        className="text-sm"
-                        style={{
-                          fontFamily: FONTS.body,
-                          color: COLORS.textSecondary,
-                        }}
-                      >
+                      <span className="font-body text-sm text-[var(--color-text-secondary)]">
                         First failure detected
                       </span>
                     </div>
-                    <div className="ml-4 h-4 w-px bg-[#d5d2cb]" />
+                    <div className="ml-4 h-4 w-px bg-border" />
                     <div className="flex items-center gap-4">
-                      <div
-                        className="flex size-8 items-center justify-center rounded-full text-xs"
-                        style={{
-                          backgroundColor: COLORS.mossMuted,
-                          fontFamily: FONTS.mono,
-                          color: COLORS.moss,
-                        }}
-                      >
+                      <div className="flex size-8 items-center justify-center rounded-full bg-up/10 font-mono text-xs text-accent">
                         2
                       </div>
-                      <span
-                        className="text-sm"
-                        style={{
-                          fontFamily: FONTS.body,
-                          color: COLORS.textSecondary,
-                        }}
-                      >
+                      <span className="font-body text-sm text-[var(--color-text-secondary)]">
                         Second failure confirmed
                       </span>
                     </div>
-                    <div className="ml-4 h-4 w-px bg-[#d5d2cb]" />
+                    <div className="ml-4 h-4 w-px bg-border" />
                     <div className="flex items-center gap-4">
-                      <div
-                        className="flex size-8 items-center justify-center rounded-full text-xs"
-                        style={{
-                          backgroundColor: COLORS.moss,
-                          fontFamily: FONTS.mono,
-                          color: COLORS.paper,
-                        }}
-                      >
+                      <div className="flex size-8 items-center justify-center rounded-full bg-accent font-mono text-xs text-[var(--color-text-inverse)]">
                         3
                       </div>
                       <div>
-                        <span
-                          className="block text-sm font-medium"
-                          style={{
-                            fontFamily: FONTS.body,
-                            color: COLORS.textPrimary,
-                          }}
-                        >
+                        <span className="block font-body text-sm font-medium text-foreground">
                           Alert sent
                         </span>
-                        <span
-                          className="text-xs"
-                          style={{
-                            fontFamily: FONTS.mono,
-                            color: COLORS.amber,
-                          }}
-                        >
+                        <span className="font-mono text-xs text-degraded">
                           Email · Slack · Webhook
                         </span>
                       </div>
@@ -703,54 +477,24 @@ function BentoFeatures() {
           >
             <BentoCard className="min-h-[280px]">
               <div className="flex h-full flex-col">
-                <div
-                  className="mb-4 flex size-10 items-center justify-center rounded-xl"
-                  style={{ backgroundColor: COLORS.mossMuted }}
-                >
-                  <LayoutDashboard
-                    className="size-5"
-                    style={{ color: COLORS.moss }}
-                  />
+                <div className="mb-4 flex size-10 items-center justify-center rounded-xl bg-up/10">
+                  <LayoutDashboard className="size-5 text-accent" />
                 </div>
-                <h3
-                  className="mb-2 text-lg font-medium"
-                  style={{
-                    fontFamily: FONTS.display,
-                    color: COLORS.textPrimary,
-                  }}
-                >
+                <h3 className="mb-2 font-display text-lg font-medium text-foreground">
                   Public status pages
                 </h3>
-                <p
-                  className="text-pretty text-sm leading-relaxed"
-                  style={{
-                    fontFamily: FONTS.body,
-                    color: COLORS.textSecondary,
-                  }}
-                >
+                <p className="text-pretty font-body text-sm leading-relaxed text-[var(--color-text-secondary)]">
                   Beautiful, simple status pages. Custom domain included.
                   Communicate downtime with transparency.
                 </p>
 
                 {/* Mini status preview */}
-                <div
-                  className="mt-auto rounded-lg p-3"
-                  style={{ backgroundColor: COLORS.paperDark }}
-                >
+                <div className="mt-auto rounded-lg bg-surface-elevated p-3">
                   <div className="mb-2 flex items-center justify-between">
-                    <span
-                      className="text-xs font-medium"
-                      style={{
-                        fontFamily: FONTS.body,
-                        color: COLORS.textPrimary,
-                      }}
-                    >
+                    <span className="font-body text-xs font-medium text-foreground">
                       System Status
                     </span>
-                    <span
-                      className="flex items-center gap-1.5 text-xs"
-                      style={{ fontFamily: FONTS.mono, color: COLORS.moss }}
-                    >
+                    <span className="flex items-center gap-1.5 font-mono text-xs text-accent">
                       <span className="size-1.5 rounded-full bg-current" />
                       All good
                     </span>
@@ -759,8 +503,7 @@ function BentoFeatures() {
                     {Array.from({ length: 7 }).map((_, i) => (
                       <div
                         key={i}
-                        className="h-6 flex-1 rounded-sm"
-                        style={{ backgroundColor: COLORS.moss }}
+                        className="h-6 flex-1 rounded-sm bg-accent"
                       />
                     ))}
                   </div>
@@ -781,28 +524,13 @@ function BentoFeatures() {
           >
             <BentoCard className="min-h-[280px]">
               <div className="flex h-full flex-col">
-                <div
-                  className="mb-4 flex size-10 items-center justify-center rounded-xl"
-                  style={{ backgroundColor: COLORS.mossMuted }}
-                >
-                  <History className="size-5" style={{ color: COLORS.moss }} />
+                <div className="mb-4 flex size-10 items-center justify-center rounded-xl bg-up/10">
+                  <History className="size-5 text-accent" />
                 </div>
-                <h3
-                  className="mb-2 text-lg font-medium"
-                  style={{
-                    fontFamily: FONTS.display,
-                    color: COLORS.textPrimary,
-                  }}
-                >
+                <h3 className="mb-2 font-display text-lg font-medium text-foreground">
                   Forever history
                 </h3>
-                <p
-                  className="text-pretty text-sm leading-relaxed"
-                  style={{
-                    fontFamily: FONTS.body,
-                    color: COLORS.textSecondary,
-                  }}
-                >
+                <p className="text-pretty font-body text-sm leading-relaxed text-[var(--color-text-secondary)]">
                   90 days of check history, response times, and incidents.
                   Searchable and exportable.
                 </p>
@@ -813,10 +541,9 @@ function BentoFeatures() {
                     (h, i) => (
                       <div
                         key={i}
-                        className="flex-1 rounded-t-sm"
+                        className="flex-1 rounded-t-sm bg-accent"
                         style={{
                           height: `${h}%`,
-                          backgroundColor: COLORS.moss,
                           opacity: 0.3 + i / 24,
                         }}
                       />
@@ -839,70 +566,31 @@ function BentoFeatures() {
           >
             <BentoCard className="min-h-[280px]">
               <div className="flex h-full flex-col">
-                <div
-                  className="mb-4 flex size-10 items-center justify-center rounded-xl"
-                  style={{ backgroundColor: COLORS.mossMuted }}
-                >
-                  <Zap className="size-5" style={{ color: COLORS.moss }} />
+                <div className="mb-4 flex size-10 items-center justify-center rounded-xl bg-up/10">
+                  <Zap className="size-5 text-accent" />
                 </div>
-                <h3
-                  className="mb-2 text-lg font-medium"
-                  style={{
-                    fontFamily: FONTS.display,
-                    color: COLORS.textPrimary,
-                  }}
-                >
+                <h3 className="mb-2 font-display text-lg font-medium text-foreground">
                   Lightning fast
                 </h3>
-                <p
-                  className="text-pretty text-sm leading-relaxed"
-                  style={{
-                    fontFamily: FONTS.body,
-                    color: COLORS.textSecondary,
-                  }}
-                >
+                <p className="text-pretty font-body text-sm leading-relaxed text-[var(--color-text-secondary)]">
                   Global check infrastructure. Sub-30 second alert delivery. No
                   false positives.
                 </p>
 
                 <div className="mt-auto grid grid-cols-2 gap-4 pt-4">
                   <div>
-                    <span
-                      className="block text-2xl font-light tabular-nums"
-                      style={{
-                        fontFamily: FONTS.display,
-                        color: COLORS.moss,
-                      }}
-                    >
+                    <span className="block font-display text-2xl font-light tabular-nums text-accent">
                       24ms
                     </span>
-                    <span
-                      className="text-xs"
-                      style={{
-                        fontFamily: FONTS.body,
-                        color: COLORS.textMuted,
-                      }}
-                    >
+                    <span className="font-body text-xs text-[var(--color-text-muted)]">
                       Avg response
                     </span>
                   </div>
                   <div>
-                    <span
-                      className="block text-2xl font-light tabular-nums"
-                      style={{
-                        fontFamily: FONTS.display,
-                        color: COLORS.moss,
-                      }}
-                    >
+                    <span className="block font-display text-2xl font-light tabular-nums text-accent">
                       12
                     </span>
-                    <span
-                      className="text-xs"
-                      style={{
-                        fontFamily: FONTS.body,
-                        color: COLORS.textMuted,
-                      }}
-                    >
+                    <span className="font-body text-xs text-[var(--color-text-muted)]">
                       Global nodes
                     </span>
                   </div>
@@ -930,14 +618,10 @@ function BentoCard({
   return (
     <div
       className={cn(
-        "h-full rounded-2xl border p-6 transition-shadow duration-300",
+        "h-full rounded-2xl border border-border bg-background p-6 transition-shadow duration-300",
         "hover:shadow-lg focus-within:shadow-lg",
         className,
       )}
-      style={{
-        backgroundColor: COLORS.paper,
-        borderColor: COLORS.border,
-      }}
     >
       {children}
     </div>
@@ -972,10 +656,7 @@ function ValueSection() {
   ];
 
   return (
-    <section
-      className="border-t px-6 py-24 lg:px-8"
-      style={{ borderColor: COLORS.border }}
-    >
+    <section className="border-t border-border px-6 py-24 lg:px-8">
       <div className="mx-auto max-w-7xl">
         <div className="grid gap-16 lg:grid-cols-2 lg:gap-24">
           {/* Left: Header */}
@@ -987,18 +668,12 @@ function ValueSection() {
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.5 }}
           >
-            <span
-              className="mb-4 block text-xs uppercase tracking-[0.2em]"
-              style={{ fontFamily: FONTS.body, color: COLORS.textMuted }}
-            >
+            <span className="mb-4 block font-body text-xs uppercase tracking-[0.2em] text-[var(--color-text-muted)]">
               Why Heartbeat
             </span>
-            <h2
-              className="text-balance text-3xl font-light leading-snug tracking-tight"
-              style={{ fontFamily: FONTS.display, color: COLORS.textPrimary }}
-            >
+            <h2 className="text-balance font-display text-3xl font-light leading-snug tracking-tight text-foreground">
               Built for teams who value
-              <span style={{ color: COLORS.textMuted }}>
+              <span className="text-[var(--color-text-muted)]">
                 {" "}
                 focus over complexity
               </span>
@@ -1017,32 +692,14 @@ function ValueSection() {
           >
             {values.map((value, i) => (
               <div key={i} className="flex gap-5">
-                <div
-                  className="flex size-10 shrink-0 items-center justify-center rounded-xl"
-                  style={{ backgroundColor: COLORS.mossMuted }}
-                >
-                  <value.icon
-                    className="size-5"
-                    style={{ color: COLORS.moss }}
-                  />
+                <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-up/10">
+                  <value.icon className="size-5 text-accent" />
                 </div>
                 <div>
-                  <h3
-                    className="mb-1 text-base font-medium"
-                    style={{
-                      fontFamily: FONTS.display,
-                      color: COLORS.textPrimary,
-                    }}
-                  >
+                  <h3 className="mb-1 font-display text-base font-medium text-foreground">
                     {value.title}
                   </h3>
-                  <p
-                    className="text-pretty text-sm leading-relaxed"
-                    style={{
-                      fontFamily: FONTS.body,
-                      color: COLORS.textSecondary,
-                    }}
-                  >
+                  <p className="text-pretty font-body text-sm leading-relaxed text-[var(--color-text-secondary)]">
                     {value.description}
                   </p>
                 </div>
@@ -1063,10 +720,7 @@ function CTASection() {
   const shouldReduceMotion = useReducedMotion() ?? false;
 
   return (
-    <section
-      className="px-6 py-24 lg:px-8"
-      style={{ backgroundColor: COLORS.moss }}
-    >
+    <section className="bg-[var(--color-bg-inverse)] px-6 py-24 lg:px-8">
       <motion.div
         initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 24 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -1074,26 +728,17 @@ function CTASection() {
         transition={{ duration: 0.6 }}
         className="mx-auto max-w-2xl text-center"
       >
-        <h2
-          className="text-balance text-3xl font-light tracking-tight sm:text-4xl"
-          style={{ fontFamily: FONTS.display, color: COLORS.paper }}
-        >
+        <h2 className="text-balance font-display text-3xl font-light tracking-tight text-[var(--color-text-inverse)] sm:text-4xl">
           Start monitoring in seconds
         </h2>
-        <p
-          className="text-pretty mx-auto mb-8 mt-4 max-w-md"
-          style={{ fontFamily: FONTS.body, color: "rgba(245,242,235,0.7)" }}
-        >
+        <p className="text-pretty mx-auto mb-8 mt-4 max-w-md font-body text-[var(--color-text-inverse)]/70">
           14 days free, full access. No credit card to start.
         </p>
 
         {/* Value reinforcement */}
-        <div
-          className="mb-6 flex items-center justify-center gap-2 text-sm"
-          style={{ color: "rgba(245,242,235,0.7)" }}
-        >
+        <div className="mb-6 flex items-center justify-center gap-2 text-sm text-[var(--color-text-inverse)]/70">
           <Zap className="size-4" />
-          <span style={{ fontFamily: FONTS.body }}>
+          <span className="font-body">
             Setup takes 60 seconds. Know before your users do.
           </span>
         </div>
@@ -1102,23 +747,14 @@ function CTASection() {
           href="/sign-up"
           className={cn(
             "inline-flex h-14 items-center justify-center px-10",
-            "text-sm font-medium transition-all",
-            "hover:shadow-xl focus-visible:outline-2 focus-visible:outline-offset-2",
+            "bg-background font-body text-sm font-medium text-accent transition-all",
+            "hover:shadow-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-background",
           )}
-          style={{
-            fontFamily: FONTS.body,
-            backgroundColor: COLORS.paper,
-            color: COLORS.moss,
-            outlineColor: COLORS.paper,
-          }}
         >
           Start 14-Day Trial
         </Link>
 
-        <p
-          className="mt-6 text-xs"
-          style={{ fontFamily: FONTS.body, color: "rgba(245,242,235,0.4)" }}
-        >
+        <p className="mt-6 font-body text-xs text-[var(--color-text-inverse)]/40">
           Plans from $9/mo after trial. Cancel anytime.
         </p>
       </motion.div>
@@ -1139,21 +775,12 @@ function Footer() {
   ];
 
   return (
-    <footer
-      className="border-t px-6 py-12 lg:px-8"
-      style={{ borderColor: COLORS.border }}
-    >
+    <footer className="border-t border-border px-6 py-12 lg:px-8">
       <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-8 sm:flex-row">
         {/* Logo */}
         <div className="flex items-center gap-3">
-          <div
-            className="size-2 rounded-full"
-            style={{ backgroundColor: COLORS.moss, opacity: 0.5 }}
-          />
-          <span
-            className="text-sm"
-            style={{ fontFamily: FONTS.display, color: COLORS.textMuted }}
-          >
+          <div className="size-2 rounded-full bg-accent opacity-50" />
+          <span className="font-display text-sm text-[var(--color-text-muted)]">
             Heartbeat
           </span>
         </div>
@@ -1164,8 +791,7 @@ function Footer() {
             <Link
               key={link.label}
               href={link.href}
-              className="text-xs transition-colors hover:text-[#2d4a3e]"
-              style={{ fontFamily: FONTS.body, color: COLORS.textMuted }}
+              className="font-body text-xs text-[var(--color-text-muted)] transition-colors hover:text-accent"
             >
               {link.label}
             </Link>
@@ -1173,10 +799,7 @@ function Footer() {
         </div>
 
         {/* Copyright */}
-        <span
-          className="text-xs"
-          style={{ fontFamily: FONTS.mono, color: COLORS.textMuted }}
-        >
+        <span className="font-mono text-xs text-[var(--color-text-muted)]">
           © 2026 Misty Step
         </span>
       </div>
