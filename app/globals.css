@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Configure dark mode to use .dark class (for next-themes) instead of prefers-color-scheme */
+@variant dark (&:where(.dark, .dark *));
+
 /* ===== KYOTO MOSS DESIGN SYSTEM =====
  * Japanese minimalism meets wabi-sabi.
  * Technology in harmony with nature.

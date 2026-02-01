@@ -239,7 +239,7 @@ function HeroSection() {
 
           {/* Key Benefits Bar */}
           <motion.div variants={animationProps} className="mt-6 lg:col-span-12">
-            <div className="flex flex-col items-center justify-center gap-4 rounded-xl bg-surface-elevated px-6 py-4 sm:flex-row sm:gap-8">
+            <div className="flex flex-col items-center justify-center gap-4 rounded-xl bg-[#ebe8e1] px-6 py-4 dark:bg-[#242a26] sm:flex-row sm:gap-8">
               <div className="flex items-center gap-2">
                 <Shield className="size-4 text-accent" />
                 <span className="font-body text-sm text-secondary">
@@ -385,7 +385,7 @@ function BentoFeatures() {
                   ].map((monitor, i) => (
                     <div
                       key={i}
-                      className="flex items-center justify-between rounded-lg bg-surface px-4 py-3"
+                      className="flex items-center justify-between rounded-lg bg-[#ebe8e1] px-4 py-3 dark:bg-[#242a26]"
                     >
                       <div className="flex items-center gap-3">
                         <span className="size-2 rounded-full bg-accent" />
@@ -498,7 +498,7 @@ function BentoFeatures() {
                 </p>
 
                 {/* Mini status preview */}
-                <div className="mt-auto rounded-lg bg-surface p-3">
+                <div className="mt-auto rounded-lg bg-[#ebe8e1] p-3 dark:bg-[#242a26]">
                   <div className="mb-2 flex items-center justify-between">
                     <span className="font-body text-xs font-medium text-foreground">
                       System Status
@@ -628,7 +628,7 @@ function BentoCard({
     <div
       className={cn(
         "h-full rounded-2xl border border-border p-6 transition-shadow duration-200",
-        "bg-surface",
+        "bg-[#fdfcfa] dark:bg-[#2a302c]",
         "hover:shadow-lg focus-within:shadow-lg",
         className,
       )}
