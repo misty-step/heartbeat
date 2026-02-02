@@ -1,8 +1,9 @@
 /**
- * Landing Page - Kyoto Moss Design System
+ * Landing Page - Hearthstone Design System
  *
  * Aesthetic: Bento Grid - asymmetric dashboard layout with film grain
  * The status card displays real mixed-state data to demonstrate product value.
+ * Ember particles add warmth and visual interest to the hero section.
  *
  * Architecture follows Ousterhout principles:
  * - BentoGridCard: deep module hiding status logic
@@ -22,6 +23,7 @@ import {
   BentoGridCard,
   MIXED_STATE_MONITORS,
 } from "@/components/landing/StatusDisplayVariants";
+import { EmberParticles, EmberGlow } from "@/components/ui/EmberParticles";
 
 export default function HomePage() {
   return (
@@ -51,6 +53,12 @@ export default function HomePage() {
 function HeroSection() {
   return (
     <section className="min-h-dvh relative overflow-hidden">
+      {/* Ember particles - floating warm embers */}
+      <EmberParticles count={16} intensity={0.9} />
+
+      {/* Ember glow - ambient warmth from bottom */}
+      <EmberGlow />
+
       {/* Film grain texture */}
       <div
         className="absolute inset-0 opacity-[0.12] pointer-events-none mix-blend-overlay"

@@ -91,7 +91,7 @@ export function LiveMonitorPreview() {
         {/* Last Check */}
         <div className="flex items-center justify-between text-xs text-[var(--color-text-tertiary)] font-mono pt-2 border-t border-[var(--color-border-subtle)]">
           <span>Last check</span>
-          <span className="animate-km-breathe-subtle">
+          <span className="animate-hs-ember-flicker">
             {formatTime(lastCheck)}
           </span>
         </div>

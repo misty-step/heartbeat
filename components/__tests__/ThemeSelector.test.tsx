@@ -31,7 +31,7 @@ describe("ThemeSelector", () => {
       <ThemeSelector value="glass" onChange={onChange} userTier="pulse" />,
     );
 
-    const trigger = screen.getByRole("button", { name: /Kyoto Moss/i });
+    const trigger = screen.getByRole("button", { name: /Hearthstone/i });
     fireEvent.click(trigger);
     expect(screen.getByRole("listbox")).toBeInTheDocument();
 
@@ -44,13 +44,13 @@ describe("ThemeSelector", () => {
       <ThemeSelector value="glass" onChange={onChange} userTier="pulse" />,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: /Kyoto Moss/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Hearthstone/i }));
     expect(screen.getByRole("listbox")).toBeInTheDocument();
 
     fireEvent.keyDown(document, { key: "Escape" });
     expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: /Kyoto Moss/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Hearthstone/i }));
     expect(screen.getByRole("listbox")).toBeInTheDocument();
 
     fireEvent.mouseDown(document.body);
@@ -62,7 +62,7 @@ describe("ThemeSelector", () => {
       <ThemeSelector value="glass" onChange={onChange} userTier="pulse" />,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: /Kyoto Moss/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Hearthstone/i }));
     fireEvent.click(screen.getByRole("option", { name: /Ukiyo Refined/i }));
 
     expect(onChange).toHaveBeenCalledWith("ukiyo");
@@ -74,7 +74,7 @@ describe("ThemeSelector", () => {
       <ThemeSelector value="glass" onChange={onChange} userTier="pulse" />,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: /Kyoto Moss/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Hearthstone/i }));
     const option = screen.getByRole("option", { name: /Memphis Pop/i });
 
     fireEvent.keyDown(option, { key: "ArrowDown" });
@@ -83,7 +83,7 @@ describe("ThemeSelector", () => {
     fireEvent.keyDown(option, { key: "Enter" });
     expect(onChange).toHaveBeenCalledWith("memphis");
 
-    fireEvent.click(screen.getByRole("button", { name: /Kyoto Moss/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Hearthstone/i }));
     const spaceOption = screen.getByRole("option", { name: /Blueprint/i });
     fireEvent.keyDown(spaceOption, { key: " " });
     expect(onChange).toHaveBeenCalledWith("blueprint");

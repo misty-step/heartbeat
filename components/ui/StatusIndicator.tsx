@@ -1,13 +1,13 @@
 /**
- * StatusIndicator - Kyoto Moss Design System
+ * StatusIndicator - Hearthstone Design System
  *
  * The visual heartbeat of the system. Shows monitor status with
- * meditative breathing animation for "up" state.
+ * ember pulse animation for "up" state.
  *
  * Philosophy:
- * - Up = moss green, gently breathing (spring growth)
- * - Degraded = clay amber, subtle pulse (autumn warning)
- * - Down = brick red, still (winter stillness, managed with composure)
+ * - Up = amber glow, ember pulse (warmth, life)
+ * - Degraded = deeper orange, subtle flicker (cooling, attention)
+ * - Down = cooled ash, still (requires action)
  */
 
 import { cva, type VariantProps } from "class-variance-authority";
@@ -17,8 +17,8 @@ import type { StatusValue } from "@/lib/design/tokens";
 const statusIndicatorVariants = cva("rounded-full flex-shrink-0", {
   variants: {
     status: {
-      up: "bg-up animate-km-breathe",
-      degraded: "bg-degraded animate-km-breathe-subtle",
+      up: "bg-up animate-hs-ember-pulse",
+      degraded: "bg-degraded animate-hs-ember-flicker",
       down: "bg-down",
       unknown: "bg-unknown opacity-50",
     },

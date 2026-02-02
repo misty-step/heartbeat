@@ -1,22 +1,24 @@
 import type { Metadata } from "next";
-import { Manrope, Noto_Serif_JP, IBM_Plex_Mono } from "next/font/google";
+import { Lora, Nunito, IBM_Plex_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Providers } from "./providers";
 import "./globals.css";
 
-// Kyoto Moss Design System - Typography
-// Display: Noto Serif JP - Japanese elegance with wabi-sabi character
-const notoSerifJP = Noto_Serif_JP({
+// Hearthstone Design System - Typography
+// Display: Lora - Warm serif with cozy character
+const lora = Lora({
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  weight: ["400", "500", "600", "700"],
+  style: ["normal", "italic"],
   variable: "--font-display",
   display: "swap",
 });
 
-// Body: Manrope - Clean, humanist sans-serif
-const manrope = Manrope({
+// Body: Nunito - Rounded, friendly sans-serif
+const nunito = Nunito({
   subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
   variable: "--font-body",
   display: "swap",
 });
@@ -50,7 +52,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${notoSerifJP.variable} ${manrope.variable} ${ibmPlexMono.variable}`}
+      className={`${lora.variable} ${nunito.variable} ${ibmPlexMono.variable}`}
     >
       <body className="antialiased bg-background text-foreground">
         <Providers>{children}</Providers>

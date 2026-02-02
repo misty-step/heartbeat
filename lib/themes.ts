@@ -22,10 +22,10 @@ export interface ThemeDefinition {
 export const THEMES: Record<ThemeId, ThemeDefinition> = {
   glass: {
     id: "glass",
-    name: "Kyoto Moss",
-    description: "Clean glass dashboard with bento grid layout",
+    name: "Hearthstone",
+    description: "Warm workshop aesthetic with ember glow",
     minTier: "pulse",
-    colors: ["#2d4a3e", "#22c55e", "#f59e0b", "#ef4444"],
+    colors: ["#a0522d", "#d4891a", "#c1762e", "#8b7359"],
   },
   ukiyo: {
     id: "ukiyo",

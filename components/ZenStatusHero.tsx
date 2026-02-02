@@ -73,7 +73,7 @@ export function ZenStatusHero({ status, monitorName }: ZenStatusHeroProps) {
 
       {/* Content - UPPER LEFT with layered glass card */}
       <div className="relative z-10 h-full flex flex-col justify-start pt-16 sm:pt-24 px-6 sm:px-12 lg:px-24">
-        <div className="relative max-w-md animate-km-fade-in">
+        <div className="relative max-w-md animate-hs-fade-in">
           {/* 1. Ambient Backlight - Status-colored glow behind card (increased visibility) */}
           <div
             className={cn(
@@ -108,7 +108,7 @@ export function ZenStatusHero({ status, monitorName }: ZenStatusHeroProps) {
       {/* Scroll hint - centered at bottom */}
       <button
         onClick={handleScrollToDetails}
-        className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] transition-colors animate-km-hint z-10"
+        className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] transition-colors animate-hs-hint z-10"
         aria-label="Scroll to details"
       >
         <span className="text-xs tracking-wider uppercase">Details</span>

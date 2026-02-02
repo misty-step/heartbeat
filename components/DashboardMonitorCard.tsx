@@ -114,7 +114,7 @@ export function DashboardMonitorCard({
               {status === "up" && (
                 <div
                   className={cn(
-                    "absolute inset-[-3px] rounded-full border-2 opacity-30 animate-km-breathe-subtle",
+                    "absolute inset-[-3px] rounded-full border-2 opacity-30 animate-hs-ember-flicker",
                     ringColor[status],
                   )}
                 />

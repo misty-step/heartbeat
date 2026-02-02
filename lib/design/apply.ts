@@ -1,5 +1,5 @@
 /**
- * Kyoto Moss Design System - Theme Application
+ * Hearthstone Design System - Theme Application
  *
  * Runtime utilities for applying theme tokens to the DOM.
  * Works with next-themes for dark mode switching.
@@ -7,13 +7,13 @@
 
 import type { ThemePreset, ThemeMode } from "./schema";
 import type { DesignTokens, TokenKey } from "./tokens";
-import { kyotoMossTheme } from "./presets/kyoto-moss";
+import { hearthstoneTheme } from "./presets/hearthstone";
 
 /**
- * The active theme preset (currently only Kyoto Moss)
+ * The active theme preset (Hearthstone - warm workshop aesthetic)
  * Future: Could support multiple themes via registry
  */
-export const activeTheme: ThemePreset = kyotoMossTheme;
+export const activeTheme: ThemePreset = hearthstoneTheme;
 
 /**
  * Applies a complete token set to the document root

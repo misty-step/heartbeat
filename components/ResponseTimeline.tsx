@@ -176,7 +176,7 @@ export function ResponseTimeline({
                   : "var(--color-status-down)"
             }
             opacity={0.3}
-            className="animate-km-breathe-subtle"
+            className="animate-hs-ember-flicker"
           />
           {/* Inner dot */}
           <circle
