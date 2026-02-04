@@ -21,7 +21,7 @@ export interface Incident {
 export interface StatusPageThemeProps {
   monitorName: string;
   status: MonitorStatus;
-  uptimePercentage: number;
+  uptimePercentage: number | null;
   avgResponseTime: number;
   totalChecks?: number;
   lastCheckAt?: number;

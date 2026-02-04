@@ -39,7 +39,7 @@ interface Incident {
 interface GlassStatusPageProps {
   monitorName: string;
   status: MonitorStatus;
-  uptimePercentage: number;
+  uptimePercentage: number | null;
   avgResponseTime: number;
   totalChecks?: number;
   lastCheckAt?: number;
@@ -177,13 +177,21 @@ export function GlassStatusPage({
             <p
               className={cn(
                 "text-5xl sm:text-6xl font-mono font-medium tracking-tight",
-                config.text,
+                uptimePercentage === null
+                  ? "text-[var(--color-text-muted)]"
+                  : config.text,
               )}
             >
-              {uptimePercentage.toFixed(2)}
-              <span className="text-[0.4em] text-[var(--color-text-muted)] ml-1">
-                %
-              </span>
+              {uptimePercentage === null ? (
+                "—"
+              ) : (
+                <>
+                  {uptimePercentage.toFixed(2)}
+                  <span className="text-[0.4em] text-[var(--color-text-muted)] ml-1">
+                    %
+                  </span>
+                </>
+              )}
             </p>
 
             {/* Uptime bar */}

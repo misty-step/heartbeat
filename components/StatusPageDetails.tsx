@@ -29,7 +29,7 @@ interface Incident {
 interface StatusPageDetailsProps {
   status: MonitorStatus;
   chartData: ChartDataPoint[];
-  uptimePercentage: number;
+  uptimePercentage: number | null;
   avgResponseTime: number;
   lastCheckAt?: number;
   incidents: Incident[];
@@ -62,7 +62,13 @@ export function StatusPageDetails({
 }: StatusPageDetailsProps) {
   // Determine stat card status colors
   const uptimeStatus =
-    uptimePercentage > 99 ? "good" : uptimePercentage > 95 ? "warn" : "bad";
+    uptimePercentage === null
+      ? undefined
+      : uptimePercentage > 99
+        ? "good"
+        : uptimePercentage > 95
+          ? "warn"
+          : "bad";
   const responseStatus =
     avgResponseTime < 200 ? "good" : avgResponseTime < 500 ? "warn" : "bad";
 
@@ -98,7 +104,11 @@ export function StatusPageDetails({
           {/* Featured Uptime Card - spans 2 columns */}
           <StatCard
             label="Uptime"
-            value={`${uptimePercentage.toFixed(1)}%`}
+            value={
+              uptimePercentage === null
+                ? "Unavailable"
+                : `${uptimePercentage.toFixed(1)}%`
+            }
             status={uptimeStatus}
             size="large"
             className="col-span-2"
