@@ -234,6 +234,22 @@ export const markNotified = internalMutation({
 });
 
 /**
+ * Test helper to set notifiedAt to a specific timestamp.
+ * Used for testing throttling logic.
+ */
+export const testSetNotifiedAt = internalMutation({
+  args: {
+    incidentId: v.id("incidents"),
+    notifiedAt: v.number(),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.incidentId, {
+      notifiedAt: args.notifiedAt,
+    });
+  },
+});
+
+/**
  * Send a test notification email.
  * Used to verify email setup is working.
  */
