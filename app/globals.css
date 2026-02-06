@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Configure dark mode to use .dark class (for next-themes) instead of prefers-color-scheme */
+@variant dark (&:where(.dark, .dark *));
+
 /* ===== KYOTO MOSS DESIGN SYSTEM =====
  * Japanese minimalism meets wabi-sabi.
  * Technology in harmony with nature.
@@ -22,6 +25,10 @@
   --color-foreground: var(--color-text-primary);
   --color-surface: var(--color-bg-elevated);
   --color-surface-elevated: var(--color-bg-secondary);
+
+  /* Text hierarchy - semantic tokens for Tailwind v4 */
+  --color-secondary: var(--color-text-secondary);
+  --color-muted: var(--color-text-muted);
 
   /* Status semantic mapping */
   --color-up: var(--color-status-up);
