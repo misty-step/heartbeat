@@ -17,7 +17,7 @@ export default function NotFound() {
         {/* Row 1: Status + 404 */}
         <div className="flex items-center gap-8">
           <div className="relative">
-            <div className="absolute inset-0 bg-down-muted blur-xl rounded-full animate-km-breathe-subtle" />
+            <div className="absolute inset-0 bg-down-muted blur-xl rounded-full animate-hs-ember-flicker" />
             <StatusIndicator status="down" size="xl" cinematic />
           </div>
           <h1 className="font-display text-8xl md:text-9xl text-[var(--color-text-primary)] tracking-tighter leading-none">

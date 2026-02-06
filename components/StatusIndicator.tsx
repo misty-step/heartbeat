@@ -60,7 +60,7 @@ export function StatusIndicator({
 
       {/* Main status dot */}
       <div
-        className={`relative z-10 rounded-full ${sizeClasses[size]} ${dotColor} ${shouldBreathe ? "animate-km-breathe" : ""}`}
+        className={`relative z-10 rounded-full ${sizeClasses[size]} ${dotColor} ${shouldBreathe ? "animate-hs-ember-pulse" : ""}`}
       />
 
       {/* Glow effect for all statuses - increased visibility */}
@@ -75,7 +75,7 @@ export function StatusIndicator({
       {/* Breathing ring for up status - increased visibility */}
       {shouldBreathe && (
         <div
-          className="absolute inset-0 rounded-full animate-km-breathe-subtle"
+          className="absolute inset-0 rounded-full animate-hs-ember-pulse-subtle"
           style={{
             background: glowColor,
             opacity: 0.5,
@@ -94,7 +94,7 @@ export function StatusIndicator({
               inset: "-50%",
               background: `radial-gradient(circle, ${glowColor} 0%, transparent 70%)`,
               animation: shouldBreathe
-                ? "km-breathe 4s ease-in-out infinite"
+                ? "hs-ember-pulse 4s ease-in-out infinite"
                 : "none",
               opacity: 0.35,
             }}
@@ -106,7 +106,7 @@ export function StatusIndicator({
               className="absolute rounded-full bg-down"
               style={{
                 inset: "-75%",
-                animation: "km-breathe-subtle 3s ease-in-out infinite",
+                animation: "hs-ember-pulse-subtle 3s ease-in-out infinite",
                 opacity: 0.25,
                 filter: "blur(12px)",
               }}

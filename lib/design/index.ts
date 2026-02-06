@@ -1,11 +1,11 @@
 /**
- * Kyoto Moss Design System
+ * Hearthstone Design System
  *
- * Japanese minimalism meets wabi-sabi. Technology in harmony with nature.
+ * Warm workshop aesthetic. Fireplace glow, amber embers, evening comfort.
  *
  * @example
  * ```tsx
- * import { cn, kyotoMossTheme, getStatusClasses } from '@/lib/design';
+ * import { cn, hearthstoneTheme, getStatusClasses } from '@/lib/design';
  *
  * // Class composition
  * <div className={cn('p-4', isActive && 'bg-[var(--color-bg-elevated)]')} />
@@ -38,7 +38,7 @@ export type {
 export { defineTheme, validateTheme, isThemePreset } from "./schema";
 
 // Theme presets
-export { kyotoMossTheme } from "./presets/kyoto-moss";
+export { hearthstoneTheme } from "./presets/hearthstone";
 
 // Runtime application
 export {

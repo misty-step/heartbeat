@@ -101,7 +101,7 @@ describe("getToken", () => {
 
   it("returns expected value for light mode background", () => {
     const value = getToken("color-bg-primary", "light");
-    expect(value).toBe("#f5f2eb");
+    expect(value).toBe("#f5efe5");
   });
 });
 

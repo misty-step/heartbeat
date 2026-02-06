@@ -1,20 +1,21 @@
 @import "tailwindcss";
 
-/* ===== KYOTO MOSS DESIGN SYSTEM =====
- * Japanese minimalism meets wabi-sabi.
- * Technology in harmony with nature.
+/* ===== HEARTHSTONE DESIGN SYSTEM =====
+ * Warm workshop aesthetic. Fireplace glow, amber embers, evening comfort.
  *
  * Philosophy:
- * - Uptime is spring growth (moss green vitality)
- * - Degraded is autumn warning (clay/amber transition)
- * - Downtime is winter stillness (brick red, managed with composure)
+ * - Uptime is ember glow (amber warmth, life)
+ * - Degraded is deeper orange (cooling, attention needed)
+ * - Downtime is cooled ash (stillness, requires action)
+ *
+ * Typography: Lora (serif display) + Nunito (rounded sans body)
  */
 
 /* ===== DESIGN TOKENS ===== */
 @theme {
-  /* Typography - Editorial, refined */
-  --font-display: "Noto Serif JP", "Noto Serif", Georgia, serif;
-  --font-body: "Manrope", system-ui, -apple-system, sans-serif;
+  /* Typography - Cozy warmth */
+  --font-display: "Lora", Georgia, "Times New Roman", serif;
+  --font-body: "Nunito", system-ui, -apple-system, sans-serif;
   --font-mono: "IBM Plex Mono", "SF Mono", Consolas, monospace;
 
   /* Backgrounds */
@@ -35,45 +36,50 @@
   --color-accent: var(--color-accent-primary);
   --color-primary: var(--color-accent-primary);
 
+  /* Ember glow colors */
+  --color-ember: #ff9500;
+  --color-ember-subtle: rgba(255, 149, 0, 0.15);
+  --color-ember-glow: rgba(255, 149, 0, 0.4);
+
   /* Responsive page spacing */
   --spacing-page: clamp(1.5rem, 5vw, 6rem);
 }
 
 /* ===== LIGHT MODE (Default) ===== */
 :root {
-  /* Backgrounds - Warm, natural paper tones (SOLID - no opacity) */
-  --color-bg-primary: #f5f2eb;
-  --color-bg-secondary: #ebe8e1;
-  --color-bg-tertiary: #e0ddd6;
-  --color-bg-elevated: #fdfcfa;
-  --color-bg-inverse: #2d4a3e;
+  /* Backgrounds - Warm parchment tones (SOLID) */
+  --color-bg-primary: #f5efe5;
+  --color-bg-secondary: #f0e8dc;
+  --color-bg-tertiary: #e8dcc8;
+  --color-bg-elevated: #faf6f0;
+  --color-bg-inverse: #2a2018;
 
-  /* Text - Moss-tinted hierarchy (WCAG AA compliant) */
-  --color-text-primary: #21362e;
-  --color-text-secondary: #46544c;
-  --color-text-tertiary: #705d45;
-  --color-text-muted: #766555;
-  --color-text-inverse: #f5f2eb;
+  /* Text - Rich brown hierarchy (WCAG AA compliant) */
+  --color-text-primary: #2a2018;
+  --color-text-secondary: #5c4a3a;
+  --color-text-tertiary: #8b7359;
+  --color-text-muted: #a69078;
+  --color-text-inverse: #faf6f0;
 
-  /* Status - The heartbeat of the system */
-  --color-status-up: #2d4a3e;
-  --color-status-up-muted: rgba(45, 74, 62, 0.12);
-  --color-status-degraded: #b08d57;
-  --color-status-degraded-muted: rgba(176, 141, 87, 0.12);
-  --color-status-down: #a94442;
-  --color-status-down-muted: rgba(169, 68, 66, 0.12);
+  /* Status - Ember glow system */
+  --color-status-up: #d4891a;
+  --color-status-up-muted: rgba(212, 137, 26, 0.12);
+  --color-status-degraded: #c1762e;
+  --color-status-degraded-muted: rgba(193, 118, 46, 0.12);
+  --color-status-down: #8b7359;
+  --color-status-down-muted: rgba(139, 115, 89, 0.12);
 
-  /* Accents */
-  --color-accent-primary: #2d4a3e;
-  --color-accent-primary-hover: #3d5a4e;
-  --color-accent-secondary: #8b7355;
+  /* Accents - Burnt sienna */
+  --color-accent-primary: #a0522d;
+  --color-accent-primary-hover: #8b4513;
+  --color-accent-secondary: #d4891a;
 
-  /* Borders - SOLID colors, no opacity */
-  --color-border-subtle: #d5d2cb;
-  --color-border-default: #c0bdb6;
-  --color-border-strong: #a5a29b;
+  /* Borders - Warm tones (SOLID) */
+  --color-border-subtle: #e5d9c9;
+  --color-border-default: #d4c4b0;
+  --color-border-strong: #c4b09a;
 
-  /* Spacing (8px base) */
+  /* Spacing (4px base) */
   --spacing-xs: 4px;
   --spacing-sm: 8px;
   --spacing-md: 16px;
@@ -82,25 +88,29 @@
   --spacing-2xl: 48px;
   --spacing-3xl: 64px;
 
-  /* Radii - Soft but not bubbly */
-  --radius-sm: 4px;
+  /* Radii - Softer, cozier */
+  --radius-sm: 6px;
   --radius-md: 8px;
   --radius-lg: 12px;
   --radius-xl: 16px;
   --radius-full: 9999px;
 
-  /* Shadows - subtle but visible */
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.15);
-  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.2);
-  --shadow-glow: 0 0 20px rgba(45, 74, 62, 0.25);
+  /* Shadows - Sienna-tinted warmth */
+  --shadow-sm: 0 1px 2px rgba(160, 82, 45, 0.05);
+  --shadow-md:
+    0 4px 6px -1px rgba(160, 82, 45, 0.08),
+    0 2px 4px -2px rgba(160, 82, 45, 0.05);
+  --shadow-lg:
+    0 10px 15px -3px rgba(160, 82, 45, 0.1),
+    0 4px 6px -4px rgba(160, 82, 45, 0.05);
+  --shadow-glow: 0 0 20px rgba(255, 149, 0, 0.3);
 
-  /* Motion */
+  /* Motion - Gentle ember rhythm */
   --duration-instant: 0ms;
   --duration-fast: 100ms;
   --duration-normal: 200ms;
   --duration-slow: 300ms;
-  --duration-breathe: 4000ms;
+  --duration-breathe: 3000ms;
   --ease-default: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-out: cubic-bezier(0, 0, 0.2, 1);
   --ease-breathe: cubic-bezier(0.4, 0, 0.6, 1);
@@ -108,43 +118,45 @@
 
 /* ===== DARK MODE ===== */
 .dark {
-  /* Backgrounds - Deep forest night (SOLID - no opacity) */
-  --color-bg-primary: #1a1f1c;
-  --color-bg-secondary: #242a26;
-  --color-bg-tertiary: #2e3630;
-  --color-bg-elevated: #2a302c;
-  --color-bg-inverse: #f5f2eb;
+  /* Backgrounds - Deep brown (SOLID) */
+  --color-bg-primary: #1f1815;
+  --color-bg-secondary: #2a2018;
+  --color-bg-tertiary: #362a20;
+  --color-bg-elevated: #3d3025;
+  --color-bg-inverse: #faf6f0;
 
-  /* Text - Muted, restful hierarchy */
-  --color-text-primary: #e8e5de;
-  --color-text-secondary: #b5b0a5;
-  --color-text-tertiary: #8b8578;
-  --color-text-muted: #6b665c;
-  --color-text-inverse: #1a1f1c;
+  /* Text - Warm light hierarchy */
+  --color-text-primary: #faf6f0;
+  --color-text-secondary: #e5d9c9;
+  --color-text-tertiary: #c4b09a;
+  --color-text-muted: #a69078;
+  --color-text-inverse: #2a2018;
 
-  /* Status - Adjusted for dark backgrounds */
-  --color-status-up: #5a8a6f;
-  --color-status-up-muted: rgba(90, 138, 111, 0.15);
-  --color-status-degraded: #c9a86c;
-  --color-status-degraded-muted: rgba(201, 168, 108, 0.15);
-  --color-status-down: #c75a58;
-  --color-status-down-muted: rgba(199, 90, 88, 0.15);
+  /* Status - Brighter ember for dark backgrounds */
+  --color-status-up: #ffb366;
+  --color-status-up-muted: rgba(255, 179, 102, 0.15);
+  --color-status-degraded: #ffcc8a;
+  --color-status-degraded-muted: rgba(255, 204, 138, 0.15);
+  --color-status-down: #a69078;
+  --color-status-down-muted: rgba(166, 144, 120, 0.15);
 
-  /* Accents */
-  --color-accent-primary: #5a8a6f;
-  --color-accent-primary-hover: #6a9a7f;
-  --color-accent-secondary: #c9a86c;
+  /* Accents - Ember glow */
+  --color-accent-primary: #ff9500;
+  --color-accent-primary-hover: #ffb366;
+  --color-accent-secondary: #ffcc8a;
 
-  /* Borders - SOLID colors, no opacity */
-  --color-border-subtle: #3a403c;
-  --color-border-default: #4a504c;
-  --color-border-strong: #5a605c;
+  /* Borders - Warm tones (SOLID) */
+  --color-border-subtle: #4a3a2d;
+  --color-border-default: #5c4a3a;
+  --color-border-strong: #6b5645;
 
-  /* Shadows - Darker, more dramatic */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.4);
-  --shadow-glow: 0 0 20px rgba(90, 138, 111, 0.2);
+  /* Shadows - Warm glow in dark */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md:
+    0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.2);
+  --shadow-lg:
+    0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.3);
+  --shadow-glow: 0 0 30px rgba(255, 149, 0, 0.3);
 }
 
 /* ===== LAYOUT UTILITIES =====
@@ -234,48 +246,21 @@ body {
     color var(--duration-normal) var(--ease-out);
 }
 
-/* Paper texture overlay - wabi-sabi */
+/* Paper texture overlay - warm sienna-tinted noise */
 body::before {
   content: "";
   position: fixed;
   inset: 0;
   pointer-events: none;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-  opacity: 0.035;
+  opacity: 0.03;
   z-index: 1;
+  mix-blend-mode: multiply;
 }
 
-/* DEPRECATED: .hero-grid never used in codebase, marked for removal in next cleanup */
-/* ===== HERO GRID (Shoji-inspired) ===== */
-.hero-grid {
-  position: relative;
-}
-
-.hero-grid::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  background-image: linear-gradient(
-    to right,
-    var(--color-border-subtle) 1px,
-    transparent 1px
-  );
-  background-size: 120px 100%;
-  pointer-events: none;
-  z-index: -2;
-}
-
-/* Horizon line at golden ratio */
-.hero-grid::after {
-  content: "";
-  position: fixed;
-  top: 61.8%;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: var(--color-border-subtle);
-  pointer-events: none;
-  z-index: -2;
+.dark body::before {
+  opacity: 0.04;
+  mix-blend-mode: overlay;
 }
 
 /* ===== TYPOGRAPHY ===== */
@@ -360,33 +345,59 @@ body::before {
   color: var(--color-status-down);
 }
 
-/* ===== KYOTO MOSS ANIMATIONS ===== */
-/* Meditative breathing - like watching moss grow */
-@keyframes km-breathe {
+/* ===== HEARTHSTONE ANIMATIONS ===== */
+/* Ember pulse - warm flickering glow */
+@keyframes hs-ember-pulse {
   0%,
   100% {
-    opacity: 0.6;
+    opacity: 1;
+    box-shadow: 0 0 8px currentColor;
     transform: scale(1);
   }
   50% {
-    opacity: 1;
-    transform: scale(1.15);
-  }
-}
-
-@keyframes km-breathe-subtle {
-  0%,
-  100% {
     opacity: 0.7;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.08);
+    box-shadow: 0 0 4px currentColor;
+    transform: scale(1.1);
   }
 }
 
-@keyframes km-fade-in {
+/* Ember flicker - subtle fire-like variation */
+@keyframes hs-ember-flicker {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  25% {
+    opacity: 0.85;
+  }
+  50% {
+    opacity: 0.6;
+  }
+  75% {
+    opacity: 0.9;
+  }
+}
+
+/* Float up - rising ember particles */
+@keyframes hs-float-up {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.95;
+  }
+  85% {
+    opacity: 0.4;
+  }
+  100% {
+    transform: translateY(-120px) scale(0.3);
+    opacity: 0;
+  }
+}
+
+/* Fade in */
+@keyframes hs-fade-in {
   from {
     opacity: 0;
   }
@@ -395,7 +406,8 @@ body::before {
   }
 }
 
-@keyframes km-fade-in-up {
+/* Fade in with upward motion */
+@keyframes hs-fade-in-up {
   from {
     opacity: 0;
     transform: translateY(8px);
@@ -406,7 +418,8 @@ body::before {
   }
 }
 
-@keyframes km-hint-bob {
+/* Hint bob */
+@keyframes hs-hint-bob {
   0%,
   100% {
     transform: translateY(0);
@@ -416,49 +429,41 @@ body::before {
   }
 }
 
-.animate-km-breathe {
-  animation: km-breathe var(--duration-breathe) var(--ease-breathe) infinite;
+/* Animation utility classes */
+.animate-hs-ember-pulse {
+  animation: hs-ember-pulse var(--duration-breathe) var(--ease-breathe) infinite;
 }
 
-.animate-km-breathe-subtle {
-  animation: km-breathe-subtle var(--duration-breathe) var(--ease-breathe)
-    infinite;
+.animate-hs-ember-flicker {
+  animation: hs-ember-flicker 2s ease-in-out infinite;
 }
 
-.animate-km-fade-in {
-  animation: km-fade-in var(--duration-slow) var(--ease-out) forwards;
+.animate-hs-float-up {
+  animation: hs-float-up 4s ease-out infinite;
 }
 
-.animate-km-fade-in-up {
-  animation: km-fade-in-up var(--duration-slow) var(--ease-out) forwards;
+.animate-hs-fade-in {
+  animation: hs-fade-in var(--duration-slow) var(--ease-out) forwards;
 }
 
-.animate-km-hint {
+.animate-hs-fade-in-up {
+  animation: hs-fade-in-up var(--duration-slow) var(--ease-out) forwards;
+}
+
+.animate-hs-hint {
   animation:
-    km-fade-in 0.5s var(--ease-out) 2s forwards,
-    km-hint-bob 2s var(--ease-default) 2.5s infinite;
+    hs-fade-in 0.5s var(--ease-out) 2s forwards,
+    hs-hint-bob 2s var(--ease-default) 2.5s infinite;
   opacity: 0;
 }
 
-/* Legacy animation support (for existing components) */
-.animate-zen-breathe {
-  animation: km-breathe var(--duration-breathe) var(--ease-breathe) infinite;
-}
-
-.animate-zen-breathe-fast {
-  animation: km-breathe-subtle 3s var(--ease-breathe) infinite;
-}
-
-.animate-zen-fade-in {
-  animation: km-fade-in var(--duration-slow) var(--ease-out) forwards;
-}
-
+/* Generic animation aliases */
 .animate-fade-in-up {
-  animation: km-fade-in-up var(--duration-slow) var(--ease-out) forwards;
+  animation: hs-fade-in-up var(--duration-slow) var(--ease-out) forwards;
 }
 
 .animate-in {
-  animation: km-fade-in-up var(--duration-normal) var(--ease-out) forwards;
+  animation: hs-fade-in-up var(--duration-normal) var(--ease-out) forwards;
 }
 
 /* Staggered animation delays for cards */
@@ -491,7 +496,7 @@ body::before {
 }
 
 /* ===== SURFACE PATTERNS ===== */
-/* Zen dot matrix background - technical but calm */
+/* Dot matrix background - technical but warm */
 .zen-dot-matrix {
   position: relative;
 }
@@ -515,7 +520,7 @@ body::before {
   opacity: 0.05;
 }
 
-/* Dashboard grid - dot pattern as pseudo-element (NOT on container) */
+/* Dashboard grid - dot pattern as pseudo-element */
 .dashboard-grid {
   position: relative;
 }
@@ -539,16 +544,6 @@ body::before {
   opacity: 0.05;
 }
 
-/* Washi paper texture (alternative to noise) */
-.washi-texture::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-  opacity: 0.03;
-  pointer-events: none;
-}
-
 /* ===== INTERACTIVE ELEMENTS ===== */
 /* Card hover lift effect */
 .card-hover {
@@ -570,62 +565,15 @@ body::before {
   border: 1px solid var(--color-border-subtle);
 }
 
-/* DEPRECATED: .prose never used in codebase, marked for removal in next cleanup */
-/* ===== PROSE STYLING ===== */
-.prose {
-  max-width: 65ch;
-}
-
-.prose h1 {
-  font-family: var(--font-display);
-  font-size: 2.5rem;
-  line-height: 1.2;
-  margin-bottom: 2rem;
-}
-
-.prose h2 {
-  font-family: var(--font-display);
-  font-size: 1.5rem;
-  line-height: 1.3;
-  margin-top: 3rem;
-  margin-bottom: 1rem;
-}
-
-.prose p {
-  margin-bottom: 1.25rem;
-}
-
-.prose ul {
-  list-style-type: disc;
-  padding-left: 1.5rem;
-  margin-bottom: 1.25rem;
-}
-
-.prose li {
-  margin-bottom: 0.5rem;
-}
-
-.prose a {
-  text-decoration: underline;
-  text-underline-offset: 2px;
-  color: var(--color-accent-primary);
-}
-
-.prose a:hover {
-  opacity: 0.7;
-}
-
 /* ===== ACCESSIBILITY: REDUCED MOTION ===== */
 @media (prefers-reduced-motion: reduce) {
   /* Disable all continuous/looping animations */
-  .animate-km-breathe,
-  .animate-km-breathe-subtle,
-  .animate-km-hint,
-  .animate-km-fade-in,
-  .animate-km-fade-in-up,
-  .animate-zen-breathe,
-  .animate-zen-breathe-fast,
-  .animate-zen-fade-in,
+  .animate-hs-ember-pulse,
+  .animate-hs-ember-flicker,
+  .animate-hs-float-up,
+  .animate-hs-fade-in,
+  .animate-hs-fade-in-up,
+  .animate-hs-hint,
   .animate-fade-in-up,
   .animate-in {
     animation: none !important;

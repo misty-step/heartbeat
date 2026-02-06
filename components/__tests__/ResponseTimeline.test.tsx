@@ -129,7 +129,7 @@ describe("ResponseTimeline", () => {
     it("does not show live indicator by default", () => {
       const { container } = render(<ResponseTimeline data={mockData} />);
       const animatedElements = container.querySelectorAll(
-        ".animate-km-breathe-subtle",
+        ".animate-hs-ember-flicker",
       );
       expect(animatedElements.length).toBe(0);
     });
@@ -139,7 +139,7 @@ describe("ResponseTimeline", () => {
         <ResponseTimeline data={mockData} showLive />,
       );
       const animatedElements = container.querySelectorAll(
-        ".animate-km-breathe-subtle",
+        ".animate-hs-ember-flicker",
       );
       expect(animatedElements.length).toBe(1);
     });
@@ -149,7 +149,7 @@ describe("ResponseTimeline", () => {
         <ResponseTimeline data={mockData} showLive />,
       );
       const liveIndicator = container.querySelector(
-        ".animate-km-breathe-subtle",
+        ".animate-hs-ember-flicker",
       );
       expect(liveIndicator).toHaveAttribute("fill", "var(--color-status-up)");
     });
@@ -166,7 +166,7 @@ describe("ResponseTimeline", () => {
         <ResponseTimeline data={degradedData} showLive />,
       );
       const liveIndicator = container.querySelector(
-        ".animate-km-breathe-subtle",
+        ".animate-hs-ember-flicker",
       );
       expect(liveIndicator).toHaveAttribute(
         "fill",
@@ -182,7 +182,7 @@ describe("ResponseTimeline", () => {
         <ResponseTimeline data={downData} showLive />,
       );
       const liveIndicator = container.querySelector(
-        ".animate-km-breathe-subtle",
+        ".animate-hs-ember-flicker",
       );
       expect(liveIndicator).toHaveAttribute("fill", "var(--color-status-down)");
     });

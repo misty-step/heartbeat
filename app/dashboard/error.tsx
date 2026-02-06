@@ -32,7 +32,7 @@ export default function Error({
         {/* Status indicator + title */}
         <div className="flex items-center gap-6">
           <div className="relative">
-            <div className="absolute inset-0 bg-down-muted blur-xl rounded-full animate-km-breathe-subtle" />
+            <div className="absolute inset-0 bg-down-muted blur-xl rounded-full animate-hs-ember-flicker" />
             <StatusIndicator status="down" size="xl" cinematic />
           </div>
           <h1 className="font-display text-4xl md:text-5xl text-[var(--color-text-primary)] tracking-tight">

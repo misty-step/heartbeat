@@ -8,7 +8,7 @@ describe("StatusIndicator", () => {
       render(<StatusIndicator status="up" />);
       const indicator = screen.getByRole("status");
       expect(indicator).toHaveClass("bg-up");
-      expect(indicator).toHaveClass("animate-km-breathe");
+      expect(indicator).toHaveClass("animate-hs-ember-pulse");
       expect(indicator).toHaveAttribute("aria-label", "Status: up");
     });
 
@@ -16,7 +16,7 @@ describe("StatusIndicator", () => {
       render(<StatusIndicator status="degraded" />);
       const indicator = screen.getByRole("status");
       expect(indicator).toHaveClass("bg-degraded");
-      expect(indicator).toHaveClass("animate-km-breathe-subtle");
+      expect(indicator).toHaveClass("animate-hs-ember-flicker");
       expect(indicator).toHaveAttribute("aria-label", "Status: degraded");
     });
 
@@ -24,7 +24,7 @@ describe("StatusIndicator", () => {
       render(<StatusIndicator status="down" />);
       const indicator = screen.getByRole("status");
       expect(indicator).toHaveClass("bg-down");
-      expect(indicator).not.toHaveClass("animate-km-breathe");
+      expect(indicator).not.toHaveClass("animate-hs-ember-pulse");
       expect(indicator).toHaveAttribute("aria-label", "Status: down");
     });
 
