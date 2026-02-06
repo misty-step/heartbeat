@@ -59,7 +59,8 @@ export function MemphisStatusPage({
     },
     {
       label: "Uptime (30d)",
-      status: `${uptimePercentage.toFixed(2)}%`,
+      status:
+        uptimePercentage === null ? "—" : `${uptimePercentage.toFixed(2)}%`,
       color: "text-[#a855f7]",
       dot: "bg-[#00d4ff]",
     },
@@ -145,7 +146,10 @@ export function MemphisStatusPage({
             },
             {
               label: "Uptime",
-              value: `${uptimePercentage.toFixed(2)}%`,
+              value:
+                uptimePercentage === null
+                  ? "—"
+                  : `${uptimePercentage.toFixed(2)}%`,
               icon: "%",
               valueColor: "text-[#a855f7]",
               accent: "bg-[#00d4ff]",

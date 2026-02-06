@@ -40,8 +40,10 @@ const formatDate = (timestamp?: number) => {
   return new Date(timestamp).toISOString().slice(0, 10);
 };
 
-const uptimeTone = (uptime: number): StatusKey =>
-  uptime >= 99 ? "up" : uptime >= 95 ? "degraded" : "down";
+const uptimeTone = (uptime: number | null): StatusKey => {
+  if (uptime === null) return "degraded";
+  return uptime >= 99 ? "up" : uptime >= 95 ? "degraded" : "down";
+};
 
 const responseTone = (ms: number): StatusKey =>
   ms <= 300 ? "up" : ms <= 800 ? "degraded" : "down";
@@ -74,8 +76,12 @@ export function BlueprintStatusPage({
   const metrics = [
     {
       tag: "DIM A",
-      value: `${uptimePercentage.toFixed(2)}%`,
-      detail: "Uptime ratio — nominal",
+      value:
+        uptimePercentage === null ? "—" : `${uptimePercentage.toFixed(2)}%`,
+      detail:
+        uptimePercentage === null
+          ? "Uptime ratio — unavailable"
+          : "Uptime ratio — nominal",
       tone: uptimeTone(uptimePercentage),
     },
     {
@@ -108,7 +114,10 @@ export function BlueprintStatusPage({
       id: "01",
       component: `${monitorName} Core`,
       status: uptimeTone(uptimePercentage),
-      spec: `${uptimePercentage.toFixed(2)}% uptime`,
+      spec:
+        uptimePercentage === null
+          ? "Uptime unavailable"
+          : `${uptimePercentage.toFixed(2)}% uptime`,
     },
     {
       id: "02",
@@ -188,7 +197,13 @@ export function BlueprintStatusPage({
               },
               { label: "Last Check", value: lastCheckLabel },
               { label: "Status", value: statusStyles[status].label },
-              { label: "Uptime", value: `${uptimePercentage.toFixed(2)}%` },
+              {
+                label: "Uptime",
+                value:
+                  uptimePercentage === null
+                    ? "—"
+                    : `${uptimePercentage.toFixed(2)}%`,
+              },
             ].map((item) => (
               <div key={item.label} className="flex flex-col gap-1">
                 <span className="text-[10px] uppercase tracking-[0.2em] text-white/50">
@@ -361,7 +376,7 @@ export function BlueprintStatusPage({
                 <div className="text-[10px] uppercase tracking-[0.2em] text-white/50">
                   Description
                 </div>
-                <div>{`Status ${statusStyles[status].label.toLowerCase()} — ${uptimePercentage.toFixed(2)}% uptime`}</div>
+                <div>{`Status ${statusStyles[status].label.toLowerCase()} — ${uptimePercentage === null ? "unavailable" : `${uptimePercentage.toFixed(2)}% uptime`}`}</div>
               </div>
               <div className="min-w-[120px]">
                 <div className="text-[10px] uppercase tracking-[0.2em] text-white/50">

@@ -82,9 +82,7 @@ export default async function IndividualStatusPage({
 
   // Extract values with sensible defaults for failed queries
   const uptimeStats =
-    uptimeStatsResult.status === "fulfilled"
-      ? uptimeStatsResult.value
-      : { uptimePercentage: 100, totalChecks: 0 };
+    uptimeStatsResult.status === "fulfilled" ? uptimeStatsResult.value : null;
   const recentChecks =
     recentChecksResult.status === "fulfilled" ? recentChecksResult.value : [];
   const incidentsResponse =
@@ -121,7 +119,7 @@ export default async function IndividualStatusPage({
       theme={effectiveTheme}
       monitorName={monitor.name}
       status={monitor.status}
-      uptimePercentage={uptimeStats.uptimePercentage}
+      uptimePercentage={uptimeStats?.uptimePercentage ?? null}
       avgResponseTime={avgResponseTime}
       lastCheckAt={monitor.lastCheckAt}
       chartData={chartData}
