@@ -1,6 +1,6 @@
 {
   "name": "heartbeat",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "description": "Set and forget uptime monitoring",
   "private": true,
   "scripts": {

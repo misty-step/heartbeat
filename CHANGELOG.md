@@ -1,3 +1,9 @@
+# [1.7.0](https://github.com/misty-step/heartbeat/compare/v1.6.0...v1.7.0) (2026-02-21)
+
+### Features
+
+- **ux:** Replace browser confirm() with custom DeleteConfirmModal ([#96](https://github.com/misty-step/heartbeat/issues/96)) ([9e74067](https://github.com/misty-step/heartbeat/commit/9e740675771029bbebd89add014940015d07c3df)), closes [#41](https://github.com/misty-step/heartbeat/issues/41) [#41](https://github.com/misty-step/heartbeat/issues/41)
+
 # [1.6.0](https://github.com/misty-step/heartbeat/compare/v1.5.0...v1.6.0) (2026-02-21)
 
 ### Bug Fixes
