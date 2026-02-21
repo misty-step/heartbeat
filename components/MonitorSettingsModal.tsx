@@ -68,11 +68,11 @@ export function MonitorSettingsModal({
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape" && !showDeleteConfirm) onClose();
     };
     document.addEventListener("keydown", handleEscape);
     return () => document.removeEventListener("keydown", handleEscape);
-  }, [onClose]);
+  }, [onClose, showDeleteConfirm]);
 
   const validateForm = (): boolean => {
     const result = validateMonitorForm({
