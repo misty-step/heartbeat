@@ -101,7 +101,10 @@ export function SwissStatusPage({
               {[
                 {
                   label: "Uptime",
-                  value: `${uptimePercentage.toFixed(2)}%`,
+                  value:
+                    uptimePercentage === null
+                      ? "—"
+                      : `${uptimePercentage.toFixed(2)}%`,
                 },
                 {
                   label: "Response Time",

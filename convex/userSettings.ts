@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { query, mutation, internalQuery } from "./_generated/server";
+import { isInternalHostname } from "./lib/urlValidation";
 
 /**
  * Get user settings, creating defaults if none exist.
@@ -115,6 +116,10 @@ export const update = mutation({
       }
       if (url.protocol !== "https:") {
         throw new Error("Webhook URL must use HTTPS");
+      }
+      // SSRF protection: block internal network addresses
+      if (isInternalHostname(url.hostname)) {
+        throw new Error("Webhook URL cannot target internal networks");
       }
     }
 

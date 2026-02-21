@@ -1,6 +1,15 @@
 import { test, expect, describe, vi, beforeEach, afterEach } from "vitest";
 import { api, internal } from "../_generated/api";
 import { setupBackend, createTestSubscription } from "../../tests/convex";
+import { sendEmail } from "../lib/email";
+
+vi.mock("../lib/email", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../lib/email")>();
+  return {
+    ...actual,
+    sendEmail: vi.fn(async () => ({ success: true, id: "email_test" })),
+  };
+});
 
 const user = {
   name: "Test User",
@@ -477,5 +486,168 @@ describe("monitor-incident relationship", () => {
     expect(incidents2).toHaveLength(1);
     expect(incidents1[0].title).toBe("Monitor 1 is down");
     expect(incidents2[0].title).toBe("Monitor 2 is down");
+  });
+});
+
+describe("sendIncidentNotification throttling", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  test("blocks re-notification within throttle window", async () => {
+    const t = setupBackend();
+    const monitorId = await createTestMonitor(t);
+    const incidentId = await createTestIncident(t, monitorId);
+
+    // Set up user settings with 5 minute throttle
+    await setupUserSettings(t, { throttleMinutes: 5 });
+
+    // Mark incident as notified 1 minute ago (within 5 min throttle)
+    const oneMinuteAgo = Date.now() - 60 * 1000;
+    await t.mutation(internal.notifications.markNotified, {
+      incidentId,
+    });
+    // Override notifiedAt to be 1 minute ago by patching directly
+    await t.mutation(internal.notifications.testSetNotifiedAt, {
+      incidentId,
+      notifiedAt: oneMinuteAgo,
+    });
+
+    // Clear mocks after setup
+    vi.clearAllMocks();
+
+    // Try to send another "opened" notification
+    await t.action(internal.notifications.sendIncidentNotification, {
+      incidentId,
+      type: "opened",
+    });
+    await t.finishAllScheduledFunctions(advanceTimers);
+
+    // Email should NOT have been called (throttled)
+    expect(sendEmail).not.toHaveBeenCalled();
+  });
+
+  test("allows notification after throttle window expires", async () => {
+    const t = setupBackend();
+    const monitorId = await createTestMonitor(t);
+    const incidentId = await createTestIncident(t, monitorId);
+
+    // Set up user settings with 5 minute throttle
+    await setupUserSettings(t, { throttleMinutes: 5 });
+
+    // Mark incident as notified 6 minutes ago (past 5 min throttle)
+    const sixMinutesAgo = Date.now() - 6 * 60 * 1000;
+    await t.mutation(internal.notifications.markNotified, {
+      incidentId,
+    });
+    await t.mutation(internal.notifications.testSetNotifiedAt, {
+      incidentId,
+      notifiedAt: sixMinutesAgo,
+    });
+
+    // Clear mocks after setup
+    vi.clearAllMocks();
+
+    // Try to send another "opened" notification
+    await t.action(internal.notifications.sendIncidentNotification, {
+      incidentId,
+      type: "opened",
+    });
+    await t.finishAllScheduledFunctions(advanceTimers);
+
+    // Email SHOULD have been called (throttle expired)
+    expect(sendEmail).toHaveBeenCalledTimes(1);
+  });
+
+  test("throttling only applies to 'opened' notifications", async () => {
+    const t = setupBackend();
+    const monitorId = await createTestMonitor(t);
+    const incidentId = await createTestIncident(t, monitorId);
+
+    // Set up user settings with 5 minute throttle
+    await setupUserSettings(t, { throttleMinutes: 5 });
+
+    // Mark incident as notified 1 minute ago (within throttle)
+    const oneMinuteAgo = Date.now() - 60 * 1000;
+    await t.mutation(internal.notifications.markNotified, {
+      incidentId,
+    });
+    await t.mutation(internal.notifications.testSetNotifiedAt, {
+      incidentId,
+      notifiedAt: oneMinuteAgo,
+    });
+
+    // Clear mocks after setup
+    vi.clearAllMocks();
+
+    // Send "resolved" notification - should NOT be throttled
+    await t.action(internal.notifications.sendIncidentNotification, {
+      incidentId,
+      type: "resolved",
+    });
+    await t.finishAllScheduledFunctions(advanceTimers);
+
+    // Email SHOULD have been called (resolved ignores throttle)
+    expect(sendEmail).toHaveBeenCalledTimes(1);
+  });
+
+  test("allows first notification when notifiedAt is undefined", async () => {
+    const t = setupBackend();
+    const monitorId = await createTestMonitor(t);
+    const incidentId = await createTestIncident(t, monitorId);
+
+    // Set up user settings with 5 minute throttle
+    await setupUserSettings(t, { throttleMinutes: 5 });
+
+    // Do NOT mark as notified - notifiedAt is undefined
+    const incident = await t.query(internal.notifications.getIncident, {
+      incidentId,
+    });
+    expect(incident!.notifiedAt).toBeUndefined();
+
+    // Clear mocks after setup
+    vi.clearAllMocks();
+
+    // Send "opened" notification - should NOT be throttled
+    await t.action(internal.notifications.sendIncidentNotification, {
+      incidentId,
+      type: "opened",
+    });
+    await t.finishAllScheduledFunctions(advanceTimers);
+
+    // Email SHOULD have been called (first notification)
+    expect(sendEmail).toHaveBeenCalledTimes(1);
+  });
+
+  test("respects custom throttle minutes setting", async () => {
+    const t = setupBackend();
+    const monitorId = await createTestMonitor(t);
+    const incidentId = await createTestIncident(t, monitorId);
+
+    // Set up user settings with 30 minute throttle
+    await setupUserSettings(t, { throttleMinutes: 30 });
+
+    // Mark incident as notified 20 minutes ago (within 30 min throttle)
+    const twentyMinutesAgo = Date.now() - 20 * 60 * 1000;
+    await t.mutation(internal.notifications.markNotified, {
+      incidentId,
+    });
+    await t.mutation(internal.notifications.testSetNotifiedAt, {
+      incidentId,
+      notifiedAt: twentyMinutesAgo,
+    });
+
+    // Clear mocks after setup
+    vi.clearAllMocks();
+
+    // Try to send another "opened" notification
+    await t.action(internal.notifications.sendIncidentNotification, {
+      incidentId,
+      type: "opened",
+    });
+    await t.finishAllScheduledFunctions(advanceTimers);
+
+    // Email should NOT have been called (still within 30 min throttle)
+    expect(sendEmail).not.toHaveBeenCalled();
   });
 });

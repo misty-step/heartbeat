@@ -150,8 +150,9 @@ export function UkiyoStatusPage({
           <section className="mb-6 grid gap-4 sm:grid-cols-3">
             {[
               {
-                value: uptimePercentage.toFixed(2),
-                unit: "%",
+                value:
+                  uptimePercentage === null ? "—" : uptimePercentage.toFixed(2),
+                unit: uptimePercentage === null ? "" : "%",
               },
               {
                 value: Math.round(avgResponseTime).toString(),

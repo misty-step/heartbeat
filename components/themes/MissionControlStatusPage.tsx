@@ -40,8 +40,10 @@ const formatCountdown = (timestamp: number | undefined, now: number) => {
   return `T-MINUS 00:${minutes}:${seconds}`;
 };
 
-const uptimeTone = (uptime: number): StatusKey =>
-  uptime >= 99 ? "up" : uptime >= 95 ? "degraded" : "down";
+const uptimeTone = (uptime: number | null): StatusKey => {
+  if (uptime === null) return "degraded";
+  return uptime >= 99 ? "up" : uptime >= 95 ? "degraded" : "down";
+};
 
 const responseTone = (ms: number): StatusKey =>
   ms <= 250 ? "up" : ms <= 800 ? "degraded" : "down";
@@ -93,8 +95,8 @@ export function MissionControlStatusPage({
     },
     {
       label: "Uptime Ratio",
-      value: uptimePercentage.toFixed(2),
-      unit: "%",
+      value: uptimePercentage === null ? "—" : uptimePercentage.toFixed(2),
+      unit: uptimePercentage === null ? "" : "%",
       tone: uptimeTone(uptimePercentage),
     },
     {
@@ -121,7 +123,8 @@ export function MissionControlStatusPage({
     {
       name: monitorName,
       tone: status,
-      uptime: `${uptimePercentage.toFixed(2)}%`,
+      uptime:
+        uptimePercentage === null ? "—" : `${uptimePercentage.toFixed(2)}%`,
       latency: `${Math.round(avgResponseTime)}ms`,
     },
   ] satisfies Array<{
