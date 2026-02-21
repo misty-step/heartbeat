@@ -13,13 +13,11 @@ const convex = new ConvexReactClient(
 
 function ThemedToaster() {
   const { resolvedTheme } = useTheme();
-  return (
-    <Toaster
-      position="bottom-right"
-      richColors
-      theme={resolvedTheme as "light" | "dark" | "system"}
-    />
-  );
+  const theme =
+    resolvedTheme === "light" || resolvedTheme === "dark"
+      ? resolvedTheme
+      : "system";
+  return <Toaster position="bottom-right" richColors theme={theme} />;
 }
 
 export function Providers({
