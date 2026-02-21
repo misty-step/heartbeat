@@ -1,3 +1,9 @@
+# [1.8.0](https://github.com/misty-step/heartbeat/compare/v1.7.0...v1.8.0) (2026-02-21)
+
+### Features
+
+- **ux:** Warn on unsaved settings navigation ([#98](https://github.com/misty-step/heartbeat/issues/98)) ([9cbc12c](https://github.com/misty-step/heartbeat/commit/9cbc12c4bfa8f025a885ab5c3f8052d93383a0dd)), closes [#42](https://github.com/misty-step/heartbeat/issues/42)
+
 # [1.7.0](https://github.com/misty-step/heartbeat/compare/v1.6.0...v1.7.0) (2026-02-21)
 
 ### Features
