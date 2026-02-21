@@ -142,6 +142,7 @@ export function MonitorSettingsModal({
     setIsDeleting(true);
     try {
       await removeMonitor({ id: monitor._id });
+      setShowDeleteConfirm(false);
       onClose();
     } catch (error) {
       console.error("Failed to delete monitor:", error);
