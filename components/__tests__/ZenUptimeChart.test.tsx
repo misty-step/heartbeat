@@ -38,12 +38,34 @@ describe("ZenUptimeChart", () => {
     expect(circles.length).toBe(mockData.length);
   });
 
-  it("hit area meets 44px minimum touch target (r=22)", () => {
-    render(<ZenUptimeChart data={mockData} />);
+  it("hit area radius is 22 when point spacing allows (sparse data)", () => {
+    // 3 points in width=400 → stepX = 392/2 = 196, hitRadius = min(22, 98) = 22
+    render(<ZenUptimeChart data={mockData} width={400} height={128} />);
     const hitAreas = document.querySelectorAll("circle");
     hitAreas.forEach((circle) => {
-      expect(Number(circle.getAttribute("r"))).toBeGreaterThanOrEqual(22);
+      expect(Number(circle.getAttribute("r"))).toBe(22);
     });
+  });
+
+  it("hit area radius is capped at half point spacing for dense data to prevent overlap", () => {
+    // 50 points in width=400 → stepX = 392/49 ≈ 8.0, hitRadius = min(22, 4.0) ≈ 4.0
+    const denseData = Array.from({ length: 50 }, (_, i) => ({
+      timestamp: i * 1000,
+      responseTime: 100 + i,
+      status: "up" as const,
+    }));
+    const { unmount } = render(
+      <ZenUptimeChart data={denseData} width={400} height={128} />,
+    );
+    const hitAreas = document.querySelectorAll("circle");
+    const stepX = 392 / 49; // chartWidth / (n - 1)
+    hitAreas.forEach((circle) => {
+      const r = Number(circle.getAttribute("r"));
+      expect(r).toBeGreaterThan(0);
+      // Circles must not overlap: r <= stepX / 2
+      expect(r).toBeLessThanOrEqual(stepX / 2 + Number.EPSILON);
+    });
+    unmount();
   });
 
   it("shows tooltip on touch start", () => {
