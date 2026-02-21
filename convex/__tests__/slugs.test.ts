@@ -1,6 +1,7 @@
 import { describe, test, expect } from "vitest";
 import {
   generateStatusSlug,
+  generateUniqueStatusSlug,
   isValidStatusSlugFormat,
   WORD_LISTS,
 } from "../slugs";
@@ -96,5 +97,40 @@ describe("WORD_LISTS", () => {
     );
     expect(new Set(WORD_LISTS.nouns).size).toBe(WORD_LISTS.nouns.length);
     expect(new Set(WORD_LISTS.verbs).size).toBe(WORD_LISTS.verbs.length);
+  });
+});
+
+describe("generateUniqueStatusSlug", () => {
+  test("returns a slug when no collision exists", async () => {
+    // Mock ctx where the slug is always available (no existing record)
+    const ctx = {
+      db: {
+        query: () => ({
+          withIndex: () => ({
+            first: async () => null,
+          }),
+        }),
+      },
+    } as any;
+
+    const slug = await generateUniqueStatusSlug(ctx, 5);
+    expect(isValidStatusSlugFormat(slug)).toBe(true);
+  });
+
+  test("falls back to hex-suffixed slug after exhausting all attempts", async () => {
+    // Mock ctx where every slug is already taken (always returns a record)
+    const ctx = {
+      db: {
+        query: () => ({
+          withIndex: () => ({
+            first: async () => ({ _id: "existing" }),
+          }),
+        }),
+      },
+    } as any;
+
+    const slug = await generateUniqueStatusSlug(ctx, 3);
+    // Fallback slug appends a 4-char hex suffix: word-word-word-xxxx
+    expect(slug).toMatch(/^[a-z]+-[a-z]+-[a-z]+-[0-9a-f]{4}$/);
   });
 });

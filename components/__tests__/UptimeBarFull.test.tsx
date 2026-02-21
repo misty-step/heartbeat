@@ -1,5 +1,5 @@
 import { describe, expect, test, vi, beforeEach, type Mock } from "vitest";
-import { render } from "@testing-library/react";
+import { render, fireEvent } from "@testing-library/react";
 import { UptimeBar } from "../UptimeBar";
 import { useQuery } from "convex/react";
 
@@ -65,5 +65,60 @@ describe("UptimeBar", () => {
     bars.forEach((bar) => {
       expect((bar as HTMLElement).className).toContain("bg-down");
     });
+  });
+
+  test("renders degraded status bars with degraded color", () => {
+    mockUseQuery.mockReturnValue(
+      generateDailyStatus(3, ["degraded", "degraded", "degraded"]),
+    );
+    const { container } = render(
+      <UptimeBar monitorId={"monitor-4" as any} days={3} />,
+    );
+    const bars = Array.from(container.querySelectorAll(".flex-1.h-6"));
+    bars.forEach((bar) => {
+      expect((bar as HTMLElement).className).toContain("bg-degraded");
+    });
+  });
+
+  test("renders unknown status (no data) bars with subtle border color", () => {
+    // Return empty array — all dates will have no data (unknown status)
+    mockUseQuery.mockReturnValue([]);
+    const { container } = render(
+      <UptimeBar monitorId={"monitor-5" as any} days={3} />,
+    );
+    const bars = Array.from(container.querySelectorAll(".flex-1.h-6"));
+    bars.forEach((bar) => {
+      // Unknown dates use border-subtle color, not a status color
+      expect((bar as HTMLElement).className).not.toContain("bg-up");
+      expect((bar as HTMLElement).className).not.toContain("bg-down");
+      expect((bar as HTMLElement).className).not.toContain("bg-degraded");
+    });
+  });
+
+  test("shows tooltip with date and status on hover", () => {
+    mockUseQuery.mockReturnValue(generateDailyStatus(3, ["up", "down", "up"]));
+    const { container } = render(
+      <UptimeBar monitorId={"monitor-6" as any} days={3} />,
+    );
+    const bars = Array.from(container.querySelectorAll(".flex-1.h-6"));
+    // Hover the second bar (down)
+    fireEvent.mouseEnter(bars[1]);
+    // Tooltip should be visible — look for status text
+    const tooltip = container.querySelector(".absolute.-top-10");
+    expect(tooltip).not.toBeNull();
+  });
+
+  test("hides tooltip when mouse leaves the container", () => {
+    mockUseQuery.mockReturnValue(generateDailyStatus(3, ["up", "up", "up"]));
+    const { container } = render(
+      <UptimeBar monitorId={"monitor-7" as any} days={3} />,
+    );
+    const bars = Array.from(container.querySelectorAll(".flex-1.h-6"));
+    // Hover then leave
+    fireEvent.mouseEnter(bars[0]);
+    const wrapper = container.querySelector(".relative.flex.gap-\\[2px\\]");
+    if (wrapper) fireEvent.mouseLeave(wrapper);
+    const tooltip = container.querySelector(".absolute.-top-10");
+    expect(tooltip).toBeNull();
   });
 });
