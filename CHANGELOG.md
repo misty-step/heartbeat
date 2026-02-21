@@ -1,3 +1,23 @@
+# [1.6.0](https://github.com/misty-step/heartbeat/compare/v1.5.0...v1.6.0) (2026-02-21)
+
+### Bug Fixes
+
+- **ci:** use GH_RELEASE_TOKEN for semantic-release ([8d5f45d](https://github.com/misty-step/heartbeat/commit/8d5f45d9f6e9ebc4a1794bf12e6bbf410601a250))
+- **security:** add SSRF protection to webhook URL validation ([#90](https://github.com/misty-step/heartbeat/issues/90)) ([4c56c9d](https://github.com/misty-step/heartbeat/commit/4c56c9dd34aae265e2688cd59590191ac45feb00)), closes [#32](https://github.com/misty-step/heartbeat/issues/32)
+- **status:** Handle unavailable uptime stats gracefully ([#91](https://github.com/misty-step/heartbeat/issues/91)) ([0f22ff9](https://github.com/misty-step/heartbeat/commit/0f22ff91011c76125299a3cd308124d6d4937f6a)), closes [#87](https://github.com/misty-step/heartbeat/issues/87)
+- **ux:** Surface specific error messages on monitor creation ([#85](https://github.com/misty-step/heartbeat/issues/85)) ([45673c0](https://github.com/misty-step/heartbeat/commit/45673c088d84a9d037369c854ce6471f8bdd87b4)), closes [#40](https://github.com/misty-step/heartbeat/issues/40)
+
+### Features
+
+- Add curated status page themes (Vital tier) ([#80](https://github.com/misty-step/heartbeat/issues/80)) ([60b8cf6](https://github.com/misty-step/heartbeat/commit/60b8cf62117e9946b08509dab814e7fc7da4d1c2))
+- Bento Zen landing page with authenticated user redirect ([#88](https://github.com/misty-step/heartbeat/issues/88)) ([97d0b30](https://github.com/misty-step/heartbeat/commit/97d0b30faf0ddd25878081f304619a4439162113))
+- **ux:** Replace inline feedback messages with sonner toast notifications ([#95](https://github.com/misty-step/heartbeat/issues/95)) ([c237066](https://github.com/misty-step/heartbeat/commit/c237066dee6a5cc1af67d6eb46fca02499871ee9)), closes [#39](https://github.com/misty-step/heartbeat/issues/39)
+
+### Performance Improvements
+
+- **cleanup:** Use indexed query for getOldChecks ([#83](https://github.com/misty-step/heartbeat/issues/83)) ([04878fb](https://github.com/misty-step/heartbeat/commit/04878fb143bc8f6233e251e47c11c74d034fff9d)), closes [#13](https://github.com/misty-step/heartbeat/issues/13)
+- **status:** Parallelize status page API calls ([#84](https://github.com/misty-step/heartbeat/issues/84)) ([0129f1c](https://github.com/misty-step/heartbeat/commit/0129f1c546beb05635e3f7a0640cb52df8acd9da)), closes [#14](https://github.com/misty-step/heartbeat/issues/14)
+
 # [1.5.0](https://github.com/misty-step/heartbeat/compare/v1.4.0...v1.5.0) (2026-01-27)
 
 ### Bug Fixes
