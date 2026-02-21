@@ -378,10 +378,10 @@ export default function SettingsPage() {
         >
           <div className="relative w-full max-w-sm mx-4 bg-[var(--color-bg-primary)] shadow-[var(--shadow-lg)] border border-[var(--color-border-subtle)] rounded-[var(--radius-lg)]">
             <div className="px-6 py-6">
-              <h2 className="font-display text-xl text-[var(--color-text-primary)] mb-3">
+              <h2 className="font-serif text-xl text-[var(--color-text-primary)] mb-3">
                 Unsaved Changes
               </h2>
-              <p className="text-sm text-[var(--color-text-secondary)] leading-relaxed mb-6">
+              <p className="font-sans text-sm text-[var(--color-text-secondary)] leading-relaxed mb-6">
                 You have unsaved changes. If you leave now, they will be lost.
               </p>
               <div className="flex gap-3 justify-end">
