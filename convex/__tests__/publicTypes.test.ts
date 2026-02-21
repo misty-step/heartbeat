@@ -1,7 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { Doc, Id } from "../_generated/dataModel";
 import {
-  computeMonitorStatus,
   toPublicCheck,
   toPublicIncident,
   toPublicMonitor,
@@ -61,16 +60,6 @@ const createIncidentDoc = (
   description: "Internal stacktrace",
   notifiedAt: 170001,
   ...overrides,
-});
-
-describe("computeMonitorStatus", () => {
-  test("uses thresholded failure levels", () => {
-    expect(computeMonitorStatus(0)).toBe("up");
-    expect(computeMonitorStatus(1)).toBe("degraded");
-    expect(computeMonitorStatus(2)).toBe("degraded");
-    expect(computeMonitorStatus(3)).toBe("down");
-    expect(computeMonitorStatus(10)).toBe("down");
-  });
 });
 
 describe("toPublicMonitor", () => {

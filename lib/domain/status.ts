@@ -270,7 +270,9 @@ export function getNaturalStatusMessage(
 
   // DOWN status messages
   const failureContext =
-    consecutiveFailures > 3 ? ` (${consecutiveFailures} failed checks)` : "";
+    consecutiveFailures > INCIDENT_THRESHOLD
+      ? ` (${consecutiveFailures} failed checks)`
+      : "";
 
   switch (endpointType) {
     case "api":

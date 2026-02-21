@@ -109,7 +109,7 @@ export const updateMonitorStatus = internalMutation({
         lastCheckAt: now,
       });
 
-      // Trigger incident on 3rd consecutive failure
+      // Trigger incident at INCIDENT_THRESHOLD consecutive failures
       if (newFailureCount === INCIDENT_THRESHOLD) {
         await ctx.scheduler.runAfter(0, internal.monitoring.openIncident, {
           monitorId: args.monitorId,
