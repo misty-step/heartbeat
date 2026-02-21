@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import { query } from "./_generated/server";
 import { toPublicCheck } from "./publicTypes";
 import { isPubliclyVisible } from "./lib/visibility";
+import { DAILY_UPTIME_THRESHOLDS } from "../lib/domain/status";
 
 const DEFAULT_LIMIT = 50;
 const MAX_LIMIT = 100;
@@ -229,9 +230,9 @@ export const getDailyStatus = query({
         return {
           date,
           status:
-            uptimeRatio >= 0.99
+            uptimeRatio >= DAILY_UPTIME_THRESHOLDS.UP
               ? ("up" as const)
-              : uptimeRatio >= 0.95
+              : uptimeRatio >= DAILY_UPTIME_THRESHOLDS.DEGRADED
                 ? ("degraded" as const)
                 : ("down" as const),
           uptimePercentage: Math.round(uptimeRatio * 10000) / 100,
