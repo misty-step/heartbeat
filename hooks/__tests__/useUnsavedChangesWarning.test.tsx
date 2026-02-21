@@ -1,6 +1,6 @@
 import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
-import { useUnsavedChangesWarning } from "../useUnsavedChangesWarning";
+import { useUnsavedChangesWarning } from "@/hooks/useUnsavedChangesWarning";
 
 describe("useUnsavedChangesWarning", () => {
   let addEventListenerSpy: ReturnType<typeof vi.spyOn>;

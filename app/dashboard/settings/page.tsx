@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useAction, useConvexAuth } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { useUnsavedChangesWarning } from "@/hooks/useUnsavedChangesWarning";
@@ -29,6 +30,10 @@ export default function SettingsPage() {
   const sendTestEmail = useAction(api.notifications.sendTestEmail);
   const sendTestWebhook = useAction(api.notifications.sendTestWebhook);
 
+  const router = useRouter();
+  const [pendingNavigation, setPendingNavigation] = useState<string | null>(
+    null,
+  );
   const [isSaving, setIsSaving] = useState(false);
   const [isSendingTestEmail, setIsSendingTestEmail] = useState(false);
   const [isSendingTestWebhook, setIsSendingTestWebhook] = useState(false);
@@ -90,6 +95,18 @@ export default function SettingsPage() {
 
   useUnsavedChangesWarning(!!hasChanges);
 
+  // Guard in-app navigation (Next.js <Link> does client-side transitions that
+  // don't fire beforeunload). Show a confirmation modal instead.
+  const handleLinkClick = (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    href: string,
+  ) => {
+    if (hasChanges) {
+      e.preventDefault();
+      setPendingNavigation(href);
+    }
+  };
+
   const handleTestEmail = async () => {
     setIsSendingTestEmail(true);
 
@@ -146,6 +163,7 @@ export default function SettingsPage() {
         <div className="space-y-4">
           <Link
             href="/dashboard"
+            onClick={(e) => handleLinkClick(e, "/dashboard")}
             className="inline-flex items-center gap-2 text-sm text-foreground/50 hover:text-foreground transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -166,6 +184,7 @@ export default function SettingsPage() {
           </div>
           <Link
             href="/dashboard/settings/billing"
+            onClick={(e) => handleLinkClick(e, "/dashboard/settings/billing")}
             className="px-4 py-3 text-foreground/50 hover:text-foreground transition-colors"
           >
             <span className="flex items-center gap-2">
@@ -366,6 +385,43 @@ export default function SettingsPage() {
           )}
         </div>
       </div>
+
+      {/* Unsaved changes guard for in-app navigation */}
+      {pendingNavigation && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setPendingNavigation(null);
+          }}
+        >
+          <div className="relative w-full max-w-sm mx-4 bg-[var(--color-bg-primary)] shadow-[var(--shadow-lg)] border border-[var(--color-border-subtle)] rounded-[var(--radius-lg)]">
+            <div className="px-6 py-6">
+              <h2 className="font-display text-xl text-[var(--color-text-primary)] mb-3">
+                Unsaved Changes
+              </h2>
+              <p className="text-sm text-[var(--color-text-secondary)] leading-relaxed mb-6">
+                You have unsaved changes. If you leave now, they will be lost.
+              </p>
+              <div className="flex gap-3 justify-end">
+                <button
+                  type="button"
+                  onClick={() => setPendingNavigation(null)}
+                  className="px-4 py-2 border border-[var(--color-border-default)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-tertiary)] transition-colors rounded-[var(--radius-md)]"
+                >
+                  Stay
+                </button>
+                <button
+                  type="button"
+                  onClick={() => router.push(pendingNavigation)}
+                  className="px-4 py-2 bg-foreground text-background font-medium hover:opacity-80 transition-opacity rounded-[var(--radius-sm)]"
+                >
+                  Leave
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
