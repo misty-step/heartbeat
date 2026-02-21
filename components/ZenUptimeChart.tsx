@@ -96,6 +96,10 @@ export function ZenUptimeChart({
   const chartHeight = height - padding * 2;
   const stepX = data.length > 1 ? chartWidth / (data.length - 1) : 0;
 
+  // Cap hit radius at half the point spacing to prevent overlapping capture.
+  // When stepX is 0 (single point) or spacing is wide, fall back to 22.
+  const hitRadius = stepX > 0 ? Math.min(22, stepX / 2) : 22;
+
   return (
     <svg
       viewBox={`0 0 ${width} ${height}`}
@@ -128,15 +132,20 @@ export function ZenUptimeChart({
 
         return (
           <g key={i}>
-            {/* Invisible hit area — r=22 meets 44px minimum touch target */}
+            {/* Invisible hit area — capped at half point spacing to prevent overlap */}
             <circle
               cx={x}
               cy={y}
-              r="22"
+              r={hitRadius}
               fill="transparent"
               onMouseEnter={() => setHoveredPoint(i)}
               onTouchStart={() => setHoveredPoint(i)}
-              onTouchEnd={() => setHoveredPoint(null)}
+              onTouchEnd={(e) => {
+                // preventDefault stops the synthetic mouseenter that follows
+                // touchend in mobile browsers, which would re-show the tooltip.
+                e.preventDefault();
+                setHoveredPoint(null);
+              }}
               className="cursor-pointer"
             />
 
