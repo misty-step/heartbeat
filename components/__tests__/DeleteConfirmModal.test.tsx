@@ -113,6 +113,33 @@ describe("DeleteConfirmModal", () => {
     expect(onCancel).not.toHaveBeenCalled();
   });
 
+  test("calls onCancel when X close button is clicked", () => {
+    render(
+      <DeleteConfirmModal
+        monitorName={monitorName}
+        onConfirm={onConfirm}
+        onCancel={onCancel}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /close/i }));
+    expect(onCancel).toHaveBeenCalledTimes(1);
+    expect(onConfirm).not.toHaveBeenCalled();
+  });
+
+  test("X close button is disabled when isDeleting is true", () => {
+    render(
+      <DeleteConfirmModal
+        monitorName={monitorName}
+        onConfirm={onConfirm}
+        onCancel={onCancel}
+        isDeleting
+      />,
+    );
+
+    expect(screen.getByRole("button", { name: /close/i })).toBeDisabled();
+  });
+
   test("does not call onCancel on backdrop click when isDeleting is true", () => {
     const { container } = render(
       <DeleteConfirmModal
