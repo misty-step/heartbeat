@@ -196,6 +196,24 @@ describe("useUnsavedChangesWarning", () => {
     document.body.removeChild(anchor);
   });
 
+  test("does not set pendingNavigation for protocol-relative URLs (open-redirect guard)", () => {
+    vi.restoreAllMocks();
+
+    const { result } = renderHook(() => useUnsavedChangesWarning(true));
+
+    const anchor = document.createElement("a");
+    anchor.setAttribute("href", "//evil.com/phish");
+    document.body.appendChild(anchor);
+
+    act(() => {
+      anchor.click();
+    });
+
+    expect(result.current.pendingNavigation).toBeNull();
+
+    document.body.removeChild(anchor);
+  });
+
   test("cancelNavigation clears pendingNavigation", () => {
     vi.restoreAllMocks();
 

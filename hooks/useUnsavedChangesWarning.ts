@@ -55,9 +55,10 @@ export function useUnsavedChangesWarning(hasChanges: boolean): {
       if (!anchor) return;
 
       const href = (anchor as HTMLAnchorElement).getAttribute("href");
-      // Only intercept internal Next.js paths (start with /)
-      // Everything else (external URLs, mailto:, tel:, #anchors, etc.) is left alone
-      if (!href || !href.startsWith("/")) return;
+      // Only intercept internal Next.js paths (start with / but not //)
+      // Reject protocol-relative URLs like //evil.com — they start with / but
+      // route to external hosts when pushed via router.push().
+      if (!href || !href.startsWith("/") || href.startsWith("//")) return;
 
       e.preventDefault();
       e.stopPropagation();
