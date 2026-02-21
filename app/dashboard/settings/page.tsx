@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useAction, useConvexAuth } from "convex/react";
 import { api } from "../../../convex/_generated/api";
+import { useUnsavedChangesWarning } from "@/hooks/useUnsavedChangesWarning";
 import {
   ArrowLeft,
   Mail,
@@ -86,6 +87,8 @@ export default function SettingsPage() {
       notifyOnRecovery !== settings.notifyOnRecovery ||
       throttleMinutes !== settings.throttleMinutes ||
       (webhookUrl.trim() || undefined) !== (settings.webhookUrl || undefined));
+
+  useUnsavedChangesWarning(!!hasChanges);
 
   const handleTestEmail = async () => {
     setIsSendingTestEmail(true);
