@@ -154,7 +154,7 @@ export function MonitorSettingsModal({
   };
 
   const handleBackdropClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
+    if (e.target === e.currentTarget && !showDeleteConfirm) {
       onClose();
     }
   };
