@@ -178,6 +178,24 @@ describe("useUnsavedChangesWarning", () => {
     document.body.removeChild(anchor);
   });
 
+  test("does not set pendingNavigation for tel: links", () => {
+    vi.restoreAllMocks();
+
+    const { result } = renderHook(() => useUnsavedChangesWarning(true));
+
+    const anchor = document.createElement("a");
+    anchor.setAttribute("href", "tel:+15551234567");
+    document.body.appendChild(anchor);
+
+    act(() => {
+      anchor.click();
+    });
+
+    expect(result.current.pendingNavigation).toBeNull();
+
+    document.body.removeChild(anchor);
+  });
+
   test("cancelNavigation clears pendingNavigation", () => {
     vi.restoreAllMocks();
 

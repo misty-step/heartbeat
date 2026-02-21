@@ -50,14 +50,9 @@ export function useUnsavedChangesWarning(hasChanges: boolean): {
       if (!anchor) return;
 
       const href = (anchor as HTMLAnchorElement).getAttribute("href");
-      // Let external links and anchors through — beforeunload covers them
-      if (
-        !href ||
-        href.startsWith("#") ||
-        href.startsWith("mailto:") ||
-        /^https?:\/\//.test(href)
-      )
-        return;
+      // Only intercept internal Next.js paths (start with /)
+      // Everything else (external URLs, mailto:, tel:, #anchors, etc.) is left alone
+      if (!href || !href.startsWith("/")) return;
 
       e.preventDefault();
       e.stopPropagation();
