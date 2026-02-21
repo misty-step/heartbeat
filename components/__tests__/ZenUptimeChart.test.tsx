@@ -33,9 +33,37 @@ describe("ZenUptimeChart", () => {
 
   it("renders hover areas for each data point", () => {
     render(<ZenUptimeChart data={mockData} />);
-    // Each data point has an invisible hit area (r=8 circle)
+    // Each data point has an invisible hit area circle
     const circles = document.querySelectorAll("circle");
     expect(circles.length).toBe(mockData.length);
+  });
+
+  it("hit area meets 44px minimum touch target (r=22)", () => {
+    render(<ZenUptimeChart data={mockData} />);
+    const hitAreas = document.querySelectorAll("circle");
+    hitAreas.forEach((circle) => {
+      expect(Number(circle.getAttribute("r"))).toBeGreaterThanOrEqual(22);
+    });
+  });
+
+  it("shows tooltip on touch start", () => {
+    render(<ZenUptimeChart data={mockData} />);
+    const hitAreas = document.querySelectorAll("circle");
+
+    fireEvent.touchStart(hitAreas[0]);
+
+    expect(screen.getByText("100ms")).toBeInTheDocument();
+  });
+
+  it("hides tooltip on touch end", () => {
+    render(<ZenUptimeChart data={mockData} />);
+    const hitAreas = document.querySelectorAll("circle");
+
+    fireEvent.touchStart(hitAreas[0]);
+    expect(screen.getByText("100ms")).toBeInTheDocument();
+
+    fireEvent.touchEnd(hitAreas[0]);
+    expect(screen.queryByText("100ms")).not.toBeInTheDocument();
   });
 
   it("shows tooltip on hover with response time", () => {

@@ -128,13 +128,15 @@ export function ZenUptimeChart({
 
         return (
           <g key={i}>
-            {/* Invisible hit area */}
+            {/* Invisible hit area — r=22 meets 44px minimum touch target */}
             <circle
               cx={x}
               cy={y}
-              r="8"
+              r="22"
               fill="transparent"
               onMouseEnter={() => setHoveredPoint(i)}
+              onTouchStart={() => setHoveredPoint(i)}
+              onTouchEnd={() => setHoveredPoint(null)}
               className="cursor-pointer"
             />
 
