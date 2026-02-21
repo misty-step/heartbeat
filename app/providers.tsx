@@ -4,6 +4,7 @@ import { ClerkProvider, useAuth } from "@clerk/nextjs";
 import { ConvexReactClient } from "convex/react";
 import { ConvexProviderWithClerk } from "convex/react-clerk";
 import { ThemeProvider } from "next-themes";
+import { Toaster } from "sonner";
 import { PostHogProvider } from "@/lib/posthog";
 
 const convex = new ConvexReactClient(
@@ -21,6 +22,7 @@ export function Providers({
     >
       <PostHogProvider>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <Toaster position="bottom-right" richColors theme="system" />
           <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
             {children}
           </ConvexProviderWithClerk>

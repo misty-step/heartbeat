@@ -13,6 +13,7 @@ import {
   CreditCard,
 } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
 
 type ThrottleMinutes = 5 | 15 | 30 | 60;
 
@@ -28,11 +29,6 @@ export default function SettingsPage() {
   const sendTestWebhook = useAction(api.notifications.sendTestWebhook);
 
   const [isSaving, setIsSaving] = useState(false);
-  const [saveMessage, setSaveMessage] = useState<string | null>(null);
-  const [testEmailStatus, setTestEmailStatus] = useState<string | null>(null);
-  const [testWebhookStatus, setTestWebhookStatus] = useState<string | null>(
-    null,
-  );
   const [isSendingTestEmail, setIsSendingTestEmail] = useState(false);
   const [isSendingTestWebhook, setIsSendingTestWebhook] = useState(false);
 
@@ -63,7 +59,6 @@ export default function SettingsPage() {
 
   const handleSave = async () => {
     setIsSaving(true);
-    setSaveMessage(null);
 
     try {
       await updateSettings({
@@ -73,12 +68,11 @@ export default function SettingsPage() {
         throttleMinutes,
         webhookUrl: webhookUrl.trim() || undefined,
       });
-      setSaveMessage("Settings saved");
-      setTimeout(() => setSaveMessage(null), 3000);
+      toast.success("Settings saved");
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Failed to save settings";
-      setSaveMessage(message);
+      toast.error(message);
     } finally {
       setIsSaving(false);
     }
@@ -95,43 +89,39 @@ export default function SettingsPage() {
 
   const handleTestEmail = async () => {
     setIsSendingTestEmail(true);
-    setTestEmailStatus(null);
 
     try {
       const result = await sendTestEmail();
       if (result.success) {
-        setTestEmailStatus("Test email sent!");
+        toast.success("Test email sent");
       } else {
-        setTestEmailStatus(result.error || "Failed to send test email");
+        toast.error(result.error || "Failed to send test email");
       }
     } catch (error) {
-      setTestEmailStatus(
+      toast.error(
         error instanceof Error ? error.message : "Failed to send test email",
       );
     } finally {
       setIsSendingTestEmail(false);
-      setTimeout(() => setTestEmailStatus(null), 5000);
     }
   };
 
   const handleTestWebhook = async () => {
     setIsSendingTestWebhook(true);
-    setTestWebhookStatus(null);
 
     try {
       const result = await sendTestWebhook();
       if (result.success) {
-        setTestWebhookStatus("Webhook sent successfully!");
+        toast.success("Test webhook sent");
       } else {
-        setTestWebhookStatus(result.error || "Failed to send test webhook");
+        toast.error(result.error || "Failed to send test webhook");
       }
     } catch (error) {
-      setTestWebhookStatus(
+      toast.error(
         error instanceof Error ? error.message : "Failed to send test webhook",
       );
     } finally {
       setIsSendingTestWebhook(false);
-      setTimeout(() => setTestWebhookStatus(null), 5000);
     }
   };
 
@@ -221,17 +211,6 @@ export default function SettingsPage() {
                 {isSendingTestEmail ? "Sending..." : "Test"}
               </button>
             </div>
-            {testEmailStatus && (
-              <p
-                className={`text-sm ${
-                  testEmailStatus === "Test email sent!"
-                    ? "text-green-600 dark:text-green-400"
-                    : "text-red-600 dark:text-red-400"
-                }`}
-              >
-                {testEmailStatus}
-              </p>
-            )}
             <p className="text-xs text-foreground/40">
               This is your account email from Clerk. Contact support to change
               it.
@@ -361,17 +340,6 @@ export default function SettingsPage() {
                 {isSendingTestWebhook ? "Sending..." : "Test"}
               </button>
             </div>
-            {testWebhookStatus && (
-              <p
-                className={`text-sm ${
-                  testWebhookStatus === "Webhook sent successfully!"
-                    ? "text-green-600 dark:text-green-400"
-                    : "text-red-600 dark:text-red-400"
-                }`}
-              >
-                {testWebhookStatus}
-              </p>
-            )}
             <p className="text-xs text-foreground/40">
               We'll POST a JSON payload to this URL when incidents open or
               resolve. Must use HTTPS.
@@ -388,18 +356,7 @@ export default function SettingsPage() {
           >
             {isSaving ? "Saving..." : "Save Changes"}
           </button>
-          {saveMessage && (
-            <span
-              className={`text-sm ${
-                saveMessage === "Settings saved"
-                  ? "text-green-600 dark:text-green-400"
-                  : "text-red-600 dark:text-red-400"
-              }`}
-            >
-              {saveMessage}
-            </span>
-          )}
-          {!hasChanges && !saveMessage && (
+          {!hasChanges && (
             <span className="text-sm text-foreground/40">
               No unsaved changes
             </span>

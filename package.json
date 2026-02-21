@@ -43,6 +43,7 @@
     "recharts": "^3.5.0",
     "resend": "^6.5.2",
     "serialize-error": "^12.0.0",
+    "sonner": "^2.0.7",
     "stripe": "^20.2.0",
     "tailwind-merge": "^3.4.0",
     "zod": "^4.1.13"
