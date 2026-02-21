@@ -240,6 +240,95 @@ describe("useUnsavedChangesWarning", () => {
     document.body.removeChild(anchor);
   });
 
+  // --- modifier-key clicks bypass the guard ---
+
+  test("does not intercept Cmd+click (metaKey)", () => {
+    vi.restoreAllMocks();
+
+    const { result } = renderHook(() => useUnsavedChangesWarning(true));
+
+    const anchor = document.createElement("a");
+    anchor.setAttribute("href", "/dashboard");
+    document.body.appendChild(anchor);
+
+    act(() => {
+      anchor.dispatchEvent(
+        new MouseEvent("click", { bubbles: true, metaKey: true }),
+      );
+    });
+
+    expect(result.current.pendingNavigation).toBeNull();
+
+    document.body.removeChild(anchor);
+  });
+
+  test("does not intercept Ctrl+click (ctrlKey)", () => {
+    vi.restoreAllMocks();
+
+    const { result } = renderHook(() => useUnsavedChangesWarning(true));
+
+    const anchor = document.createElement("a");
+    anchor.setAttribute("href", "/dashboard");
+    document.body.appendChild(anchor);
+
+    act(() => {
+      anchor.dispatchEvent(
+        new MouseEvent("click", { bubbles: true, ctrlKey: true }),
+      );
+    });
+
+    expect(result.current.pendingNavigation).toBeNull();
+
+    document.body.removeChild(anchor);
+  });
+
+  test("does not intercept middle-click (button=1)", () => {
+    vi.restoreAllMocks();
+
+    const { result } = renderHook(() => useUnsavedChangesWarning(true));
+
+    const anchor = document.createElement("a");
+    anchor.setAttribute("href", "/dashboard");
+    document.body.appendChild(anchor);
+
+    act(() => {
+      anchor.dispatchEvent(
+        new MouseEvent("click", { bubbles: true, button: 1 }),
+      );
+    });
+
+    expect(result.current.pendingNavigation).toBeNull();
+
+    document.body.removeChild(anchor);
+  });
+
+  // --- confirmNavigation clears state eagerly ---
+
+  test("confirmNavigation clears pendingNavigation before navigating", () => {
+    vi.restoreAllMocks();
+
+    const { result } = renderHook(() => useUnsavedChangesWarning(true));
+
+    const anchor = document.createElement("a");
+    anchor.setAttribute("href", "/settings/billing");
+    document.body.appendChild(anchor);
+
+    act(() => {
+      anchor.click();
+    });
+    expect(result.current.pendingNavigation).toBe("/settings/billing");
+
+    act(() => {
+      result.current.confirmNavigation();
+    });
+
+    // State cleared immediately, not waiting for navigation to complete
+    expect(result.current.pendingNavigation).toBeNull();
+    expect(mockPush).toHaveBeenCalledWith("/settings/billing");
+
+    document.body.removeChild(anchor);
+  });
+
   test("pendingNavigation cleared when hasChanges becomes false", () => {
     vi.restoreAllMocks();
 

@@ -46,6 +46,11 @@ export function useUnsavedChangesWarning(hasChanges: boolean): {
     if (!hasChanges) return;
 
     const handleClick = (e: MouseEvent) => {
+      // Allow modifier-clicks to open in new tab/window normally —
+      // the user isn't leaving the current page
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0)
+        return;
+
       const anchor = (e.target as Element).closest("a[href]");
       if (!anchor) return;
 
@@ -64,7 +69,11 @@ export function useUnsavedChangesWarning(hasChanges: boolean): {
   }, [hasChanges]);
 
   const confirmNavigation = useCallback(() => {
-    if (pendingNavigation) router.push(pendingNavigation);
+    if (pendingNavigation) {
+      const href = pendingNavigation;
+      setPendingNavigation(null);
+      router.push(href);
+    }
   }, [pendingNavigation, router]);
 
   const cancelNavigation = useCallback(() => {
