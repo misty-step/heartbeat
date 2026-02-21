@@ -5,6 +5,7 @@ import { useMutation } from "convex/react";
 import { api } from "../convex/_generated/api";
 import { validateUrl, generateSlug, extractNameFromUrl } from "@/lib/domain";
 import { Check, Copy, ExternalLink } from "lucide-react";
+import { toast } from "sonner";
 
 /**
  * AddMonitorForm - Kyoto Moss Design System
@@ -57,6 +58,7 @@ export function AddMonitorForm({ onSuccess }: { onSuccess?: () => void }) {
         // Fallback: reset and call onSuccess
         setUrl("");
         setName("");
+        toast.success("Monitor created");
         onSuccess?.();
       }
     } catch (err) {
@@ -65,7 +67,7 @@ export function AddMonitorForm({ onSuccess }: { onSuccess?: () => void }) {
         err instanceof Error
           ? err.message
           : "Failed to create monitor. Please try again.";
-      setError(message);
+      toast.error(message);
     } finally {
       setIsSubmitting(false);
     }

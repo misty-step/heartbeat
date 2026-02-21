@@ -29,7 +29,11 @@ jobs:
       fail-fast: false
     steps:
       - uses: actions/checkout@v4
-      - uses: misty-step/cerberus@v1
+      # Pinned to kimi-cli era (pre-OpenRouter migration).
+      # cerberus@v1 now requires an OpenRouter key; MOONSHOT_API_KEY is a
+      # Moonshot-native key. Upgrade path: get an OpenRouter key, store as
+      # OPENROUTER_API_KEY, and switch to: api-key: ${{ secrets.OPENROUTER_API_KEY }}
+      - uses: misty-step/cerberus@36c6b4712675c669c3b8f2e6efbe660bb4a469e3
         with:
           perspective: ${{ matrix.perspective }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -41,6 +45,6 @@ jobs:
     if: always()
     runs-on: ubuntu-latest
     steps:
-      - uses: misty-step/cerberus/verdict@v1
+      - uses: misty-step/cerberus/verdict@36c6b4712675c669c3b8f2e6efbe660bb4a469e3
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
