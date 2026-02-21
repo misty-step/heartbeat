@@ -10,12 +10,29 @@
 export type MonitorStatus = "up" | "degraded" | "down";
 
 /**
+ * Consecutive failure count that triggers an incident and marks a monitor as down.
+ * Below this threshold, the monitor is "degraded"; at or above, it's "down".
+ */
+export const INCIDENT_THRESHOLD = 3;
+
+/**
+ * Daily uptime ratio thresholds for classifying a monitor's day-level status.
+ * UP: 99%+ uptime → operational
+ * DEGRADED: 95–99% uptime → degraded
+ * Below DEGRADED threshold → down
+ */
+export const DAILY_UPTIME_THRESHOLDS = {
+  UP: 0.99,
+  DEGRADED: 0.95,
+} as const;
+
+/**
  * Compute monitor status from consecutive failure count.
  * This is the canonical status computation - used by both backend and frontend.
  */
 export function computeStatus(consecutiveFailures: number): MonitorStatus {
   if (consecutiveFailures === 0) return "up";
-  if (consecutiveFailures < 3) return "degraded";
+  if (consecutiveFailures < INCIDENT_THRESHOLD) return "degraded";
   return "down";
 }
 

@@ -6,8 +6,32 @@ import {
   getStatusHeadline,
   calculateApdex,
   getNaturalStatusMessage,
+  DAILY_UPTIME_THRESHOLDS,
+  INCIDENT_THRESHOLD,
   type MonitorStatus,
 } from "../status";
+
+describe("DAILY_UPTIME_THRESHOLDS", () => {
+  it("UP threshold is 0.99 (99%)", () => {
+    expect(DAILY_UPTIME_THRESHOLDS.UP).toBe(0.99);
+  });
+
+  it("DEGRADED threshold is 0.95 (95%)", () => {
+    expect(DAILY_UPTIME_THRESHOLDS.DEGRADED).toBe(0.95);
+  });
+
+  it("UP threshold is greater than DEGRADED threshold", () => {
+    expect(DAILY_UPTIME_THRESHOLDS.UP).toBeGreaterThan(
+      DAILY_UPTIME_THRESHOLDS.DEGRADED,
+    );
+  });
+});
+
+describe("INCIDENT_THRESHOLD", () => {
+  it("is 3 consecutive failures", () => {
+    expect(INCIDENT_THRESHOLD).toBe(3);
+  });
+});
 
 describe("computeStatus", () => {
   it('returns "up" for 0 consecutive failures', () => {

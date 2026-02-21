@@ -6,6 +6,7 @@ import {
 } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { isInternalHostname } from "./lib/urlValidation";
+import { INCIDENT_THRESHOLD } from "../lib/domain/status";
 
 /**
  * Get monitors that are due for checking based on their interval.
@@ -85,7 +86,7 @@ export const updateMonitorStatus = internalMutation({
 
     if (args.success) {
       // Monitor is up - reset failure counter
-      const wasDown = monitor.consecutiveFailures >= 3;
+      const wasDown = monitor.consecutiveFailures >= INCIDENT_THRESHOLD;
 
       await ctx.db.patch(args.monitorId, {
         consecutiveFailures: 0,
@@ -109,7 +110,7 @@ export const updateMonitorStatus = internalMutation({
       });
 
       // Trigger incident on 3rd consecutive failure
-      if (newFailureCount === 3) {
+      if (newFailureCount === INCIDENT_THRESHOLD) {
         await ctx.scheduler.runAfter(0, internal.monitoring.openIncident, {
           monitorId: args.monitorId,
         });
