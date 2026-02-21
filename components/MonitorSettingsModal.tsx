@@ -10,6 +10,7 @@ import { validateMonitorForm, type ValidationErrors } from "@/lib/domain";
 import { THEMES, type ThemeId, canUseTheme } from "@/lib/themes";
 import { ThemeSelector } from "./ThemeSelector";
 import { ThemeUpgradePrompt } from "./ThemeUpgradePrompt";
+import { DeleteConfirmModal } from "./DeleteConfirmModal";
 import { ExternalLink } from "lucide-react";
 import { usePostHog } from "posthog-js/react";
 
@@ -51,6 +52,7 @@ export function MonitorSettingsModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const [formData, setFormData] = useState({
     name: monitor.name,
@@ -132,15 +134,11 @@ export function MonitorSettingsModal({
     setShowUpgradePrompt(false);
   };
 
-  const handleDeleteClick = async () => {
-    if (
-      !confirm(
-        `Delete ${monitor.name}? This will permanently delete all check history. This action cannot be undone.`,
-      )
-    ) {
-      return;
-    }
+  const handleDeleteClick = () => {
+    setShowDeleteConfirm(true);
+  };
 
+  const handleConfirmDelete = async () => {
     setIsDeleting(true);
     try {
       await removeMonitor({ id: monitor._id });
@@ -148,6 +146,7 @@ export function MonitorSettingsModal({
     } catch (error) {
       console.error("Failed to delete monitor:", error);
       setErrors({ submit: "Failed to delete monitor. Please try again." });
+      setShowDeleteConfirm(false);
     } finally {
       setIsDeleting(false);
     }
@@ -443,6 +442,15 @@ export function MonitorSettingsModal({
           themeId={formData.theme}
           onKeepCurrent={handleKeepCurrentTheme}
           onClose={() => setShowUpgradePrompt(false)}
+        />
+      )}
+
+      {showDeleteConfirm && (
+        <DeleteConfirmModal
+          monitorName={monitor.name}
+          onConfirm={handleConfirmDelete}
+          onCancel={() => setShowDeleteConfirm(false)}
+          isDeleting={isDeleting}
         />
       )}
     </div>
