@@ -105,7 +105,7 @@ export function ZenUptimeChart({
       viewBox={`0 0 ${width} ${height}`}
       className="w-full"
       style={{ overflow: "visible" }}
-      onMouseLeave={() => setHoveredPoint(null)}
+      onPointerLeave={() => setHoveredPoint(null)}
     >
       {/* Main path - single stroke, no effects */}
       <path
@@ -138,14 +138,21 @@ export function ZenUptimeChart({
               cy={y}
               r={hitRadius}
               fill="transparent"
-              onMouseEnter={() => setHoveredPoint(i)}
-              onTouchStart={() => setHoveredPoint(i)}
-              onTouchEnd={(e) => {
-                // preventDefault stops the synthetic mouseenter that follows
-                // touchend in mobile browsers, which would re-show the tooltip.
-                e.preventDefault();
-                setHoveredPoint(null);
+              // Pointer events unify mouse, touch, and stylus. Using pointerType
+              // to distinguish hover (mouse/pen) from tap (touch) avoids the
+              // synthetic-mouseenter-after-touchend problem: mobile browsers
+              // dispatch compatibility mouse events after touch, but since we
+              // don't listen to onMouseEnter those events are ignored.
+              onPointerEnter={(e) => {
+                if (e.pointerType !== "touch") setHoveredPoint(i);
               }}
+              onPointerDown={(e) => {
+                if (e.pointerType === "touch") setHoveredPoint(i);
+              }}
+              onPointerUp={(e) => {
+                if (e.pointerType === "touch") setHoveredPoint(null);
+              }}
+              onPointerCancel={() => setHoveredPoint(null)}
               className="cursor-pointer"
             />
 
