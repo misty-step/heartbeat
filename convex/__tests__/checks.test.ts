@@ -315,4 +315,39 @@ describe("getDailyStatus", () => {
       t.withIdentity(otherUser).query(api.checks.getDailyStatus, { monitorId }),
     ).rejects.toThrow("Monitor not found");
   });
+
+  test("returns uptimePercent and totalChecks per day", async () => {
+    const t = setupBackend();
+    const monitorId = await createTestMonitor(t);
+
+    const now = Date.now();
+    // 2 up, 1 down → 66.67% uptime, 3 total checks
+    await recordCheck(t, monitorId, "up", 100, now - 3000);
+    await recordCheck(t, monitorId, "up", 150, now - 2000);
+    await recordCheck(t, monitorId, "down", 0, now - 1000);
+
+    const status = await t
+      .withIdentity(user)
+      .query(api.checks.getDailyStatus, { monitorId });
+
+    expect(status).toHaveLength(1);
+    expect(status[0].totalChecks).toBe(3);
+    expect(status[0].uptimePercent).toBeCloseTo(66.67, 1);
+  });
+
+  test("returns 100% uptimePercent when all checks are up", async () => {
+    const t = setupBackend();
+    const monitorId = await createTestMonitor(t);
+
+    const now = Date.now();
+    await recordCheck(t, monitorId, "up", 100, now - 2000);
+    await recordCheck(t, monitorId, "up", 110, now - 1000);
+
+    const status = await t
+      .withIdentity(user)
+      .query(api.checks.getDailyStatus, { monitorId });
+
+    expect(status[0].uptimePercent).toBe(100);
+    expect(status[0].totalChecks).toBe(2);
+  });
 });

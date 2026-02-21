@@ -183,6 +183,8 @@ export const getDailyStatus = query({
         v.literal("degraded"),
         v.literal("down"),
       ),
+      uptimePercent: v.number(),
+      totalChecks: v.number(),
     }),
   ),
   handler: async (ctx, args) => {
@@ -222,14 +224,19 @@ export const getDailyStatus = query({
     // Return ordered array of daily statuses
     return Array.from(dailyMap.entries())
       .sort(([a], [b]) => a.localeCompare(b))
-      .map(([date, stats]) => ({
-        date,
-        status:
-          stats.up / stats.total >= 0.99
-            ? ("up" as const)
-            : stats.up / stats.total >= 0.95
-              ? ("degraded" as const)
-              : ("down" as const),
-      }));
+      .map(([date, stats]) => {
+        const uptimeRatio = stats.up / stats.total;
+        return {
+          date,
+          status:
+            uptimeRatio >= 0.99
+              ? ("up" as const)
+              : uptimeRatio >= 0.95
+                ? ("degraded" as const)
+                : ("down" as const),
+          uptimePercent: Math.round(uptimeRatio * 1000) / 10,
+          totalChecks: stats.total,
+        };
+      });
   },
 });
