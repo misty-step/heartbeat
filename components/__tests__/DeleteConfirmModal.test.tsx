@@ -98,4 +98,33 @@ describe("DeleteConfirmModal", () => {
     expect(screen.getByRole("button", { name: /deleting/i })).toBeDisabled();
     expect(screen.getByRole("button", { name: /cancel/i })).toBeDisabled();
   });
+
+  test("does not call onCancel on Escape key when isDeleting is true", () => {
+    render(
+      <DeleteConfirmModal
+        monitorName={monitorName}
+        onConfirm={onConfirm}
+        onCancel={onCancel}
+        isDeleting
+      />,
+    );
+
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(onCancel).not.toHaveBeenCalled();
+  });
+
+  test("does not call onCancel on backdrop click when isDeleting is true", () => {
+    const { container } = render(
+      <DeleteConfirmModal
+        monitorName={monitorName}
+        onConfirm={onConfirm}
+        onCancel={onCancel}
+        isDeleting
+      />,
+    );
+
+    const backdrop = container.firstChild as HTMLElement;
+    fireEvent.click(backdrop);
+    expect(onCancel).not.toHaveBeenCalled();
+  });
 });

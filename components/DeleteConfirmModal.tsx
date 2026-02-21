@@ -18,17 +18,17 @@ export function DeleteConfirmModal({
 }: DeleteConfirmModalProps) {
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
+      if (e.key === "Escape" && !isDeleting) {
         onCancel();
       }
     };
 
     document.addEventListener("keydown", handleEscape);
     return () => document.removeEventListener("keydown", handleEscape);
-  }, [onCancel]);
+  }, [onCancel, isDeleting]);
 
   const handleBackdropClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
+    if (e.target === e.currentTarget && !isDeleting) {
       onCancel();
     }
   };
