@@ -1,3 +1,9 @@
+# [1.9.0](https://github.com/misty-step/heartbeat/compare/v1.8.0...v1.9.0) (2026-02-21)
+
+### Features
+
+- Enrich UptimeBar tooltip with uptime % and check count ([#100](https://github.com/misty-step/heartbeat/issues/100)) ([f724302](https://github.com/misty-step/heartbeat/commit/f724302954e953124d43cb86d63c3336eee9a216)), closes [#43](https://github.com/misty-step/heartbeat/issues/43)
+
 # [1.8.0](https://github.com/misty-step/heartbeat/compare/v1.7.0...v1.8.0) (2026-02-21)
 
 ### Features
