@@ -370,40 +370,73 @@ export default function SettingsPage() {
 
       {/* Unsaved changes guard for in-app navigation */}
       {pendingNavigation && (
-        <div
-          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) cancelNavigation();
-          }}
-        >
-          <div className="relative w-full max-w-sm mx-4 bg-[var(--color-bg-primary)] shadow-[var(--shadow-lg)] border border-[var(--color-border-subtle)] rounded-[var(--radius-lg)]">
-            <div className="px-6 py-6">
-              <h2 className="font-serif text-xl text-[var(--color-text-primary)] mb-3">
-                Unsaved Changes
-              </h2>
-              <p className="font-sans text-sm text-[var(--color-text-secondary)] leading-relaxed mb-6">
-                You have unsaved changes. If you leave now, they will be lost.
-              </p>
-              <div className="flex gap-3 justify-end">
-                <button
-                  type="button"
-                  onClick={cancelNavigation}
-                  className="px-4 py-2 border border-[var(--color-border-default)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-tertiary)] transition-colors rounded-[var(--radius-md)]"
-                >
-                  Stay
-                </button>
-                <button
-                  type="button"
-                  onClick={confirmNavigation}
-                  className="px-4 py-2 bg-foreground text-background font-medium hover:opacity-80 transition-opacity rounded-[var(--radius-sm)]"
-                >
-                  Leave
-                </button>
-              </div>
-            </div>
+        <UnsavedChangesModal
+          onConfirm={confirmNavigation}
+          onCancel={cancelNavigation}
+        />
+      )}
+    </div>
+  );
+}
+
+function UnsavedChangesModal({
+  onConfirm,
+  onCancel,
+}: {
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onCancel();
+    };
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [onCancel]);
+
+  return (
+    <div
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onCancel();
+      }}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="unsaved-changes-title"
+      aria-describedby="unsaved-changes-desc"
+    >
+      <div className="relative w-full max-w-sm mx-4 bg-[var(--color-bg-primary)] shadow-[var(--shadow-lg)] border border-[var(--color-border-subtle)] rounded-[var(--radius-lg)]">
+        <div className="px-6 py-6">
+          <h2
+            id="unsaved-changes-title"
+            className="font-serif text-xl text-[var(--color-text-primary)] mb-3"
+          >
+            Unsaved Changes
+          </h2>
+          <p
+            id="unsaved-changes-desc"
+            className="font-sans text-sm text-[var(--color-text-secondary)] leading-relaxed mb-6"
+          >
+            You have unsaved changes. If you leave now, they will be lost.
+          </p>
+          <div className="flex gap-3 justify-end">
+            <button
+              type="button"
+              onClick={onCancel}
+              className="px-4 py-2 border border-[var(--color-border-default)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-tertiary)] transition-colors rounded-[var(--radius-md)]"
+            >
+              Stay
+            </button>
+            <button
+              type="button"
+              onClick={onConfirm}
+              className="px-4 py-2 bg-foreground text-background font-medium hover:opacity-80 transition-opacity rounded-[var(--radius-sm)]"
+            >
+              Leave
+            </button>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }
