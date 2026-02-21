@@ -316,7 +316,7 @@ describe("getDailyStatus", () => {
     ).rejects.toThrow("Monitor not found");
   });
 
-  test("returns uptimePercent and totalChecks per day", async () => {
+  test("returns uptimePercentage and totalChecks per day", async () => {
     const t = setupBackend();
     const monitorId = await createTestMonitor(t);
 
@@ -332,10 +332,10 @@ describe("getDailyStatus", () => {
 
     expect(status).toHaveLength(1);
     expect(status[0].totalChecks).toBe(3);
-    expect(status[0].uptimePercent).toBeCloseTo(66.67, 1);
+    expect(status[0].uptimePercentage).toBe(66.67);
   });
 
-  test("returns 100% uptimePercent when all checks are up", async () => {
+  test("returns 100% uptimePercentage when all checks are up", async () => {
     const t = setupBackend();
     const monitorId = await createTestMonitor(t);
 
@@ -347,7 +347,111 @@ describe("getDailyStatus", () => {
       .withIdentity(user)
       .query(api.checks.getDailyStatus, { monitorId });
 
-    expect(status[0].uptimePercent).toBe(100);
+    expect(status[0].uptimePercentage).toBe(100);
     expect(status[0].totalChecks).toBe(2);
+  });
+
+  test("classifies day as 'up' at exactly 99% uptime", async () => {
+    const t = setupBackend();
+    const monitorId = await createTestMonitor(t);
+
+    const now = Date.now();
+    // 99 up + 1 down = 0.99 ratio → "up"
+    for (let i = 0; i < 99; i++) {
+      await recordCheck(t, monitorId, "up", 100, now - (i + 1) * 1000);
+    }
+    await recordCheck(t, monitorId, "down", 0, now - 100_000);
+
+    const status = await t
+      .withIdentity(user)
+      .query(api.checks.getDailyStatus, { monitorId });
+
+    expect(status[0].status).toBe("up");
+    expect(status[0].uptimePercentage).toBe(99);
+  });
+
+  test("classifies day as 'degraded' just below 99% uptime", async () => {
+    const t = setupBackend();
+    const monitorId = await createTestMonitor(t);
+
+    const now = Date.now();
+    // 98 up + 2 down = 0.98 ratio → "degraded"
+    for (let i = 0; i < 98; i++) {
+      await recordCheck(t, monitorId, "up", 100, now - (i + 1) * 1000);
+    }
+    await recordCheck(t, monitorId, "down", 0, now - 99_000);
+    await recordCheck(t, monitorId, "down", 0, now - 100_000);
+
+    const status = await t
+      .withIdentity(user)
+      .query(api.checks.getDailyStatus, { monitorId });
+
+    expect(status[0].status).toBe("degraded");
+  });
+
+  test("classifies day as 'degraded' at exactly 95% uptime", async () => {
+    const t = setupBackend();
+    const monitorId = await createTestMonitor(t);
+
+    const now = Date.now();
+    // 19 up + 1 down = 0.95 ratio → "degraded"
+    for (let i = 0; i < 19; i++) {
+      await recordCheck(t, monitorId, "up", 100, now - (i + 1) * 1000);
+    }
+    await recordCheck(t, monitorId, "down", 0, now - 20_000);
+
+    const status = await t
+      .withIdentity(user)
+      .query(api.checks.getDailyStatus, { monitorId });
+
+    expect(status[0].status).toBe("degraded");
+    expect(status[0].uptimePercentage).toBe(95);
+  });
+
+  test("classifies day as 'down' just below 95% uptime", async () => {
+    const t = setupBackend();
+    const monitorId = await createTestMonitor(t);
+
+    const now = Date.now();
+    // 94 up + 6 down = 0.94 ratio → "down"
+    for (let i = 0; i < 94; i++) {
+      await recordCheck(t, monitorId, "up", 100, now - (i + 1) * 1000);
+    }
+    for (let i = 0; i < 6; i++) {
+      await recordCheck(t, monitorId, "down", 0, now - (95 + i) * 1000);
+    }
+
+    const status = await t
+      .withIdentity(user)
+      .query(api.checks.getDailyStatus, { monitorId });
+
+    expect(status[0].status).toBe("down");
+  });
+
+  test("groups checks by UTC day and returns sorted entries", async () => {
+    const t = setupBackend();
+    const monitorId = await createTestMonitor(t);
+
+    // Create checks on two different UTC days
+    const day1 = new Date("2025-06-15T12:00:00Z").getTime();
+    const day2 = new Date("2025-06-16T12:00:00Z").getTime();
+
+    await recordCheck(t, monitorId, "up", 100, day1);
+    await recordCheck(t, monitorId, "up", 110, day1 + 1000);
+    await recordCheck(t, monitorId, "down", 0, day2);
+
+    const status = await t
+      .withIdentity(user)
+      .query(api.checks.getDailyStatus, { monitorId, days: 365 });
+
+    expect(status.length).toBe(2);
+    // Sorted chronologically
+    expect(status[0].date).toBe("2025-06-15");
+    expect(status[1].date).toBe("2025-06-16");
+    // Separate per-day stats
+    expect(status[0].totalChecks).toBe(2);
+    expect(status[0].uptimePercentage).toBe(100);
+    expect(status[1].totalChecks).toBe(1);
+    expect(status[1].uptimePercentage).toBe(0);
   });
 });

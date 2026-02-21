@@ -16,7 +16,7 @@ const mockUseQuery = useQuery as unknown as Mock;
 function generateDailyStatus(
   days: number,
   statuses: Array<"up" | "degraded" | "down">,
-  overrides?: Partial<{ uptimePercent: number; totalChecks: number }>,
+  overrides?: Partial<{ uptimePercentage: number; totalChecks: number }>,
 ) {
   const today = new Date();
   return statuses.map((status, i) => {
@@ -25,7 +25,7 @@ function generateDailyStatus(
     return {
       date: date.toISOString().split("T")[0],
       status,
-      uptimePercent: overrides?.uptimePercent ?? 100,
+      uptimePercentage: overrides?.uptimePercentage ?? 100,
       totalChecks: overrides?.totalChecks ?? 60,
     };
   });
@@ -134,7 +134,7 @@ describe("UptimeBar", () => {
   test("tooltip shows uptime percentage on hover", () => {
     mockUseQuery.mockReturnValue(
       generateDailyStatus(3, ["up", "up", "up"], {
-        uptimePercent: 99.7,
+        uptimePercentage: 99.7,
         totalChecks: 144,
       }),
     );
@@ -151,7 +151,7 @@ describe("UptimeBar", () => {
   test("tooltip shows check count on hover", () => {
     mockUseQuery.mockReturnValue(
       generateDailyStatus(3, ["up", "up", "up"], {
-        uptimePercent: 100,
+        uptimePercentage: 100,
         totalChecks: 144,
       }),
     );
@@ -175,7 +175,62 @@ describe("UptimeBar", () => {
     const tooltip = container.querySelector(".absolute.-top-10");
     expect(tooltip).not.toBeNull();
     expect(tooltip!.textContent).toContain("No data");
-    // No percentage shown for unknown days
+    // No percentage or check count shown for unknown days
     expect(tooltip!.textContent).not.toMatch(/\d+%/);
+    expect(tooltip!.textContent).not.toMatch(/checks/);
+  });
+
+  test("tooltip shows 'Operational' label for up status", () => {
+    mockUseQuery.mockReturnValue(
+      generateDailyStatus(3, ["up", "up", "up"], {
+        uptimePercentage: 100,
+        totalChecks: 60,
+      }),
+    );
+    const { container } = render(
+      <UptimeBar monitorId={monitorId("monitor-11")} days={3} />,
+    );
+    const bars = Array.from(container.querySelectorAll(".flex-1.h-6"));
+    fireEvent.mouseEnter(bars[0]);
+    const tooltip = container.querySelector(".absolute.-top-10");
+    expect(tooltip!.textContent).toContain("Operational");
+    expect(tooltip!.textContent).toMatch(/100%/);
+    expect(tooltip!.textContent).toMatch(/60 checks/);
+  });
+
+  test("tooltip shows 'Down' label for down status", () => {
+    mockUseQuery.mockReturnValue(
+      generateDailyStatus(3, ["down", "down", "down"], {
+        uptimePercentage: 0,
+        totalChecks: 48,
+      }),
+    );
+    const { container } = render(
+      <UptimeBar monitorId={monitorId("monitor-12")} days={3} />,
+    );
+    const bars = Array.from(container.querySelectorAll(".flex-1.h-6"));
+    fireEvent.mouseEnter(bars[0]);
+    const tooltip = container.querySelector(".absolute.-top-10");
+    expect(tooltip!.textContent).toContain("Down");
+    expect(tooltip!.textContent).toMatch(/0%/);
+    expect(tooltip!.textContent).toMatch(/48 checks/);
+  });
+
+  test("tooltip shows 'Degraded' label for degraded status", () => {
+    mockUseQuery.mockReturnValue(
+      generateDailyStatus(3, ["degraded", "degraded", "degraded"], {
+        uptimePercentage: 97.5,
+        totalChecks: 120,
+      }),
+    );
+    const { container } = render(
+      <UptimeBar monitorId={monitorId("monitor-13")} days={3} />,
+    );
+    const bars = Array.from(container.querySelectorAll(".flex-1.h-6"));
+    fireEvent.mouseEnter(bars[0]);
+    const tooltip = container.querySelector(".absolute.-top-10");
+    expect(tooltip!.textContent).toContain("Degraded");
+    expect(tooltip!.textContent).toMatch(/97\.5%/);
+    expect(tooltip!.textContent).toMatch(/120 checks/);
   });
 });
