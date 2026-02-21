@@ -4,7 +4,18 @@ import {
   generateUniqueStatusSlug,
   isValidStatusSlugFormat,
   WORD_LISTS,
-} from "../slugs";
+} from "@/convex/slugs";
+
+interface MockCtx {
+  db: {
+    query: (table: string) => {
+      withIndex: (
+        index: string,
+        q?: unknown,
+      ) => { first: () => Promise<null | { _id: string }> };
+    };
+  };
+}
 
 describe("generateStatusSlug", () => {
   test("returns adjective-noun-verb pattern", () => {
@@ -103,7 +114,7 @@ describe("WORD_LISTS", () => {
 describe("generateUniqueStatusSlug", () => {
   test("returns a slug when no collision exists", async () => {
     // Mock ctx where the slug is always available (no existing record)
-    const ctx = {
+    const ctx: MockCtx = {
       db: {
         query: () => ({
           withIndex: () => ({
@@ -111,15 +122,15 @@ describe("generateUniqueStatusSlug", () => {
           }),
         }),
       },
-    } as any;
+    };
 
-    const slug = await generateUniqueStatusSlug(ctx, 5);
+    const slug = await generateUniqueStatusSlug(ctx as never, 5);
     expect(isValidStatusSlugFormat(slug)).toBe(true);
   });
 
   test("falls back to hex-suffixed slug after exhausting all attempts", async () => {
     // Mock ctx where every slug is already taken (always returns a record)
-    const ctx = {
+    const ctx: MockCtx = {
       db: {
         query: () => ({
           withIndex: () => ({
@@ -127,9 +138,9 @@ describe("generateUniqueStatusSlug", () => {
           }),
         }),
       },
-    } as any;
+    };
 
-    const slug = await generateUniqueStatusSlug(ctx, 3);
+    const slug = await generateUniqueStatusSlug(ctx as never, 3);
     // Fallback slug appends a 4-char hex suffix: word-word-word-xxxx
     expect(slug).toMatch(/^[a-z]+-[a-z]+-[a-z]+-[0-9a-f]{4}$/);
   });
