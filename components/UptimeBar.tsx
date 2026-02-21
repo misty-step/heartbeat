@@ -66,6 +66,11 @@ export function UptimeBar({ monitorId, days = 30 }: UptimeBarProps) {
     dateRange.push(date.toISOString().split("T")[0]);
   }
 
+  // Pre-compute hovered day data for tooltip
+  const hoveredDate = hoveredIndex !== null ? dateRange[hoveredIndex] : null;
+  const hoveredDayData = hoveredDate ? dataByDate.get(hoveredDate) : null;
+  const hoveredStatus = hoveredDayData?.status ?? "unknown";
+
   return (
     <div className="space-y-2">
       <div
@@ -90,37 +95,30 @@ export function UptimeBar({ monitorId, days = 30 }: UptimeBarProps) {
           );
         })}
 
-        {/* Positioned tooltip */}
-        {hoveredIndex !== null &&
-          (() => {
-            const date = dateRange[hoveredIndex];
-            const dayData = dataByDate.get(date);
-            const status = dayData?.status ?? "unknown";
-            return (
-              <div
-                className="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 bg-[var(--color-bg-inverse)] text-[var(--color-text-inverse)] text-xs font-mono rounded-[var(--radius-sm)] shadow-lg whitespace-nowrap z-20 pointer-events-none"
-                style={{
-                  left: `${((hoveredIndex + 0.5) / days) * 100}%`,
-                }}
-              >
-                <span className="tabular-nums">{formatDate(date)}</span>
+        {hoveredDate && (
+          <div
+            className="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 bg-[var(--color-bg-inverse)] text-[var(--color-text-inverse)] text-xs font-mono rounded-[var(--radius-sm)] shadow-lg whitespace-nowrap z-20 pointer-events-none"
+            style={{
+              left: `${((hoveredIndex! + 0.5) / days) * 100}%`,
+            }}
+          >
+            <span className="tabular-nums">{formatDate(hoveredDate)}</span>
+            <span className="mx-1.5 opacity-50">·</span>
+            <span>{getStatusLabel(hoveredStatus)}</span>
+            {hoveredDayData && (
+              <>
                 <span className="mx-1.5 opacity-50">·</span>
-                <span>{getStatusLabel(status)}</span>
-                {dayData && (
-                  <>
-                    <span className="mx-1.5 opacity-50">·</span>
-                    <span className="tabular-nums">
-                      {dayData.uptimePercent}%
-                    </span>
-                    <span className="mx-1.5 opacity-50">·</span>
-                    <span className="tabular-nums">
-                      {dayData.totalChecks} checks
-                    </span>
-                  </>
-                )}
-              </div>
-            );
-          })()}
+                <span className="tabular-nums">
+                  {hoveredDayData.uptimePercentage}%
+                </span>
+                <span className="mx-1.5 opacity-50">·</span>
+                <span className="tabular-nums">
+                  {hoveredDayData.totalChecks} checks
+                </span>
+              </>
+            )}
+          </div>
+        )}
       </div>
       <div className="flex justify-between text-xs text-[var(--color-text-muted)]">
         <span>{days} days ago</span>

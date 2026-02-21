@@ -183,7 +183,7 @@ export const getDailyStatus = query({
         v.literal("degraded"),
         v.literal("down"),
       ),
-      uptimePercent: v.number(),
+      uptimePercentage: v.number(),
       totalChecks: v.number(),
     }),
   ),
@@ -234,7 +234,7 @@ export const getDailyStatus = query({
               : uptimeRatio >= 0.95
                 ? ("degraded" as const)
                 : ("down" as const),
-          uptimePercent: Math.round(uptimeRatio * 1000) / 10,
+          uptimePercentage: Math.round(uptimeRatio * 10000) / 100,
           totalChecks: stats.total,
         };
       });
