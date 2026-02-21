@@ -216,6 +216,40 @@ describe("UptimeBar", () => {
     expect(tooltip!.textContent).toMatch(/48 checks/);
   });
 
+  test("tooltip date matches the UTC date key (timezone-safe)", () => {
+    // The dateRange always uses UTC dates (toISOString). formatDate must display
+    // the same calendar date as the UTC key — not shifted by local offset.
+    const todayUtc = new Date().toISOString().split("T")[0];
+    mockUseQuery.mockReturnValue([
+      {
+        date: todayUtc,
+        status: "up",
+        uptimePercentage: 100,
+        totalChecks: 60,
+      },
+    ]);
+
+    // Render with 1 day so the only bar is today (UTC)
+    const { container } = render(
+      <UptimeBar monitorId={monitorId("monitor-tz")} days={1} />,
+    );
+    const bars = Array.from(container.querySelectorAll(".flex-1.h-6"));
+    fireEvent.mouseEnter(bars[0]);
+
+    const tooltip = container.querySelector(".absolute.-top-10");
+    expect(tooltip).not.toBeNull();
+
+    // formatDate must produce the same result for todayUtc regardless of local TZ
+    const expectedDateStr = new Date(
+      todayUtc + "T12:00:00Z",
+    ).toLocaleDateString(undefined, {
+      month: "short",
+      day: "numeric",
+      timeZone: "UTC",
+    });
+    expect(tooltip!.textContent).toContain(expectedDateStr);
+  });
+
   test("tooltip shows 'Degraded' label for degraded status", () => {
     mockUseQuery.mockReturnValue(
       generateDailyStatus(3, ["degraded", "degraded", "degraded"], {

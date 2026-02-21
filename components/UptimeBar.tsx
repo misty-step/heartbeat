@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../convex/_generated/api";
 import { Id } from "../convex/_generated/dataModel";
@@ -31,13 +31,37 @@ const getStatusLabel = (status: DayStatus | "unknown") =>
   status === "unknown" ? "No data" : getDomainStatusLabel(status);
 
 const formatDate = (dateStr: string) => {
-  const date = new Date(dateStr + "T00:00:00");
-  return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  // Use noon UTC to stay within the UTC day regardless of local offset.
+  // The monitoring data keys are UTC dates, so display must match.
+  const date = new Date(dateStr + "T12:00:00Z");
+  return date.toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  });
 };
 
 export function UptimeBar({ monitorId, days = 30 }: UptimeBarProps) {
   const dailyStatus = useQuery(api.checks.getDailyStatus, { monitorId, days });
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+
+  // Memoized: only recomputes when dailyStatus changes, not on hover re-renders
+  const dataByDate = useMemo(
+    () => new Map((dailyStatus ?? []).map((d) => [d.date, d])),
+    [dailyStatus],
+  );
+
+  // Memoized: stable array of UTC date strings for the past N days
+  const dateRange = useMemo(() => {
+    const today = new Date();
+    const range: string[] = [];
+    for (let i = days - 1; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(date.getDate() - i);
+      range.push(date.toISOString().split("T")[0]);
+    }
+    return range;
+  }, [days]);
 
   if (!dailyStatus) {
     // Loading state - show placeholder bars
@@ -52,18 +76,6 @@ export function UptimeBar({ monitorId, days = 30 }: UptimeBarProps) {
         ))}
       </div>
     );
-  }
-
-  // Build a map of date -> day data for quick lookup
-  const dataByDate = new Map(dailyStatus.map((d) => [d.date, d]));
-
-  // Generate array of dates for the past N days
-  const today = new Date();
-  const dateRange: string[] = [];
-  for (let i = days - 1; i >= 0; i--) {
-    const date = new Date(today);
-    date.setDate(date.getDate() - i);
-    dateRange.push(date.toISOString().split("T")[0]);
   }
 
   // Pre-compute hovered day data for tooltip
