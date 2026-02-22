@@ -33,32 +33,116 @@ describe("ZenUptimeChart", () => {
 
   it("renders hover areas for each data point", () => {
     render(<ZenUptimeChart data={mockData} />);
-    // Each data point has an invisible hit area (r=8 circle)
+    // Each data point has an invisible hit area circle
     const circles = document.querySelectorAll("circle");
     expect(circles.length).toBe(mockData.length);
   });
 
-  it("shows tooltip on hover with response time", () => {
+  it("hit area radius is 22 when point spacing allows (sparse data)", () => {
+    // 3 points in width=400 → stepX = 392/2 = 196, hitRadius = min(22, 98) = 22
+    render(<ZenUptimeChart data={mockData} width={400} height={128} />);
+    const hitAreas = document.querySelectorAll("circle");
+    hitAreas.forEach((circle) => {
+      expect(Number(circle.getAttribute("r"))).toBe(22);
+    });
+  });
+
+  it("hit area radius is capped at half point spacing for dense data to prevent overlap", () => {
+    // 50 points in width=400 → stepX = 392/49 ≈ 8.0, hitRadius = min(22, 4.0) ≈ 4.0
+    const denseData = Array.from({ length: 50 }, (_, i) => ({
+      timestamp: i * 1000,
+      responseTime: 100 + i,
+      status: "up" as const,
+    }));
+    const { unmount } = render(
+      <ZenUptimeChart data={denseData} width={400} height={128} />,
+    );
+    const hitAreas = document.querySelectorAll("circle");
+    const stepX = 392 / 49; // chartWidth / (n - 1)
+    hitAreas.forEach((circle) => {
+      const r = Number(circle.getAttribute("r"));
+      expect(r).toBeGreaterThan(0);
+      // Circles must not overlap: r <= stepX / 2
+      expect(r).toBeLessThanOrEqual(stepX / 2 + Number.EPSILON);
+    });
+    unmount();
+  });
+
+  it("shows tooltip on touch (pointerdown with pointerType=touch)", () => {
     render(<ZenUptimeChart data={mockData} />);
     const hitAreas = document.querySelectorAll("circle");
 
-    // Hover over first point
-    fireEvent.mouseEnter(hitAreas[0]);
+    fireEvent.pointerDown(hitAreas[0], { pointerType: "touch" });
 
-    // Should show visible point (r=3) and tooltip text
     expect(screen.getByText("100ms")).toBeInTheDocument();
   });
 
-  it("hides tooltip on mouse leave from SVG", () => {
+  it("hides tooltip on touch release (pointerup with pointerType=touch)", () => {
+    render(<ZenUptimeChart data={mockData} />);
+    const hitAreas = document.querySelectorAll("circle");
+
+    fireEvent.pointerDown(hitAreas[0], { pointerType: "touch" });
+    expect(screen.getByText("100ms")).toBeInTheDocument();
+
+    fireEvent.pointerUp(hitAreas[0], { pointerType: "touch" });
+    expect(screen.queryByText("100ms")).not.toBeInTheDocument();
+  });
+
+  it("hides tooltip on touch cancel (interrupted interaction)", () => {
+    render(<ZenUptimeChart data={mockData} />);
+    const hitAreas = document.querySelectorAll("circle");
+
+    fireEvent.pointerDown(hitAreas[0], { pointerType: "touch" });
+    expect(screen.getByText("100ms")).toBeInTheDocument();
+
+    fireEvent.pointerCancel(hitAreas[0]);
+    expect(screen.queryByText("100ms")).not.toBeInTheDocument();
+  });
+
+  it("does not show tooltip when a synthetic mouseenter follows a touch release", () => {
+    // Mobile browsers dispatch synthetic mouse events after touch. The
+    // component listens only to pointer events, so these are ignored.
+    render(<ZenUptimeChart data={mockData} />);
+    const hitAreas = document.querySelectorAll("circle");
+
+    fireEvent.pointerDown(hitAreas[0], { pointerType: "touch" });
+    fireEvent.pointerUp(hitAreas[0], { pointerType: "touch" });
+    expect(screen.queryByText("100ms")).not.toBeInTheDocument();
+
+    // Simulate the synthetic mouseenter that mobile browsers fire after touch
+    fireEvent.mouseEnter(hitAreas[0]);
+    // Still hidden — we don't listen to onMouseEnter
+    expect(screen.queryByText("100ms")).not.toBeInTheDocument();
+  });
+
+  it("shows tooltip on hover with response time (mouse)", () => {
+    render(<ZenUptimeChart data={mockData} />);
+    const hitAreas = document.querySelectorAll("circle");
+
+    // Mouse hover via pointer event
+    fireEvent.pointerEnter(hitAreas[0], { pointerType: "mouse" });
+
+    expect(screen.getByText("100ms")).toBeInTheDocument();
+  });
+
+  it("hides tooltip when pointer leaves SVG area", () => {
     render(<ZenUptimeChart data={mockData} />);
     const svg = document.querySelector("svg")!;
     const hitAreas = document.querySelectorAll("circle");
 
-    // Hover then leave
-    fireEvent.mouseEnter(hitAreas[0]);
+    fireEvent.pointerEnter(hitAreas[0], { pointerType: "mouse" });
     expect(screen.getByText("100ms")).toBeInTheDocument();
 
-    fireEvent.mouseLeave(svg);
+    fireEvent.pointerLeave(svg);
+    expect(screen.queryByText("100ms")).not.toBeInTheDocument();
+  });
+
+  it("does not show tooltip when pointer enters with touch pointerType", () => {
+    // Touch interactions should use pointerdown, not pointerenter
+    render(<ZenUptimeChart data={mockData} />);
+    const hitAreas = document.querySelectorAll("circle");
+
+    fireEvent.pointerEnter(hitAreas[0], { pointerType: "touch" });
     expect(screen.queryByText("100ms")).not.toBeInTheDocument();
   });
 
