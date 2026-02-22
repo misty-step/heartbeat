@@ -9,12 +9,12 @@ Heartbeat is a "set and forget" uptime monitoring service. Users create monitors
 ## Development Commands
 
 ```bash
-pnpm dev              # Run Next.js + Convex dev servers concurrently
-pnpm dev:next         # Next.js only (with Turbopack)
-pnpm dev:convex       # Convex backend only
-pnpm build            # Production build
-pnpm lint             # ESLint
-pnpm type-check       # TypeScript check
+bun dev               # Run Next.js + Convex dev servers concurrently
+bun dev:next          # Next.js only (with Turbopack)
+bun dev:convex        # Convex backend only
+bun build             # Production build
+bun lint              # ESLint
+bun type-check        # TypeScript check
 ```
 
 ## Architecture
@@ -81,8 +81,8 @@ Schema changes require coordination with production data. **New required fields 
 1. **Add new fields as optional** (`v.optional(v.string())`)
 2. **Enforce at application layer** — mutations always set the field for new documents
 3. **Deploy** — schema validates against existing data
-4. **Run backfill**: `npx convex run migrations:<backfillFn> --prod`
-5. **Verify**: `npx convex run migrations:<checkFn> --prod`
+4. **Run backfill**: `bunx convex run migrations:<backfillFn> --prod`
+5. **Verify**: `bunx convex run migrations:<checkFn> --prod`
 6. **Tighten schema** — remove `v.optional()` after backfill completes
 
 ### Available Migrations (`convex/migrations.ts`)
@@ -94,7 +94,7 @@ Schema changes require coordination with production data. **New required fields 
 
 ### CI Schema Validation
 
-The `test.yml` workflow runs `npx convex deploy --dry-run` if `CONVEX_DEPLOY_KEY` is set. Add this secret to GitHub to catch schema incompatibilities before Vercel deploys.
+The `test.yml` workflow runs `bunx convex deploy --dry-run` if `CONVEX_DEPLOY_KEY` is set. Add this secret to GitHub to catch schema incompatibilities before Vercel deploys.
 
 ## Conventions
 

@@ -8,13 +8,13 @@ We use **Vitest** for unit tests (components) and integration tests (Convex back
 
 ```bash
 # Run all unit/integration tests
-pnpm vitest
+bun vitest
 
 # Run with coverage report
-pnpm vitest run --coverage
+bun vitest run --coverage
 
 # Run tests in UI mode
-pnpm vitest --ui
+bun vitest --ui
 ```
 
 ### End-to-End (E2E) Tests
@@ -23,13 +23,13 @@ We use **Playwright** for critical user journeys.
 
 ```bash
 # Run E2E tests (headless)
-pnpm playwright test
+bun playwright test
 
 # Run E2E tests with UI
-pnpm playwright test --ui
+bun playwright test --ui
 
-# Run E2E tests against local dev server (ensure pnpm dev is NOT running, Playwright will start it)
-CI=true pnpm playwright test
+# Run E2E tests against local dev server (ensure bun dev is NOT running, Playwright will start it)
+CI=true bun playwright test
 ```
 
 ### Writing Tests

@@ -39,7 +39,7 @@ function getStripe(): Stripe {
   if (!key) {
     throw new Error("STRIPE_SECRET_KEY is not configured");
   }
-  return new Stripe(key, { apiVersion: "2025-12-15.clover" });
+  return new Stripe(key, { apiVersion: "2026-01-28.clover" });
 }
 
 function getPriceId(tier: "pulse" | "vital", interval: "month" | "year") {

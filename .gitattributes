@@ -1,0 +1,6 @@
+# Lockfiles are generated — exclude from textual diffs to keep PR reviews focused
+bun.lock      linguist-generated=true -diff
+bun.lockb     linguist-generated=true -diff
+pnpm-lock.yaml linguist-generated=true -diff
+package-lock.json linguist-generated=true -diff
+yarn.lock     linguist-generated=true -diff
