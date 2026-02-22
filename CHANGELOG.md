@@ -1,3 +1,9 @@
+## [1.9.2](https://github.com/misty-step/heartbeat/compare/v1.9.1...v1.9.2) (2026-02-22)
+
+### Bug Fixes
+
+- Add touch support and 44px hit targets to ZenUptimeChart ([#104](https://github.com/misty-step/heartbeat/issues/104)) ([202a7d0](https://github.com/misty-step/heartbeat/commit/202a7d06b89b45f3a844f1df6fd59f4a5fa80ad0)), closes [#44](https://github.com/misty-step/heartbeat/issues/44)
+
 ## [1.9.1](https://github.com/misty-step/heartbeat/compare/v1.9.0...v1.9.1) (2026-02-22)
 
 ### Bug Fixes
