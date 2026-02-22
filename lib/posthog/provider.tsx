@@ -12,7 +12,9 @@ if (typeof window !== "undefined" && process.env.NEXT_PUBLIC_POSTHOG_KEY) {
   posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY, {
     api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST || "/ingest",
     ui_host: "https://us.posthog.com",
+    person_profiles: "identified_only",
     capture_pageview: false,
+    respect_dnt: true,
     capture_pageleave: true,
     persistence: "localStorage",
     disable_session_recording: process.env.NODE_ENV !== "production",
