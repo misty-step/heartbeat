@@ -23,7 +23,7 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
+          bun-version: 1.3.9
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -46,7 +46,7 @@ jobs:
           CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
 
       - name: Unit & Integration Tests
-        run: bun vitest run --coverage
+        run: bun run test:coverage
 
       - name: Coverage Comment
         if: github.event_name == 'pull_request'
@@ -88,7 +88,7 @@ jobs:
         run: bunx playwright install --with-deps
 
       - name: E2E Tests
-        run: bun playwright test
+        run: bun run test:e2e
         env:
           CI: true
 
