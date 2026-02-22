@@ -33,28 +33,28 @@ The project follows a **Monorepo-style** structure where frontend and backend co
 ### Prerequisites
 
 - Node.js 18.17+
-- pnpm
+- Bun
 - Convex & Clerk accounts (see `README.md` for env setup)
 
 ### Key Commands
 
 ```bash
 # Start Development Server (Runs Next.js + Convex concurrently)
-pnpm dev
+bun dev
 
 # Start Services Individually
-pnpm dev:next    # Next.js only
-pnpm dev:convex  # Convex only
+bun dev:next    # Next.js only
+bun dev:convex  # Convex only
 
 # Type Checking
-pnpm type-check
+bun type-check
 
 # Linting
-pnpm lint
+bun lint
 
 # Testing
-pnpm test          # Run Vitest (Unit/Integration)
-pnpm test:e2e      # Run Playwright (End-to-End)
+bun test          # Run Vitest (Unit/Integration)
+bun test:e2e      # Run Playwright (End-to-End)
 ```
 
 ## Development Conventions

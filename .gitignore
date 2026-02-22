@@ -53,3 +53,8 @@ node_modules/
 
 # Design exploration artifacts
 .design-catalogue/
+
+.flywheel/
+
+# pnpm (migrated to bun)
+pnpm-lock.yaml

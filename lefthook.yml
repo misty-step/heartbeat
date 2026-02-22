@@ -4,20 +4,20 @@ pre-commit:
     lint:
       glob: "*.{ts,tsx}"
       exclude: "_generated"
-      run: pnpm eslint {staged_files} --max-warnings 0 --no-warn-ignored
+      run: bun eslint {staged_files} --max-warnings 0 --no-warn-ignored
     format:
       glob: "*.{ts,tsx,json,md,css}"
-      run: pnpm prettier --write {staged_files}
+      run: bun prettier --write {staged_files}
       stage_fixed: true
     typecheck:
-      run: pnpm tsc --noEmit
+      run: bun tsc --noEmit
 
 pre-push:
   commands:
     test:
-      run: pnpm test
+      run: bun test
 
 commit-msg:
   commands:
     lint-commit:
-      run: pnpm commitlint --edit {1}
+      run: bun commitlint --edit {1}

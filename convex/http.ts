@@ -22,7 +22,7 @@ const stripeWebhook = httpAction(async (ctx, request) => {
   }
 
   const stripe = new Stripe(stripeSecretKey, {
-    apiVersion: "2025-12-15.clover",
+    apiVersion: "2026-01-28.clover",
   });
 
   const signature = request.headers.get("stripe-signature");

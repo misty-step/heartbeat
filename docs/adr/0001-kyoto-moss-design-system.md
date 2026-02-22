@@ -159,10 +159,10 @@ components/ui/
 ## Verification
 
 ```bash
-pnpm type-check    # TypeScript compiles
-pnpm lint          # No ESLint errors
-pnpm build         # Production build succeeds
-pnpm dev           # Visual verification
+bun type-check     # TypeScript compiles
+bun lint           # No ESLint errors
+bun build          # Production build succeeds
+bun dev            # Visual verification
 ```
 
 ## References
