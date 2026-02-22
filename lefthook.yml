@@ -15,7 +15,7 @@ pre-commit:
 pre-push:
   commands:
     test:
-      run: bun test
+      run: bun run test
 
 commit-msg:
   commands:
