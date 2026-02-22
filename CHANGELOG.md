@@ -1,3 +1,9 @@
+## [1.9.1](https://github.com/misty-step/heartbeat/compare/v1.9.0...v1.9.1) (2026-02-22)
+
+### Bug Fixes
+
+- Harden Sentry and PostHog privacy defaults ([#103](https://github.com/misty-step/heartbeat/issues/103)) ([0a69de4](https://github.com/misty-step/heartbeat/commit/0a69de4d1519bdb59b4c5c22cb54d05076200bf2))
+
 # [1.9.0](https://github.com/misty-step/heartbeat/compare/v1.8.0...v1.9.0) (2026-02-21)
 
 ### Features
