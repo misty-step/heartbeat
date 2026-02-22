@@ -4,7 +4,7 @@ name: Cerberus Council
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [opened, synchronize, reopened, ready_for_review, converted_to_draft]
 
 permissions:
   contents: read
@@ -15,36 +15,69 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  draft-check:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    outputs:
+      is_draft: ${{ steps.draft.outputs.is_draft }}
+    steps:
+      - uses: misty-step/cerberus/draft-check@v2
+        id: draft
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+  validate:
+    needs: draft-check
+    if: github.event.pull_request.head.repo.full_name == github.repository && needs.draft-check.outputs.is_draft != 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: misty-step/cerberus/validate@v2
+
+  matrix:
+    needs: validate
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.generate.outputs.matrix }}
+    steps:
+      - uses: misty-step/cerberus/matrix@v2
+        id: generate
+
   review:
-    name: "${{ matrix.reviewer }}"
+    needs: [matrix, draft-check]
+    if: github.event.pull_request.head.repo.full_name == github.repository && needs.draft-check.outputs.is_draft != 'true'
+    permissions:
+      contents: read
+      pull-requests: read
+    name: "${{ matrix.reviewer_label || matrix.reviewer }}"
     runs-on: ubuntu-latest
     strategy:
-      matrix:
-        include:
-          - { reviewer: APOLLO, perspective: correctness }
-          - { reviewer: ATHENA, perspective: architecture }
-          - { reviewer: SENTINEL, perspective: security }
-          - { reviewer: VULCAN, perspective: performance }
-          - { reviewer: ARTEMIS, perspective: maintainability }
+      matrix: ${{ fromJson(needs.matrix.outputs.matrix) }}
       fail-fast: false
     steps:
       - uses: actions/checkout@v4
-      # Pinned to kimi-cli era (pre-OpenRouter migration).
-      # cerberus@v1 now requires an OpenRouter key; MOONSHOT_API_KEY is a
-      # Moonshot-native key. Upgrade path: get an OpenRouter key, store as
-      # OPENROUTER_API_KEY, and switch to: api-key: ${{ secrets.OPENROUTER_API_KEY }}
-      - uses: misty-step/cerberus@36c6b4712675c669c3b8f2e6efbe660bb4a469e3
+      - uses: misty-step/cerberus@v2
         with:
           perspective: ${{ matrix.perspective }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          kimi-api-key: ${{ secrets.MOONSHOT_API_KEY }}
+          api-key: ${{ secrets.OPENROUTER_API_KEY }}
+          comment-policy: 'never'
+          timeout: '600'
 
   verdict:
     name: "Council Verdict"
-    needs: review
-    if: always()
+    needs: [review, draft-check]
+    if: always() && needs.review.result != 'skipped' && needs.draft-check.outputs.is_draft != 'true'
+    permissions:
+      contents: read
+      pull-requests: write
     runs-on: ubuntu-latest
     steps:
-      - uses: misty-step/cerberus/verdict@36c6b4712675c669c3b8f2e6efbe660bb4a469e3
+      - uses: misty-step/cerberus/verdict@v2
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
