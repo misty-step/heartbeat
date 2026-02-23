@@ -275,7 +275,7 @@ function HeroSection() {
 function TrustBar() {
   const shouldReduceMotion = useReducedMotion() ?? false;
   const stats = [
-    { value: "99.99%", label: "Uptime SLA" },
+    { value: "1 min", label: "Check interval" },
     { value: "<30s", label: "Alert delivery" },
     { value: "3×", label: "Confirm before alert" },
     { value: "∞", label: "Unlimited viewers" },
@@ -464,7 +464,7 @@ function BentoFeatures() {
                           Alert sent
                         </span>
                         <span className="font-mono text-xs text-degraded">
-                          Email · Slack · Webhook
+                          Email · Webhook
                         </span>
                       </div>
                     </div>
@@ -493,7 +493,7 @@ function BentoFeatures() {
                   Public status pages
                 </h3>
                 <p className="text-pretty font-body text-sm leading-relaxed text-secondary">
-                  Beautiful, simple status pages. Custom domain included.
+                  Beautiful, simple status pages at yourapp.heartbeat.cool.
                   Communicate downtime with transparency.
                 </p>
 
@@ -582,25 +582,24 @@ function BentoFeatures() {
                   Lightning fast
                 </h3>
                 <p className="text-pretty font-body text-sm leading-relaxed text-secondary">
-                  Global check infrastructure. Sub-30 second alert delivery. No
-                  false positives.
+                  Sub-30 second alert delivery. No false positives.
                 </p>
 
                 <div className="mt-auto grid grid-cols-2 gap-4 pt-4">
                   <div>
                     <span className="block font-display text-2xl font-light tabular-nums text-accent">
-                      24ms
+                      1 min
                     </span>
                     <span className="font-body text-xs text-muted">
-                      Avg response
+                      Check interval
                     </span>
                   </div>
                   <div>
                     <span className="block font-display text-2xl font-light tabular-nums text-accent">
-                      12
+                      90d
                     </span>
                     <span className="font-body text-xs text-muted">
-                      Global nodes
+                      History (Vital)
                     </span>
                   </div>
                 </div>
