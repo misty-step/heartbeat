@@ -88,7 +88,7 @@ describe("HomePage - Bento Zen Landing", () => {
 
   test("displays key product stats in trust bar", () => {
     render(<HomePage />);
-    expect(screen.getByText("99.99%")).toBeInTheDocument();
+    expect(screen.getAllByText("1 min").length).toBeGreaterThan(0);
     expect(screen.getByText("<30s")).toBeInTheDocument();
     expect(screen.getByText("3×")).toBeInTheDocument();
     expect(screen.getByText("∞")).toBeInTheDocument();
