@@ -6,8 +6,32 @@ import {
   getStatusHeadline,
   calculateApdex,
   getNaturalStatusMessage,
+  DAILY_UPTIME_THRESHOLDS,
+  INCIDENT_THRESHOLD,
   type MonitorStatus,
 } from "../status";
+
+describe("DAILY_UPTIME_THRESHOLDS", () => {
+  it("UP threshold is 0.99 (99%)", () => {
+    expect(DAILY_UPTIME_THRESHOLDS.UP).toBe(0.99);
+  });
+
+  it("DEGRADED threshold is 0.95 (95%)", () => {
+    expect(DAILY_UPTIME_THRESHOLDS.DEGRADED).toBe(0.95);
+  });
+
+  it("UP threshold is greater than DEGRADED threshold", () => {
+    expect(DAILY_UPTIME_THRESHOLDS.UP).toBeGreaterThan(
+      DAILY_UPTIME_THRESHOLDS.DEGRADED,
+    );
+  });
+});
+
+describe("INCIDENT_THRESHOLD", () => {
+  it("is 3 consecutive failures", () => {
+    expect(INCIDENT_THRESHOLD).toBe(3);
+  });
+});
 
 describe("computeStatus", () => {
   it('returns "up" for 0 consecutive failures', () => {
@@ -18,17 +42,16 @@ describe("computeStatus", () => {
     expect(computeStatus(1)).toBe("degraded");
   });
 
-  it('returns "degraded" for 2 consecutive failures', () => {
-    expect(computeStatus(2)).toBe("degraded");
+  it('returns "degraded" just below INCIDENT_THRESHOLD', () => {
+    expect(computeStatus(INCIDENT_THRESHOLD - 1)).toBe("degraded");
   });
 
-  it('returns "down" for 3 consecutive failures', () => {
-    expect(computeStatus(3)).toBe("down");
+  it('returns "down" at exactly INCIDENT_THRESHOLD', () => {
+    expect(computeStatus(INCIDENT_THRESHOLD)).toBe("down");
   });
 
-  it('returns "down" for more than 3 consecutive failures', () => {
-    expect(computeStatus(5)).toBe("down");
-    expect(computeStatus(10)).toBe("down");
+  it('returns "down" above INCIDENT_THRESHOLD', () => {
+    expect(computeStatus(INCIDENT_THRESHOLD + 1)).toBe("down");
     expect(computeStatus(100)).toBe("down");
   });
 });
@@ -292,18 +315,18 @@ describe("getNaturalStatusMessage", () => {
       );
     });
 
-    it("includes failure count when consecutiveFailures > 3", () => {
+    it("includes failure count when consecutiveFailures > INCIDENT_THRESHOLD", () => {
       expect(
         getNaturalStatusMessage("down", "https://example.com/api", {
-          consecutiveFailures: 5,
+          consecutiveFailures: INCIDENT_THRESHOLD + 2,
         }),
-      ).toBe("API is unreachable (5 failed checks)");
+      ).toBe(`API is unreachable (${INCIDENT_THRESHOLD + 2} failed checks)`);
     });
 
-    it("does not include failure count when consecutiveFailures <= 3", () => {
+    it("does not include failure count at exactly INCIDENT_THRESHOLD", () => {
       expect(
         getNaturalStatusMessage("down", "https://example.com/api", {
-          consecutiveFailures: 3,
+          consecutiveFailures: INCIDENT_THRESHOLD,
         }),
       ).toBe("API is unreachable");
     });

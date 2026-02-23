@@ -127,7 +127,6 @@ export function EmberGlow({ className }: { className?: string }) {
     <div
       className={cn(
         "absolute inset-0 pointer-events-none",
-        "bg-gradient-radial from-[var(--color-ember-subtle)] to-transparent",
         "opacity-50 dark:opacity-30",
         className,
       )}

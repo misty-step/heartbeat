@@ -9,12 +9,12 @@ Heartbeat is a "set and forget" uptime monitoring service. Users create monitors
 ## Development Commands
 
 ```bash
-pnpm dev              # Run Next.js + Convex dev servers concurrently
-pnpm dev:next         # Next.js only (with Turbopack)
-pnpm dev:convex       # Convex backend only
-pnpm build            # Production build
-pnpm lint             # ESLint
-pnpm type-check       # TypeScript check
+bun dev               # Run Next.js + Convex dev servers concurrently
+bun dev:next          # Next.js only (with Turbopack)
+bun dev:convex        # Convex backend only
+bun build             # Production build
+bun lint              # ESLint
+bun type-check        # TypeScript check
 ```
 
 ## Architecture
@@ -81,8 +81,8 @@ Schema changes require coordination with production data. **New required fields 
 1. **Add new fields as optional** (`v.optional(v.string())`)
 2. **Enforce at application layer** — mutations always set the field for new documents
 3. **Deploy** — schema validates against existing data
-4. **Run backfill**: `npx convex run migrations:<backfillFn> --prod`
-5. **Verify**: `npx convex run migrations:<checkFn> --prod`
+4. **Run backfill**: `bunx convex run migrations:<backfillFn> --prod`
+5. **Verify**: `bunx convex run migrations:<checkFn> --prod`
 6. **Tighten schema** — remove `v.optional()` after backfill completes
 
 ### Available Migrations (`convex/migrations.ts`)
@@ -94,7 +94,7 @@ Schema changes require coordination with production data. **New required fields 
 
 ### CI Schema Validation
 
-The `test.yml` workflow runs `npx convex deploy --dry-run` if `CONVEX_DEPLOY_KEY` is set. Add this secret to GitHub to catch schema incompatibilities before Vercel deploys.
+The `test.yml` workflow runs `bunx convex deploy --dry-run` if `CONVEX_DEPLOY_KEY` is set. Add this secret to GitHub to catch schema incompatibilities before Vercel deploys.
 
 ## Conventions
 
@@ -102,3 +102,47 @@ The `test.yml` workflow runs `npx convex deploy --dry-run` if `CONVEX_DEPLOY_KEY
 - Convex functions use internal variants (`internalQuery`, `internalMutation`, `internalAction`) for server-only operations
 - Status pages are public (no auth), dashboard requires authentication
 - Monitor intervals stored in seconds: 60, 120, 300, 600, 1800, 3600
+
+### Convex Cleanup Jobs
+
+When writing cleanup/batch jobs that use `.take(N)` for bounded queries, **always paginate in a loop** until no documents remain. Single-batch cleanup leaves backlog at scale.
+
+```typescript
+// ✅ Correct: loop until empty
+while (true) {
+  const batch = await ctx.runQuery(internal.getOldItems, { limit: 1000 });
+  if (batch.length === 0) break;
+  await ctx.runMutation(internal.deleteItems, { ids: batch.map((b) => b._id) });
+}
+
+// ❌ Wrong: single batch leaves backlog
+const batch = await ctx.runQuery(internal.getOldItems, { limit: 1000 });
+await ctx.runMutation(internal.deleteItems, { ids: batch.map((b) => b._id) });
+```
+
+### Public Page Data Fetching
+
+Use `Promise.allSettled` (not `Promise.all`) for ISR/SSR pages with multiple data sources. This enables graceful degradation — show partial data rather than full error page.
+
+```typescript
+// ✅ Graceful degradation with error logging
+const [statsResult, checksResult] = await Promise.allSettled([
+  fetchStats(),
+  fetchChecks(),
+]);
+
+// Log failures for debugging while still rendering partial data
+if (statsResult.status === "rejected") {
+  console.error("Failed to fetch stats:", statsResult.reason);
+}
+if (checksResult.status === "rejected") {
+  console.error("Failed to fetch checks:", checksResult.reason);
+}
+
+const stats =
+  statsResult.status === "fulfilled" ? statsResult.value : defaultStats;
+const checks = checksResult.status === "fulfilled" ? checksResult.value : [];
+
+// ❌ Fail-fast breaks entire page
+const [stats, checks] = await Promise.all([fetchStats(), fetchChecks()]);
+```

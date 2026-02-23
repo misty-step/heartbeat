@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Configure dark mode to use .dark class (for next-themes) instead of prefers-color-scheme */
+@variant dark (&:where(.dark, .dark *));
+
 /* ===== HEARTHSTONE DESIGN SYSTEM =====
  * Warm workshop aesthetic. Fireplace glow, amber embers, evening comfort.
  *
@@ -17,12 +20,18 @@
   --font-display: "Lora", Georgia, "Times New Roman", serif;
   --font-body: "Nunito", system-ui, -apple-system, sans-serif;
   --font-mono: "IBM Plex Mono", "SF Mono", Consolas, monospace;
+  --font-serif: var(--font-display);
+  --font-sans: var(--font-body);
 
   /* Backgrounds */
   --color-background: var(--color-bg-primary);
   --color-foreground: var(--color-text-primary);
   --color-surface: var(--color-bg-elevated);
   --color-surface-elevated: var(--color-bg-secondary);
+
+  /* Text hierarchy - semantic tokens for Tailwind v4 */
+  --color-secondary: var(--color-text-secondary);
+  --color-muted: var(--color-text-muted);
 
   /* Status semantic mapping */
   --color-up: var(--color-status-up);
@@ -464,6 +473,19 @@ body::before {
 
 .animate-in {
   animation: hs-fade-in-up var(--duration-normal) var(--ease-out) forwards;
+}
+
+/* Backward-compatible aliases for legacy animation utilities. */
+.animate-zen-breathe {
+  animation: hs-ember-pulse var(--duration-breathe) var(--ease-breathe) infinite;
+}
+
+.animate-zen-breathe-fast {
+  animation: hs-ember-pulse 1.5s var(--ease-breathe) infinite;
+}
+
+.animate-zen-fade-in {
+  animation: hs-fade-in var(--duration-slow) var(--ease-out) forwards;
 }
 
 /* Staggered animation delays for cards */

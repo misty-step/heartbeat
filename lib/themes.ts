@@ -9,6 +9,9 @@ export const THEME_IDS = [
 ] as const;
 
 export type ThemeId = (typeof THEME_IDS)[number];
+// Persisted theme ID remains "glass" for backward compatibility.
+// Display name and visual system have migrated to Hearthstone.
+export const HEARTHSTONE_THEME_ID: ThemeId = "glass";
 
 export interface ThemeDefinition {
   id: ThemeId;
@@ -21,9 +24,9 @@ export interface ThemeDefinition {
 
 export const THEMES: Record<ThemeId, ThemeDefinition> = {
   glass: {
-    id: "glass",
+    id: HEARTHSTONE_THEME_ID,
     name: "Hearthstone",
-    description: "Warm workshop aesthetic with ember glow",
+    description: "Warm workshop aesthetic with ember glow (legacy id: glass)",
     minTier: "pulse",
     colors: ["#a0522d", "#d4891a", "#c1762e", "#8b7359"],
   },
@@ -71,7 +74,7 @@ export const THEMES: Record<ThemeId, ThemeDefinition> = {
   },
 };
 
-export const DEFAULT_THEME: ThemeId = "glass";
+export const DEFAULT_THEME: ThemeId = HEARTHSTONE_THEME_ID;
 
 export function getThemesForTier(tier: "pulse" | "vital"): ThemeDefinition[] {
   return Object.values(THEMES).filter((theme) => {

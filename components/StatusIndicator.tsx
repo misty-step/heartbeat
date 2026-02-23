@@ -1,5 +1,5 @@
 /**
- * StatusIndicator - Kyoto Moss Design System (Cinematic Variant)
+ * StatusIndicator - Hearthstone Design System (Cinematic Variant)
  *
  * Enhanced status indicator with cinematic mode for dramatic effects.
  * Used on landing pages and hero sections.
@@ -75,7 +75,7 @@ export function StatusIndicator({
       {/* Breathing ring for up status - increased visibility */}
       {shouldBreathe && (
         <div
-          className="absolute inset-0 rounded-full animate-hs-ember-pulse-subtle"
+          className="absolute inset-0 rounded-full animate-hs-ember-flicker"
           style={{
             background: glowColor,
             opacity: 0.5,
@@ -106,7 +106,7 @@ export function StatusIndicator({
               className="absolute rounded-full bg-down"
               style={{
                 inset: "-75%",
-                animation: "hs-ember-pulse-subtle 3s ease-in-out infinite",
+                animation: "hs-ember-flicker 3s ease-in-out infinite",
                 opacity: 0.25,
                 filter: "blur(12px)",
               }}

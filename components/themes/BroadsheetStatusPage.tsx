@@ -135,7 +135,9 @@ export function BroadsheetStatusPage({
                 </span>{" "}
                 with a thirty-day uptime holding steady at{" "}
                 <span className="font-semibold">
-                  {uptimePercentage.toFixed(2)}%
+                  {uptimePercentage === null
+                    ? "unavailable"
+                    : `${uptimePercentage.toFixed(2)}%`}
                 </span>
                 . Total checks logged: {totalChecksValue.toLocaleString()}.
               </p>
@@ -160,8 +162,14 @@ export function BroadsheetStatusPage({
               {[
                 {
                   label: "Uptime",
-                  value: `${uptimePercentage.toFixed(2)}%`,
-                  tone: "text-[#1e3a5f]",
+                  value:
+                    uptimePercentage === null
+                      ? "—"
+                      : `${uptimePercentage.toFixed(2)}%`,
+                  tone:
+                    uptimePercentage === null
+                      ? "text-[#6b6b6b]"
+                      : "text-[#1e3a5f]",
                 },
                 {
                   label: "Response",

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useAction, useConvexAuth } from "convex/react";
 import { api } from "../../../convex/_generated/api";
+import { useUnsavedChangesWarning } from "@/hooks/useUnsavedChangesWarning";
 import {
   ArrowLeft,
   Mail,
@@ -13,6 +14,7 @@ import {
   CreditCard,
 } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
 
 type ThrottleMinutes = 5 | 15 | 30 | 60;
 
@@ -28,11 +30,6 @@ export default function SettingsPage() {
   const sendTestWebhook = useAction(api.notifications.sendTestWebhook);
 
   const [isSaving, setIsSaving] = useState(false);
-  const [saveMessage, setSaveMessage] = useState<string | null>(null);
-  const [testEmailStatus, setTestEmailStatus] = useState<string | null>(null);
-  const [testWebhookStatus, setTestWebhookStatus] = useState<string | null>(
-    null,
-  );
   const [isSendingTestEmail, setIsSendingTestEmail] = useState(false);
   const [isSendingTestWebhook, setIsSendingTestWebhook] = useState(false);
 
@@ -63,7 +60,6 @@ export default function SettingsPage() {
 
   const handleSave = async () => {
     setIsSaving(true);
-    setSaveMessage(null);
 
     try {
       await updateSettings({
@@ -73,12 +69,11 @@ export default function SettingsPage() {
         throttleMinutes,
         webhookUrl: webhookUrl.trim() || undefined,
       });
-      setSaveMessage("Settings saved");
-      setTimeout(() => setSaveMessage(null), 3000);
+      toast.success("Settings saved");
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Failed to save settings";
-      setSaveMessage(message);
+      toast.error(message);
     } finally {
       setIsSaving(false);
     }
@@ -93,45 +88,44 @@ export default function SettingsPage() {
       throttleMinutes !== settings.throttleMinutes ||
       (webhookUrl.trim() || undefined) !== (settings.webhookUrl || undefined));
 
+  const { pendingNavigation, confirmNavigation, cancelNavigation } =
+    useUnsavedChangesWarning(!!hasChanges);
+
   const handleTestEmail = async () => {
     setIsSendingTestEmail(true);
-    setTestEmailStatus(null);
 
     try {
       const result = await sendTestEmail();
       if (result.success) {
-        setTestEmailStatus("Test email sent!");
+        toast.success("Test email sent");
       } else {
-        setTestEmailStatus(result.error || "Failed to send test email");
+        toast.error(result.error || "Failed to send test email");
       }
     } catch (error) {
-      setTestEmailStatus(
+      toast.error(
         error instanceof Error ? error.message : "Failed to send test email",
       );
     } finally {
       setIsSendingTestEmail(false);
-      setTimeout(() => setTestEmailStatus(null), 5000);
     }
   };
 
   const handleTestWebhook = async () => {
     setIsSendingTestWebhook(true);
-    setTestWebhookStatus(null);
 
     try {
       const result = await sendTestWebhook();
       if (result.success) {
-        setTestWebhookStatus("Webhook sent successfully!");
+        toast.success("Test webhook sent");
       } else {
-        setTestWebhookStatus(result.error || "Failed to send test webhook");
+        toast.error(result.error || "Failed to send test webhook");
       }
     } catch (error) {
-      setTestWebhookStatus(
+      toast.error(
         error instanceof Error ? error.message : "Failed to send test webhook",
       );
     } finally {
       setIsSendingTestWebhook(false);
-      setTimeout(() => setTestWebhookStatus(null), 5000);
     }
   };
 
@@ -221,17 +215,6 @@ export default function SettingsPage() {
                 {isSendingTestEmail ? "Sending..." : "Test"}
               </button>
             </div>
-            {testEmailStatus && (
-              <p
-                className={`text-sm ${
-                  testEmailStatus === "Test email sent!"
-                    ? "text-green-600 dark:text-green-400"
-                    : "text-red-600 dark:text-red-400"
-                }`}
-              >
-                {testEmailStatus}
-              </p>
-            )}
             <p className="text-xs text-foreground/40">
               This is your account email from Clerk. Contact support to change
               it.
@@ -361,17 +344,6 @@ export default function SettingsPage() {
                 {isSendingTestWebhook ? "Sending..." : "Test"}
               </button>
             </div>
-            {testWebhookStatus && (
-              <p
-                className={`text-sm ${
-                  testWebhookStatus === "Webhook sent successfully!"
-                    ? "text-green-600 dark:text-green-400"
-                    : "text-red-600 dark:text-red-400"
-                }`}
-              >
-                {testWebhookStatus}
-              </p>
-            )}
             <p className="text-xs text-foreground/40">
               We'll POST a JSON payload to this URL when incidents open or
               resolve. Must use HTTPS.
@@ -388,22 +360,81 @@ export default function SettingsPage() {
           >
             {isSaving ? "Saving..." : "Save Changes"}
           </button>
-          {saveMessage && (
-            <span
-              className={`text-sm ${
-                saveMessage === "Settings saved"
-                  ? "text-green-600 dark:text-green-400"
-                  : "text-red-600 dark:text-red-400"
-              }`}
-            >
-              {saveMessage}
-            </span>
-          )}
-          {!hasChanges && !saveMessage && (
+          {!hasChanges && (
             <span className="text-sm text-foreground/40">
               No unsaved changes
             </span>
           )}
+        </div>
+      </div>
+
+      {/* Unsaved changes guard for in-app navigation */}
+      {pendingNavigation && (
+        <UnsavedChangesModal
+          onConfirm={confirmNavigation}
+          onCancel={cancelNavigation}
+        />
+      )}
+    </div>
+  );
+}
+
+function UnsavedChangesModal({
+  onConfirm,
+  onCancel,
+}: {
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onCancel();
+    };
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [onCancel]);
+
+  return (
+    <div
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onCancel();
+      }}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="unsaved-changes-title"
+      aria-describedby="unsaved-changes-desc"
+    >
+      <div className="relative w-full max-w-sm mx-4 bg-[var(--color-bg-primary)] shadow-[var(--shadow-lg)] border border-[var(--color-border-subtle)] rounded-[var(--radius-lg)]">
+        <div className="px-6 py-6">
+          <h2
+            id="unsaved-changes-title"
+            className="font-serif text-xl text-[var(--color-text-primary)] mb-3"
+          >
+            Unsaved Changes
+          </h2>
+          <p
+            id="unsaved-changes-desc"
+            className="font-sans text-sm text-[var(--color-text-secondary)] leading-relaxed mb-6"
+          >
+            You have unsaved changes. If you leave now, they will be lost.
+          </p>
+          <div className="flex gap-3 justify-end">
+            <button
+              type="button"
+              onClick={onCancel}
+              className="px-4 py-2 border border-[var(--color-border-default)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-tertiary)] transition-colors rounded-[var(--radius-md)]"
+            >
+              Stay
+            </button>
+            <button
+              type="button"
+              onClick={onConfirm}
+              className="px-4 py-2 bg-foreground text-background font-medium hover:opacity-80 transition-opacity rounded-[var(--radius-sm)]"
+            >
+              Leave
+            </button>
+          </div>
         </div>
       </div>
     </div>

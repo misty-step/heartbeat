@@ -6,6 +6,7 @@ Sentry.init({
 
   // Performance monitoring
   tracesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0,
+  sendDefaultPii: false,
 
   // Session replay for visual debugging
   replaysSessionSampleRate: 0.1,

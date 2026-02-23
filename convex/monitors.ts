@@ -1,7 +1,8 @@
 import { v } from "convex/values";
 import { query, mutation, internalQuery } from "./_generated/server";
 import { internal } from "./_generated/api";
-import { toPublicMonitor, computeMonitorStatus } from "./publicTypes";
+import { toPublicMonitor } from "./publicTypes";
+import { computeStatus } from "../lib/domain/status";
 import { generateUniqueStatusSlug } from "./slugs";
 import { isPubliclyVisible } from "./lib/visibility";
 import { validateMonitorUrl } from "./lib/urlValidation";
@@ -119,7 +120,7 @@ export const getPublicMonitorByStatusSlug = query({
     return {
       _id: monitor._id,
       name: monitor.name,
-      status: computeMonitorStatus(monitor.consecutiveFailures),
+      status: computeStatus(monitor.consecutiveFailures),
       lastCheckAt: monitor.lastCheckAt,
       lastResponseTime: monitor.lastResponseTime,
       theme: effectiveTheme,

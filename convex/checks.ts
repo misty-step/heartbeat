@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import { query } from "./_generated/server";
 import { toPublicCheck } from "./publicTypes";
 import { isPubliclyVisible } from "./lib/visibility";
+import { DAILY_UPTIME_THRESHOLDS } from "../lib/domain/status";
 
 const DEFAULT_LIMIT = 50;
 const MAX_LIMIT = 100;
@@ -183,6 +184,8 @@ export const getDailyStatus = query({
         v.literal("degraded"),
         v.literal("down"),
       ),
+      uptimePercentage: v.number(),
+      totalChecks: v.number(),
     }),
   ),
   handler: async (ctx, args) => {
@@ -222,14 +225,19 @@ export const getDailyStatus = query({
     // Return ordered array of daily statuses
     return Array.from(dailyMap.entries())
       .sort(([a], [b]) => a.localeCompare(b))
-      .map(([date, stats]) => ({
-        date,
-        status:
-          stats.up / stats.total >= 0.99
-            ? ("up" as const)
-            : stats.up / stats.total >= 0.95
-              ? ("degraded" as const)
-              : ("down" as const),
-      }));
+      .map(([date, stats]) => {
+        const uptimeRatio = stats.up / stats.total;
+        return {
+          date,
+          status:
+            uptimeRatio >= DAILY_UPTIME_THRESHOLDS.UP
+              ? ("up" as const)
+              : uptimeRatio >= DAILY_UPTIME_THRESHOLDS.DEGRADED
+                ? ("degraded" as const)
+                : ("down" as const),
+          uptimePercentage: Math.round(uptimeRatio * 10000) / 100,
+          totalChecks: stats.total,
+        };
+      });
   },
 });

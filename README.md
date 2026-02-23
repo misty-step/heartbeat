@@ -11,24 +11,24 @@ Beautiful status pages and real-time monitoring for your services. Built with Ne
 ### Prerequisites
 
 - Node.js 18.17.0 or higher
-- pnpm (or npm)
+- [Bun](https://bun.sh/) runtime
 - Convex account (free at [convex.dev](https://convex.dev))
 - Clerk account (free at [clerk.com](https://clerk.com))
 
 ### 1. Install Dependencies
 
 ```bash
-pnpm install
+bun install
 ```
 
 ### 2. Set Up Convex
 
 ```bash
 # Login to Convex
-pnpm convex login
+bunx convex login
 
 # Initialize Convex project (creates deployment)
-pnpm convex dev
+bunx convex dev
 ```
 
 This will:
@@ -66,7 +66,7 @@ See `.env.example` for all available options including Stripe, Sentry, and PostH
 
 ```bash
 # Runs both Next.js and Convex dev servers concurrently
-pnpm dev
+bun dev
 ```
 
 Note: This runs both servers in a single terminal with colored output:
@@ -78,10 +78,10 @@ If you prefer to run them separately:
 
 ```bash
 # Terminal 1: Convex dev server
-pnpm dev:convex
+bun dev:convex
 
 # Terminal 2: Next.js dev server
-pnpm dev:next
+bun dev:next
 ```
 
 ### 6. Open the App
@@ -183,22 +183,22 @@ heartbeat/
 
 ```bash
 # Development
-pnpm dev              # Start Next.js dev server
-pnpm convex dev       # Start Convex dev server
+bun dev               # Start Next.js dev server
+bunx convex dev       # Start Convex dev server
 
 # Type checking
-pnpm type-check       # Run TypeScript compiler
+bun type-check        # Run TypeScript compiler
 
 # Linting
-pnpm lint             # Run ESLint
+bun lint              # Run ESLint
 
 # Building
-pnpm build            # Build for production
-pnpm start            # Start production server
+bun build             # Build for production
+bun start             # Start production server
 
 # Convex
-pnpm convex deploy    # Deploy to production
-pnpm convex dashboard # Open Convex dashboard
+bunx convex deploy    # Deploy to production
+bunx convex dashboard # Open Convex dashboard
 ```
 
 ## Testing the App
@@ -265,7 +265,7 @@ After 3 consecutive failures, an incident will be created automatically.
 
 ### "Module not found" errors
 
-Run `pnpm convex dev` to generate types in `convex/_generated/`
+Run `bunx convex dev` to generate types in `convex/_generated/`
 
 ### Authentication not working
 

@@ -1,15 +1,15 @@
 {
   "name": "heartbeat",
-  "version": "1.5.0",
+  "version": "1.9.2",
   "description": "Set and forget uptime monitoring",
   "private": true,
   "scripts": {
     "prepare": "lefthook install",
-    "dev": "concurrently --kill-others-on-fail -n \"Next,Convex,Stripe\" -c \"cyan,magenta,yellow\" \"pnpm dev:next\" \"pnpm dev:convex\" \"pnpm dev:stripe\"",
+    "dev": "concurrently --kill-others-on-fail -n \"Next,Convex,Stripe\" -c \"cyan,magenta,yellow\" \"bun dev:next\" \"bun dev:convex\" \"bun dev:stripe\"",
     "dev:next": "next dev --turbopack",
     "dev:convex": "convex dev",
     "dev:stripe": "./scripts/dev-stripe.sh",
-    "build": "npx convex deploy --cmd 'next build'",
+    "build": "bunx convex deploy --cmd 'next build'",
     "start": "next start",
     "lint": "eslint . --max-warnings 0",
     "type-check": "tsc --noEmit",
@@ -20,7 +20,7 @@
     "stripe:verify:prod": "./scripts/verify-stripe.sh --prod",
     "stripe:setup-webhook": "./scripts/setup-stripe-webhook.sh",
     "stripe:setup-webhook:prod": "./scripts/setup-stripe-webhook.sh --prod",
-    "deploy:check": "./scripts/verify-stripe.sh --prod && npx convex deploy --dry-run --env-file .env.production"
+    "deploy:check": "./scripts/verify-stripe.sh --prod && bunx convex deploy --dry-run --env-file .env.production"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.35.5",
@@ -43,6 +43,7 @@
     "recharts": "^3.5.0",
     "resend": "^6.5.2",
     "serialize-error": "^12.0.0",
+    "sonner": "^2.0.7",
     "stripe": "^20.2.0",
     "tailwind-merge": "^3.4.0",
     "zod": "^4.1.13"
@@ -84,6 +85,5 @@
   },
   "engines": {
     "node": ">=18.17.0"
-  },
-  "packageManager": "pnpm@10.22.0+sha512.bf049efe995b28f527fd2b41ae0474ce29186f7edcb3bf545087bd61fbbebb2bf75362d1307fda09c2d288e1e499787ac12d4fcb617a974718a6051f2eee741c"
+  }
 }

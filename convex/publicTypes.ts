@@ -1,4 +1,5 @@
 import { Doc, Id } from "./_generated/dataModel";
+import { computeStatus } from "../lib/domain/status";
 
 export type PublicMonitor = {
   _id: Id<"monitors">;
@@ -31,19 +32,11 @@ export type PublicIncident = {
   resolvedAt?: number;
 };
 
-export function computeMonitorStatus(
-  consecutiveFailures: number,
-): "up" | "degraded" | "down" {
-  if (consecutiveFailures === 0) return "up";
-  if (consecutiveFailures < 3) return "degraded";
-  return "down";
-}
-
 export function toPublicMonitor(monitor: Doc<"monitors">): PublicMonitor {
   return {
     _id: monitor._id,
     name: monitor.name,
-    status: computeMonitorStatus(monitor.consecutiveFailures),
+    status: computeStatus(monitor.consecutiveFailures),
     lastCheckAt: monitor.lastCheckAt,
     lastResponseTime: monitor.lastResponseTime,
     theme: monitor.theme ?? "glass",

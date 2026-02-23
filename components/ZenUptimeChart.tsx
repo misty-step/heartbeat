@@ -96,12 +96,16 @@ export function ZenUptimeChart({
   const chartHeight = height - padding * 2;
   const stepX = data.length > 1 ? chartWidth / (data.length - 1) : 0;
 
+  // Cap hit radius at half the point spacing to prevent overlapping capture.
+  // When stepX is 0 (single point) or spacing is wide, fall back to 22.
+  const hitRadius = stepX > 0 ? Math.min(22, stepX / 2) : 22;
+
   return (
     <svg
       viewBox={`0 0 ${width} ${height}`}
       className="w-full"
       style={{ overflow: "visible" }}
-      onMouseLeave={() => setHoveredPoint(null)}
+      onPointerLeave={() => setHoveredPoint(null)}
     >
       {/* Main path - single stroke, no effects */}
       <path
@@ -128,13 +132,27 @@ export function ZenUptimeChart({
 
         return (
           <g key={i}>
-            {/* Invisible hit area */}
+            {/* Invisible hit area — capped at half point spacing to prevent overlap */}
             <circle
               cx={x}
               cy={y}
-              r="8"
+              r={hitRadius}
               fill="transparent"
-              onMouseEnter={() => setHoveredPoint(i)}
+              // Pointer events unify mouse, touch, and stylus. Using pointerType
+              // to distinguish hover (mouse/pen) from tap (touch) avoids the
+              // synthetic-mouseenter-after-touchend problem: mobile browsers
+              // dispatch compatibility mouse events after touch, but since we
+              // don't listen to onMouseEnter those events are ignored.
+              onPointerEnter={(e) => {
+                if (e.pointerType !== "touch") setHoveredPoint(i);
+              }}
+              onPointerDown={(e) => {
+                if (e.pointerType === "touch") setHoveredPoint(i);
+              }}
+              onPointerUp={(e) => {
+                if (e.pointerType === "touch") setHoveredPoint(null);
+              }}
+              onPointerCancel={() => setHoveredPoint(null)}
               className="cursor-pointer"
             />
 
