@@ -15,6 +15,8 @@ export interface ValidationResult {
   errors: ValidationErrors;
 }
 
+export { isInternalHostname };
+
 /**
  * Validate a URL string.
  */
