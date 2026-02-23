@@ -139,7 +139,7 @@ export default function PricingPage() {
               `${TIERS.vital.historyDays} days history`,
               "Email notifications",
               "Webhook integrations",
-              "API access",
+              "API access — coming soon",
             ]}
             highlighted
             isAuthenticated={isAuthenticated}
