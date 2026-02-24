@@ -6,6 +6,7 @@ describe("isInternalHostname", () => {
     it("blocks localhost", () => {
       expect(isInternalHostname("localhost")).toBe(true);
       expect(isInternalHostname("LOCALHOST")).toBe(true);
+      expect(isInternalHostname("localhost.")).toBe(true);
     });
 
     it("blocks loopback addresses (127.x.x.x)", () => {
@@ -39,10 +40,12 @@ describe("isInternalHostname", () => {
     it("blocks .local TLD", () => {
       expect(isInternalHostname("service.local")).toBe(true);
       expect(isInternalHostname("myapp.LOCAL")).toBe(true);
+      expect(isInternalHostname("service.local.")).toBe(true);
     });
 
     it("blocks .internal TLD", () => {
       expect(isInternalHostname("api.internal")).toBe(true);
+      expect(isInternalHostname("api.internal.")).toBe(true);
     });
 
     it("blocks .localhost TLD", () => {
@@ -118,6 +121,9 @@ describe("validateMonitorUrl", () => {
       expect(validateMonitorUrl("http://localhost:3000")).toBe(
         "URL cannot target internal networks",
       );
+      expect(validateMonitorUrl("http://localhost.")).toBe(
+        "URL cannot target internal networks",
+      );
     });
 
     it("blocks loopback IPs", () => {
@@ -139,6 +145,9 @@ describe("validateMonitorUrl", () => {
       expect(validateMonitorUrl("http://192.168.1.1")).toBe(
         "URL cannot target internal networks",
       );
+      expect(validateMonitorUrl("http://192.168.1.1.")).toBe(
+        "URL cannot target internal networks",
+      );
     });
 
     it("blocks cloud metadata IP", () => {
@@ -155,6 +164,9 @@ describe("validateMonitorUrl", () => {
         "URL cannot target internal networks",
       );
       expect(validateMonitorUrl("http://api.internal")).toBe(
+        "URL cannot target internal networks",
+      );
+      expect(validateMonitorUrl("http://service.local.")).toBe(
         "URL cannot target internal networks",
       );
     });

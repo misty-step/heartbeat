@@ -23,8 +23,15 @@ const BLOCKED_HOSTNAME_PATTERNS: RegExp[] = [
   /\.localhost$/i,
 ];
 
+function normalizeHostname(hostname: string): string {
+  return hostname.replace(/\.+$/, "");
+}
+
 export function isInternalHostname(hostname: string): boolean {
-  return BLOCKED_HOSTNAME_PATTERNS.some((pattern) => pattern.test(hostname));
+  const normalizedHostname = normalizeHostname(hostname);
+  return BLOCKED_HOSTNAME_PATTERNS.some((pattern) =>
+    pattern.test(normalizedHostname),
+  );
 }
 
 export function validateMonitorTargetUrl(url: string): string | null {

@@ -43,6 +43,9 @@ describe("validateUrl", () => {
     expect(validateUrl("https://localhost/path")).toBe(
       "URL cannot target internal networks",
     );
+    expect(validateUrl("http://localhost.")).toBe(
+      "URL cannot target internal networks",
+    );
   });
 
   it("blocks loopback IPs (SSRF protection)", () => {
@@ -81,6 +84,9 @@ describe("validateUrl", () => {
     expect(validateUrl("http://192.168.255.255")).toBe(
       "URL cannot target internal networks",
     );
+    expect(validateUrl("http://192.168.0.1.")).toBe(
+      "URL cannot target internal networks",
+    );
   });
 
   it("blocks cloud metadata IPs (SSRF protection)", () => {
@@ -103,6 +109,9 @@ describe("validateUrl", () => {
       "URL cannot target internal networks",
     );
     expect(validateUrl("http://test.localhost")).toBe(
+      "URL cannot target internal networks",
+    );
+    expect(validateUrl("http://service.local.")).toBe(
       "URL cannot target internal networks",
     );
   });
@@ -295,6 +304,7 @@ describe("isInternalHostname", () => {
     expect(isInternalHostname("localhost")).toBe(true);
     expect(isInternalHostname("LOCALHOST")).toBe(true);
     expect(isInternalHostname("test.localhost")).toBe(true);
+    expect(isInternalHostname("localhost.")).toBe(true);
   });
 
   it("identifies loopback addresses", () => {
@@ -330,6 +340,8 @@ describe("isInternalHostname", () => {
     expect(isInternalHostname("service.local")).toBe(true);
     expect(isInternalHostname("api.internal")).toBe(true);
     expect(isInternalHostname("app.localhost")).toBe(true);
+    expect(isInternalHostname("service.local.")).toBe(true);
+    expect(isInternalHostname("api.internal.")).toBe(true);
   });
 
   it("identifies internal IPv6 hostnames", () => {
