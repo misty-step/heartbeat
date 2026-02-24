@@ -355,11 +355,15 @@ describe("isInternalHostname", () => {
 
   it("identifies internal IPv6 hostnames", () => {
     expect(isInternalHostname("[::1]")).toBe(true);
+    expect(isInternalHostname("::1")).toBe(true);
     expect(isInternalHostname("[::]")).toBe(true);
     expect(isInternalHostname("[fc00::1]")).toBe(true);
+    expect(isInternalHostname("fc00::1")).toBe(true);
     expect(isInternalHostname("[fe80::1]")).toBe(true);
+    expect(isInternalHostname("fe80::1")).toBe(true);
     expect(isInternalHostname("[ff02::1]")).toBe(true);
     expect(isInternalHostname("[::ffff:7f00:1]")).toBe(true);
+    expect(isInternalHostname("::ffff:7f00:1")).toBe(true);
     expect(isInternalHostname("[::ffff:c0a8:1]")).toBe(true);
   });
 
@@ -368,5 +372,11 @@ describe("isInternalHostname", () => {
     expect(isInternalHostname("api.github.com")).toBe(false);
     expect(isInternalHostname("8.8.8.8")).toBe(false);
     expect(isInternalHostname("[2001:4860:4860::8888]")).toBe(false);
+    expect(isInternalHostname("2001:4860:4860::8888")).toBe(false);
+  });
+
+  it("identifies decimal-encoded internal IPv4 hostnames", () => {
+    expect(isInternalHostname("2130706433")).toBe(true); // 127.0.0.1
+    expect(isInternalHostname("2852039166")).toBe(true); // 169.254.169.254
   });
 });

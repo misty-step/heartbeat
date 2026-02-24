@@ -10,12 +10,27 @@ import {
   validateMonitorTargetUrl,
 } from "@/lib/domain/ssrf";
 
+export type UrlAllowance =
+  | { allowed: true }
+  | { allowed: false; reason: string };
+
 /**
- * Validate a URL is safe for server-side requests.
- * Returns error message or null if valid.
+ * Canonical SSRF gate for monitor targets.
+ */
+export function isAllowedUrl(url: string): UrlAllowance {
+  const reason = validateMonitorTargetUrl(url);
+  if (reason) {
+    return { allowed: false, reason };
+  }
+  return { allowed: true };
+}
+
+/**
+ * Backward-compatible validator that returns error string/null.
  */
 export function validateMonitorUrl(url: string): string | null {
-  return validateMonitorTargetUrl(url);
+  const result = isAllowedUrl(url);
+  return result.allowed ? null : result.reason;
 }
 
 export { isInternalHostname };
