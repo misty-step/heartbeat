@@ -58,6 +58,8 @@ describe("isInternalHostname", () => {
       expect(isInternalHostname("[fc00::1]")).toBe(true);
       expect(isInternalHostname("[fe80::1]")).toBe(true);
       expect(isInternalHostname("[ff02::1]")).toBe(true);
+      expect(isInternalHostname("[::ffff:7f00:1]")).toBe(true);
+      expect(isInternalHostname("[::ffff:c0a8:1]")).toBe(true);
     });
   });
 
@@ -179,6 +181,15 @@ describe("validateMonitorUrl", () => {
         "URL cannot target internal networks",
       );
       expect(validateMonitorUrl("http://[fe80::1]")).toBe(
+        "URL cannot target internal networks",
+      );
+      expect(validateMonitorUrl("http://[::ffff:7f00:1]")).toBe(
+        "URL cannot target internal networks",
+      );
+      expect(validateMonitorUrl("http://[::ffff:c0a8:1]")).toBe(
+        "URL cannot target internal networks",
+      );
+      expect(validateMonitorUrl("http://[::ffff:a9fe:a9fe]")).toBe(
         "URL cannot target internal networks",
       );
     });

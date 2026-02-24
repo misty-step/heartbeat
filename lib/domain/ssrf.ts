@@ -17,6 +17,7 @@ const BLOCKED_HOSTNAME_PATTERNS: RegExp[] = [
   /^\[::\]$/i, // IPv6 unspecified
   /^\[fe[89ab][0-9a-f:.]*\]$/i, // IPv6 link-local (fe80::/10)
   /^\[f[cd][0-9a-f:.]*\]$/i, // IPv6 unique local (fc00::/7)
+  /^\[::ffff:[0-9a-f:.]+\]$/i, // IPv4-mapped IPv6 (::ffff:0:0/96)
   /^\[ff[0-9a-f:.]*\]$/i, // IPv6 multicast (ff00::/8)
   /\.local$/i,
   /\.internal$/i,
