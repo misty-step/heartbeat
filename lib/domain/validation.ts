@@ -4,7 +4,10 @@
  * All validation functions are pure and can be tested without React.
  */
 
-import { isInternalHostname, validateMonitorTargetUrl } from "./ssrf";
+import {
+  isInternalHostname,
+  validateMonitorTargetUrl,
+} from "@/lib/domain/ssrf";
 
 export interface ValidationErrors {
   [key: string]: string;

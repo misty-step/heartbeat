@@ -8,7 +8,7 @@
 import {
   isInternalHostname,
   validateMonitorTargetUrl,
-} from "../../lib/domain/ssrf";
+} from "@/lib/domain/ssrf";
 
 /**
  * Validate a URL is safe for server-side requests.
