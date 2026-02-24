@@ -54,11 +54,15 @@ describe("isInternalHostname", () => {
 
     it("blocks internal IPv6 hostnames", () => {
       expect(isInternalHostname("[::1]")).toBe(true);
+      expect(isInternalHostname("::1")).toBe(true);
       expect(isInternalHostname("[::]")).toBe(true);
       expect(isInternalHostname("[fc00::1]")).toBe(true);
+      expect(isInternalHostname("fc00::1")).toBe(true);
       expect(isInternalHostname("[fe80::1]")).toBe(true);
+      expect(isInternalHostname("fe80::1")).toBe(true);
       expect(isInternalHostname("[ff02::1]")).toBe(true);
       expect(isInternalHostname("[::ffff:7f00:1]")).toBe(true);
+      expect(isInternalHostname("::ffff:7f00:1")).toBe(true);
       expect(isInternalHostname("[::ffff:c0a8:1]")).toBe(true);
     });
   });
@@ -81,6 +85,16 @@ describe("isInternalHostname", () => {
 
     it("allows public IPv6 hostnames", () => {
       expect(isInternalHostname("[2001:4860:4860::8888]")).toBe(false);
+      expect(isInternalHostname("2001:4860:4860::8888")).toBe(false);
+    });
+
+    it("blocks decimal-encoded internal IPv4 hostnames", () => {
+      expect(isInternalHostname("2130706433")).toBe(true); // 127.0.0.1
+      expect(isInternalHostname("2852039166")).toBe(true); // 169.254.169.254
+    });
+
+    it("allows decimal-encoded public IPv4 hostnames", () => {
+      expect(isInternalHostname("134744072")).toBe(false); // 8.8.8.8
     });
   });
 });
@@ -161,6 +175,12 @@ describe("validateMonitorUrl", () => {
       ).toBe("URL cannot target internal networks");
     });
 
+    it("blocks decimal-encoded internal IPv4 URLs", () => {
+      expect(validateMonitorUrl("http://2130706433")).toBe(
+        "URL cannot target internal networks",
+      );
+    });
+
     it("blocks internal TLDs", () => {
       expect(validateMonitorUrl("http://service.local")).toBe(
         "URL cannot target internal networks",
@@ -184,6 +204,9 @@ describe("validateMonitorUrl", () => {
         "URL cannot target internal networks",
       );
       expect(validateMonitorUrl("http://[::ffff:7f00:1]")).toBe(
+        "URL cannot target internal networks",
+      );
+      expect(validateMonitorUrl("http://[::ffff:127.0.0.1]")).toBe(
         "URL cannot target internal networks",
       );
       expect(validateMonitorUrl("http://[::ffff:c0a8:1]")).toBe(

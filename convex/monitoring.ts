@@ -5,7 +5,7 @@ import {
   internalAction,
 } from "./_generated/server";
 import { internal } from "./_generated/api";
-import { isInternalHostname } from "./lib/urlValidation";
+import { isAllowedUrl } from "./lib/urlValidation";
 import { INCIDENT_THRESHOLD } from "../lib/domain/status";
 
 /**
@@ -229,16 +229,11 @@ export const checkMonitor = internalAction({
     }
 
     // Defense-in-depth: validate URL is not internal before fetch
-    try {
-      const parsed = new URL(monitor.url);
-      if (isInternalHostname(parsed.hostname)) {
-        console.error(
-          `[Monitor:${args.monitorId}] Blocked SSRF attempt to ${parsed.hostname}`,
-        );
-        return;
-      }
-    } catch {
-      console.error(`[Monitor:${args.monitorId}] Invalid URL: ${monitor.url}`);
+    const urlValidation = isAllowedUrl(monitor.url);
+    if (!urlValidation.allowed) {
+      console.error(
+        `[Monitor:${args.monitorId}] Blocked URL ${monitor.url}: ${urlValidation.reason}`,
+      );
       return;
     }
 
@@ -254,6 +249,7 @@ export const checkMonitor = internalAction({
 
       const response = await fetch(monitor.url, {
         method: monitor.method,
+        redirect: "manual",
         signal: controller.signal,
         headers: {
           "User-Agent": "HeartbeatMonitor/1.0",

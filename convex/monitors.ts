@@ -5,7 +5,7 @@ import { toPublicMonitor } from "./publicTypes";
 import { computeStatus } from "../lib/domain/status";
 import { generateUniqueStatusSlug } from "./slugs";
 import { isPubliclyVisible } from "./lib/visibility";
-import { validateMonitorUrl } from "./lib/urlValidation";
+import { isAllowedUrl } from "./lib/urlValidation";
 import { hasActiveAccess } from "./subscriptions";
 
 const MIN_TIMEOUT_MS = 1000;
@@ -213,9 +213,9 @@ export const create = mutation({
     }
 
     // Validate URL to prevent SSRF attacks
-    const urlError = validateMonitorUrl(args.url);
-    if (urlError) {
-      throw new Error(urlError);
+    const urlValidation = isAllowedUrl(args.url);
+    if (!urlValidation.allowed) {
+      throw new Error(urlValidation.reason);
     }
 
     assertTimeoutInRange(args.timeout);
@@ -324,9 +324,9 @@ export const update = mutation({
 
     // Validate URL to prevent SSRF attacks (if URL is being updated)
     if (args.url) {
-      const urlError = validateMonitorUrl(args.url);
-      if (urlError) {
-        throw new Error(urlError);
+      const urlValidation = isAllowedUrl(args.url);
+      if (!urlValidation.allowed) {
+        throw new Error(urlValidation.reason);
       }
     }
 
