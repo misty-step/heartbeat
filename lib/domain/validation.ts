@@ -4,7 +4,7 @@
  * All validation functions are pure and can be tested without React.
  */
 
-import { isInternalHostname } from "./ssrf";
+import { isInternalHostname, validateMonitorTargetUrl } from "./ssrf";
 
 export interface ValidationErrors {
   [key: string]: string;
@@ -21,21 +21,7 @@ export { isInternalHostname };
  * Validate a URL string.
  */
 export function validateUrl(url: string): string | null {
-  if (!url) return "URL is required";
-  if (!/^https?:\/\/.+/.test(url)) {
-    return "URL must start with http:// or https://";
-  }
-
-  try {
-    const parsed = new URL(url);
-    if (isInternalHostname(parsed.hostname)) {
-      return "URL cannot target internal networks";
-    }
-  } catch {
-    return "Invalid URL format";
-  }
-
-  return null;
+  return validateMonitorTargetUrl(url);
 }
 
 /**
