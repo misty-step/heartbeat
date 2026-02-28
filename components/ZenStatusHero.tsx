@@ -24,26 +24,15 @@ const statusMessages: Record<MonitorStatus, string> = {
   down: "Service outage in progress",
 };
 
-/** Ambient backlight - soft colored glow behind card */
-const ambientStyles: Record<MonitorStatus, string> = {
-  up: "bg-up-muted",
-  degraded: "bg-degraded-muted",
-  down: "bg-down-muted",
-};
-
-/** Card surface - solid background with status-tinted border */
-const glassStyles: Record<MonitorStatus, string> = {
-  up: "bg-[var(--color-bg-elevated)] shadow-[var(--shadow-md)] border-2 border-[var(--color-status-up)]",
-  degraded:
-    "bg-[var(--color-bg-elevated)] shadow-[var(--shadow-md)] border-2 border-[var(--color-status-degraded)]",
-  down: "bg-[var(--color-bg-elevated)] shadow-[var(--shadow-md)] border-2 border-[var(--color-status-down)]",
-};
+/** Card surface - Field matte card, status communicated via background image */
+const cardStyles =
+  "bg-[var(--color-bg-elevated)] shadow-[var(--shadow-md)] border border-[var(--color-border-default)] rounded-[var(--radius-xl)]";
 
 /**
  * ZenStatusHero
  *
  * Full-viewport hero for status pages.
- * Visual differentiation per status via background image and border color.
+ * Visual differentiation per status via background image.
  */
 export function ZenStatusHero({ status, monitorName }: ZenStatusHeroProps) {
   const handleScrollToDetails = () => {
@@ -68,27 +57,11 @@ export function ZenStatusHero({ status, monitorName }: ZenStatusHeroProps) {
         <div className="absolute inset-0 bg-[var(--color-bg-primary)]/30 dark:bg-[var(--color-bg-primary)]/40" />
       </div>
 
-      {/* Content - UPPER LEFT with layered glass card */}
+      {/* Content - UPPER LEFT */}
       <div className="relative z-10 h-full flex flex-col justify-start pt-16 sm:pt-24 px-6 sm:px-12 lg:px-24">
         <div className="relative max-w-md animate-km-fade-in">
-          {/* 1. Ambient Backlight - Status-colored glow behind card (increased visibility) */}
-          <div
-            className={cn(
-              "absolute -inset-3 rounded-3xl blur-2xl opacity-80",
-              ambientStyles[status],
-            )}
-          />
-
-          {/* 2. Glass Card */}
-          <div
-            className={cn(
-              "relative overflow-hidden rounded-[var(--radius-xl)]",
-              glassStyles[status],
-            )}
-          >
-            {/* 3. Top Edge Highlight - visible light catching glass edge */}
-            <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent" />
-
+          {/* Card */}
+          <div className={cn("relative overflow-hidden", cardStyles)}>
             {/* Content */}
             <div className="relative z-10 p-6 sm:p-8">
               <h1 className="font-display text-3xl md:text-4xl lg:text-5xl text-[var(--color-text-primary)] text-balance tracking-tight">

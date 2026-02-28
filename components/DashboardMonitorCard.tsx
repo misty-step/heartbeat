@@ -10,12 +10,11 @@ import { computeStatus } from "@/lib/domain";
 import { cn } from "@/lib/cn";
 
 /**
- * DashboardMonitorCard - Glass Edge + Depth Design
+ * DashboardMonitorCard - Field Design System
  *
  * Key design elements:
- * - Top gradient accent line (fades from status color)
- * - Multi-layer shadow for floating depth
- * - Breathing status ring animation
+ * - Matte card surface, no colored chrome
+ * - Field shadow tokens (sm/md)
  * - Bar chart visualization for recent checks
  * - Lift on hover
  */
@@ -36,22 +35,10 @@ interface DashboardMonitorCardProps {
 }
 
 // Status-specific styling maps
-const accentGradient = {
-  up: "from-[var(--color-status-up)]",
-  degraded: "from-[var(--color-status-degraded)]",
-  down: "from-[var(--color-status-down)]",
-} as const;
-
 const dotColor = {
   up: "bg-[var(--color-status-up)]",
   degraded: "bg-[var(--color-status-degraded)]",
   down: "bg-[var(--color-status-down)]",
-} as const;
-
-const ringColor = {
-  up: "border-[var(--color-status-up)]",
-  degraded: "border-[var(--color-status-degraded)]",
-  down: "border-[var(--color-status-down)]",
 } as const;
 
 export function DashboardMonitorCard({
@@ -80,26 +67,14 @@ export function DashboardMonitorCard({
 
   return (
     <div className="group relative">
-      {/* Gradient accent line at top */}
-      <div
-        className={cn(
-          "absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r to-transparent z-10 rounded-t-sm",
-          accentGradient[status],
-        )}
-      />
-
-      {/* Main card with depth */}
+      {/* Main card */}
       <div
         className={cn(
           "bg-[var(--color-bg-elevated)]",
           "border border-[var(--color-border-subtle)]",
-          "rounded-sm",
-          // Multi-layer shadow for depth
-          "shadow-[0_4px_20px_-4px_rgba(0,0,0,0.15),0_8px_30px_-8px_rgba(0,0,0,0.1)]",
-          // Subtle inset highlight
-          "shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1)]",
-          // Hover: lift and deepen shadow
-          "hover:shadow-[0_8px_30px_-6px_rgba(0,0,0,0.2),0_12px_40px_-10px_rgba(0,0,0,0.15)]",
+          "rounded-xl",
+          "shadow-[var(--shadow-sm)]",
+          "hover:shadow-[var(--shadow-md)]",
           "hover:-translate-y-0.5",
           "hover:border-[var(--color-border-default)]",
           "transition-all duration-200",
@@ -108,25 +83,9 @@ export function DashboardMonitorCard({
         <div className="p-5">
           {/* Top row: Status dot + Name + Actions */}
           <div className="flex items-center gap-3 mb-4">
-            {/* Breathing status dot */}
+            {/* Status dot */}
             <div className="relative flex-shrink-0">
               <div className={cn("size-3 rounded-full", dotColor[status])} />
-              {status === "up" && (
-                <div
-                  className={cn(
-                    "absolute inset-[-3px] rounded-full border-2 opacity-30 animate-km-breathe-subtle",
-                    ringColor[status],
-                  )}
-                />
-              )}
-              {status === "down" && (
-                <div
-                  className={cn(
-                    "absolute inset-[-3px] rounded-full border-2 opacity-40 animate-pulse",
-                    ringColor[status],
-                  )}
-                />
-              )}
             </div>
 
             {/* Name */}

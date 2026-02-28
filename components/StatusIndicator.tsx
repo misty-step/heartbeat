@@ -1,8 +1,7 @@
 /**
- * StatusIndicator - Cinematic Variant
+ * StatusIndicator
  *
- * Enhanced status indicator with cinematic mode for dramatic effects.
- * Used on landing pages and hero sections.
+ * Status dot with optional cinematic mode (single Field glow token).
  * For standard use, prefer components/ui/StatusIndicator.tsx
  */
 
@@ -39,15 +38,7 @@ export function StatusIndicator({
     unknown: "bg-[var(--color-text-muted)]",
   };
 
-  const glowColorMap = {
-    up: "var(--color-status-up)",
-    degraded: "var(--color-status-degraded)",
-    down: "var(--color-status-down)",
-    unknown: "var(--color-text-muted)",
-  };
-
   const dotColor = colorMap[status];
-  const glowColor = glowColorMap[status];
   const shouldBreathe = status === "up";
 
   return (
@@ -63,56 +54,18 @@ export function StatusIndicator({
         className={`relative z-10 rounded-full ${sizeClasses[size]} ${dotColor} ${shouldBreathe ? "animate-km-breathe" : ""}`}
       />
 
-      {/* Glow effect for all statuses - increased visibility */}
-      <div
-        className={`absolute inset-0 rounded-full ${dotColor}`}
-        style={{
-          opacity: cinematic ? 0.55 : 0.45,
-          filter: cinematic ? "blur(8px)" : "blur(5px)",
-        }}
-      />
-
-      {/* Breathing ring for up status - increased visibility */}
-      {shouldBreathe && (
+      {/* Cinematic: use Field shadow-glow token for "up"; pulse-shadow for "down" */}
+      {cinematic && status === "up" && (
         <div
-          className="absolute inset-0 rounded-full animate-km-breathe-subtle"
-          style={{
-            background: glowColor,
-            opacity: 0.5,
-            filter: "blur(4px)",
-          }}
+          className="absolute inset-0 rounded-full"
+          style={{ boxShadow: "var(--shadow-glow)", opacity: 0.8 }}
         />
       )}
-
-      {/* Additional cinematic effects */}
-      {cinematic && (
-        <>
-          {/* Outer glow aura - increased visibility */}
-          <div
-            className="absolute rounded-full"
-            style={{
-              inset: "-50%",
-              background: `radial-gradient(circle, ${glowColor} 0%, transparent 70%)`,
-              animation: shouldBreathe
-                ? "km-breathe 4s ease-in-out infinite"
-                : "none",
-              opacity: 0.35,
-            }}
-          />
-
-          {/* Extra pulsing for down status (urgency) - increased visibility */}
-          {status === "down" && (
-            <div
-              className="absolute rounded-full bg-down"
-              style={{
-                inset: "-75%",
-                animation: "km-breathe-subtle 3s ease-in-out infinite",
-                opacity: 0.25,
-                filter: "blur(12px)",
-              }}
-            />
-          )}
-        </>
+      {cinematic && status === "down" && (
+        <div
+          className="absolute inset-0 rounded-full bg-down animate-pulse"
+          style={{ opacity: 0.25 }}
+        />
       )}
     </div>
   );
