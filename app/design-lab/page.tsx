@@ -17,7 +17,7 @@ import {
 /**
  * Design Lab - Card Layout Variations
  *
- * Kyoto Moss Design System explorations:
+ * Field Design System explorations:
  * 1. Bento Grid - Asymmetric dashboard (down-the-middle)
  * 2. Stone Garden - Karesansui, monitors as stones
  * 3. Kintsugi Ledger - Editorial, gold incident lines

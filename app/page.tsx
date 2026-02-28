@@ -878,7 +878,8 @@ function PricingSection() {
     try {
       const result = await createCheckout({ tier, interval });
       if (result.url) window.location.href = result.url;
-    } catch {
+    } catch (err) {
+      console.error("[Checkout] Failed to create session:", err);
       setLoadingTier(null);
     }
   };

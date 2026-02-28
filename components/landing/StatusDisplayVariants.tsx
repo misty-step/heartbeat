@@ -2,7 +2,7 @@
  * StatusDisplayVariants
  *
  * Landing page status card designs for the Design Lab.
- * Each variant explores a different aesthetic within the Kyoto Moss design system.
+ * Each variant explores a different aesthetic within the Field design system.
  *
  * Variants:
  * 1. Bento Grid - Asymmetric dashboard, modern
