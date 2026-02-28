@@ -38,7 +38,7 @@ export default function PricingPage() {
     <div className="min-h-dvh bg-[var(--color-bg-primary)]">
       {/* Header */}
       <header className="px-6 sm:px-12 lg:px-24 py-6 flex items-center justify-between">
-        <Link href="/" className="font-serif text-xl text-foreground">
+        <Link href="/" className="font-display text-xl text-foreground">
           Heartbeat
         </Link>
         {isAuthenticated && (
@@ -54,7 +54,7 @@ export default function PricingPage() {
       {/* Hero */}
       <section className="px-6 sm:px-12 lg:px-24 py-16 sm:py-24">
         <div className="max-w-3xl mx-auto text-center">
-          <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl tracking-tight text-foreground text-balance mb-6">
+          <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl tracking-tight text-foreground text-balance mb-6">
             Simple, honest pricing
           </h1>
           <p className="text-lg text-[var(--color-text-secondary)] max-w-xl mx-auto">
@@ -87,7 +87,7 @@ export default function PricingPage() {
             }`}
           >
             Yearly
-            <span className="ml-2 text-xs text-emerald-600 dark:text-emerald-400">
+            <span className="ml-2 text-xs text-[var(--color-status-up)]">
               Save 20%
             </span>
           </button>
@@ -188,27 +188,27 @@ function PricingCard({
 }: PricingCardProps) {
   return (
     <div
-      className={`p-8 ${
+      className={`p-8 rounded-xl border ${
         highlighted
-          ? "bg-foreground text-background"
-          : "bg-[var(--color-bg-secondary)] border border-foreground/10"
+          ? "bg-[var(--color-accent-primary)] text-white border-transparent shadow-lg shadow-[var(--color-accent-primary)]/20"
+          : "bg-[var(--color-bg-elevated)] border-[var(--color-border-subtle)] shadow-[var(--shadow-sm)]"
       }`}
     >
       <div className="mb-6">
-        <h3 className="font-serif text-2xl mb-2">{name}</h3>
+        <h3 className="font-display text-2xl font-extrabold mb-2">{name}</h3>
         <p
-          className={`text-sm ${highlighted ? "opacity-80" : "text-[var(--color-text-muted)]"}`}
+          className={`text-sm ${highlighted ? "text-white/80" : "text-[var(--color-text-muted)]"}`}
         >
           {description}
         </p>
       </div>
 
       <div className="mb-8">
-        <span className="font-serif text-4xl tabular-nums">
+        <span className={`font-mono text-4xl font-extrabold tabular-nums ${highlighted ? "text-white" : ""}`}>
           {formatPrice(price)}
         </span>
         <span
-          className={`text-sm ${highlighted ? "opacity-60" : "text-[var(--color-text-muted)]"}`}
+          className={`text-sm ${highlighted ? "text-white/60" : "text-[var(--color-text-muted)]"}`}
         >
           /{interval === "month" ? "mo" : "yr"}
         </span>
@@ -218,9 +218,9 @@ function PricingCard({
         {features.map((feature) => (
           <li key={feature} className="flex items-start gap-3 text-sm">
             <Check
-              className={`h-4 w-4 mt-0.5 flex-shrink-0 ${highlighted ? "opacity-80" : "text-emerald-600 dark:text-emerald-400"}`}
+              className={`h-4 w-4 mt-0.5 flex-shrink-0 ${highlighted ? "text-white/80" : "text-[var(--color-status-up)]"}`}
             />
-            <span className={highlighted ? "opacity-90" : ""}>{feature}</span>
+            <span className={highlighted ? "text-white/90" : ""}>{feature}</span>
           </li>
         ))}
       </ul>
@@ -233,10 +233,10 @@ function PricingCard({
         <button
           onClick={onSubscribe}
           disabled={isLoading}
-          className={`w-full py-3 font-medium transition-opacity disabled:opacity-50 ${
+          className={`w-full py-3 rounded-full font-bold text-sm transition-all disabled:opacity-50 ${
             highlighted
-              ? "bg-background text-foreground hover:opacity-90"
-              : "bg-foreground text-background hover:opacity-80"
+              ? "bg-white text-[var(--color-accent-primary)] hover:opacity-90 shadow-sm"
+              : "bg-[var(--color-accent-primary)] text-white hover:opacity-90 shadow-sm shadow-[var(--color-accent-primary)]/20"
           }`}
         >
           {isLoading ? (
@@ -248,10 +248,10 @@ function PricingCard({
       ) : (
         <SignInButton mode="modal">
           <button
-            className={`w-full py-3 font-medium transition-opacity ${
+            className={`w-full py-3 rounded-full font-bold text-sm transition-all ${
               highlighted
-                ? "bg-background text-foreground hover:opacity-90"
-                : "bg-foreground text-background hover:opacity-80"
+                ? "bg-white text-[var(--color-accent-primary)] hover:opacity-90 shadow-sm"
+                : "bg-[var(--color-accent-primary)] text-white hover:opacity-90 shadow-sm shadow-[var(--color-accent-primary)]/20"
             }`}
           >
             Sign up
