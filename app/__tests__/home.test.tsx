@@ -18,6 +18,12 @@ vi.mock("next/link", () => ({
   ),
 }));
 
+// Mock convex/react — page.tsx uses useAction and useConvexAuth
+vi.mock("convex/react", () => ({
+  useAction: () => vi.fn(),
+  useConvexAuth: () => ({ isLoading: false, isAuthenticated: false }),
+}));
+
 // Mock framer-motion to avoid JSDOM issues with animation APIs
 vi.mock("framer-motion", () => ({
   motion: {
@@ -60,13 +66,12 @@ describe("HomePage - Bento Zen Landing", () => {
   test("displays truthful trial messaging - no false 'free forever' claims", () => {
     render(<HomePage />);
     // Should show 14-day trial, not "free forever" or "free tier"
-    expect(screen.getAllByText(/Start 14-Day Trial/i).length).toBeGreaterThan(
-      0,
-    );
-    expect(screen.getByText(/14-day free trial/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Start 14-Day Trial/i).length).toBeGreaterThan(0);
+    // Multiple elements may contain "14-day free trial" copy
+    expect(screen.getAllByText(/14-day free trial/i).length).toBeGreaterThan(0);
     expect(
-      screen.getByText(/Plans from \$9\/mo after trial/i),
-    ).toBeInTheDocument();
+      screen.getAllByText(/Plans from \$9\/mo after trial/i).length,
+    ).toBeGreaterThan(0);
   });
 
   test("primary CTA links to sign-up page", () => {
@@ -88,27 +93,26 @@ describe("HomePage - Bento Zen Landing", () => {
 
   test("displays key product stats in trust bar", () => {
     render(<HomePage />);
-    expect(screen.getAllByText("1 min").length).toBeGreaterThan(0);
-    expect(screen.getByText("<30s")).toBeInTheDocument();
-    expect(screen.getByText("3×")).toBeInTheDocument();
-    expect(screen.getByText("∞")).toBeInTheDocument();
+    expect(screen.getAllByText("3 min").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("<30s").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("3×").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("30–90d").length).toBeGreaterThan(0);
   });
 
   test("features section renders all bento cards", () => {
     render(<HomePage />);
-    expect(screen.getByText("Flexible monitoring")).toBeInTheDocument();
-    expect(screen.getByText("Smart alerting")).toBeInTheDocument();
-    expect(screen.getByText("Public status pages")).toBeInTheDocument();
-    // "Forever history" appears twice - once in bento features, once in value section
-    expect(
-      screen.getAllByText("Forever history").length,
-    ).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText("Lightning fast")).toBeInTheDocument();
+    expect(screen.getAllByText("Always watching").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Zero false alarms").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Keep users informed").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Full check history").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Down in seconds").length).toBeGreaterThan(0);
   });
 
   test("includes footer with correct year and company", () => {
     render(<HomePage />);
-    expect(screen.getByText("© 2026 Misty Step")).toBeInTheDocument();
+    // Year and company name may be split across elements (year + linked company)
+    expect(screen.getByText(/© 2026/)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Misty Step" })).toBeInTheDocument();
   });
 
   test("footer contains essential navigation links", () => {
@@ -122,10 +126,11 @@ describe("HomePage - Bento Zen Landing", () => {
     });
     expect(footerDashboardLink).toHaveAttribute("href", "/dashboard");
 
+    // Pricing in the landing page footer is an anchor link to the pricing section
     const footerPricingLink = within(footer).getByRole("link", {
       name: "Pricing",
     });
-    expect(footerPricingLink).toHaveAttribute("href", "/pricing");
+    expect(footerPricingLink).toHaveAttribute("href", "#pricing");
 
     const footerTermsLink = within(footer).getByRole("link", { name: "Terms" });
     expect(footerTermsLink).toHaveAttribute("href", "/terms");
