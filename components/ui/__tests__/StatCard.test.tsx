@@ -40,6 +40,6 @@ describe("StatCard", () => {
     const { container } = render(<StatCard label="Metric" value="100" />);
     const card = container.firstChild as HTMLElement;
     // Solid border color, no opacity
-    expect(card.className).toContain("border-[var(--color-border-default)]");
+    expect(card.className).toContain("border-[var(--color-border-subtle)]");
   });
 });

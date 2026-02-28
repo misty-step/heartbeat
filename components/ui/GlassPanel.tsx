@@ -1,32 +1,7 @@
-import { cn } from "@/lib/cn";
-
-interface GlassPanelProps {
-  children: React.ReactNode;
-  className?: string;
-}
-
 /**
- * GlassPanel - Kyoto Moss Design System
+ * GlassPanel - Deprecated shim
  *
- * Premium glass card with frosted blur and edge highlight.
- * Used for elevated content panels in the status page details section.
+ * @deprecated Use SurfacePanel from "@/components/ui/SurfacePanel" instead.
+ * This re-export exists for one release cycle to avoid breaking imports.
  */
-export function GlassPanel({ children, className = "" }: GlassPanelProps) {
-  return (
-    <div
-      className={cn(
-        "relative overflow-hidden rounded-[var(--radius-xl)]",
-        "bg-[var(--color-bg-elevated)]",
-        "border border-[var(--color-border-default)]",
-        "shadow-[var(--shadow-md)]",
-        className,
-      )}
-    >
-      {/* Top edge highlight - visible light catching glass */}
-      <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent" />
-
-      {/* Content */}
-      <div className="relative z-10 p-6">{children}</div>
-    </div>
-  );
-}
+export { SurfacePanel as GlassPanel } from "./SurfacePanel";

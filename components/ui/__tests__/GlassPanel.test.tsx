@@ -2,6 +2,7 @@ import { describe, expect, test } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { GlassPanel } from "../GlassPanel";
 
+// GlassPanel is a deprecated shim — delegates to SurfacePanel (Field Design System)
 describe("GlassPanel", () => {
   test("renders children correctly", () => {
     render(<GlassPanel>Test Content</GlassPanel>);
@@ -14,15 +15,15 @@ describe("GlassPanel", () => {
     );
     const panel = container.firstChild as HTMLElement;
     expect(panel.className).toContain("custom-class");
-    // Uses solid background with border (no opacity)
+    // Field: matte white surface, warm border
     expect(panel.className).toContain("bg-[var(--color-bg-elevated)]");
-    expect(panel.className).toContain("border-[var(--color-border-default)]");
+    expect(panel.className).toContain("border-[var(--color-border-subtle)]");
   });
 
-  test("contains glass styling elements", () => {
+  test("wraps children in content area", () => {
     const { container } = render(<GlassPanel>Content</GlassPanel>);
-    // Check for top edge highlight (washi texture removed for visibility)
-    const edgeHighlight = container.querySelector(".bg-gradient-to-r");
-    expect(edgeHighlight).toBeInTheDocument();
+    // SurfacePanel wraps children in an inner content div
+    const inner = container.querySelector(".p-6");
+    expect(inner).toBeInTheDocument();
   });
 });

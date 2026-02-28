@@ -1,8 +1,8 @@
 /**
- * Card - Kyoto Moss Design System
+ * Card - Field Design System
  *
  * CVA-based card with type-safe variants.
- * Follows wabi-sabi: natural materials, subtle shadows, no excess.
+ * Default: white surface, rounded-xl, warm shadow.
  */
 
 import { cva, type VariantProps } from "class-variance-authority";
@@ -11,24 +11,28 @@ import { forwardRef, type HTMLAttributes } from "react";
 
 const cardVariants = cva(
   // Base styles
-  ["rounded-[var(--radius-lg)]", "transition-all duration-normal ease-out"],
+  ["rounded-xl", "transition-all duration-normal ease-out"],
   {
     variants: {
       variant: {
-        // Default - Subtle surface elevation
+        // Default - White card, warm shadow
         default: [
           "bg-[var(--color-bg-elevated)]",
           "border border-[var(--color-border-subtle)]",
+          "shadow-[var(--shadow-sm)]",
+        ],
+        // Elevated - Stronger shadow
+        elevated: [
+          "bg-[var(--color-bg-elevated)]",
+          "shadow-[var(--shadow-md)]",
         ],
         // Outlined - Transparent with visible border
         outlined: [
           "bg-transparent",
           "border border-[var(--color-border-default)]",
         ],
-        // Filled - Solid background
+        // Filled - Secondary background
         filled: ["bg-[var(--color-bg-secondary)]", "border border-transparent"],
-        // Glass - Translucent with blur (use sparingly)
-        glass: ["glass-panel"],
         // Ghost - No visible container
         ghost: ["bg-transparent border-transparent"],
       },
@@ -97,7 +101,7 @@ export const CardTitle = forwardRef<
   <h3
     ref={ref}
     className={cn(
-      "text-lg font-medium font-serif text-[var(--color-text-primary)] text-balance",
+      "text-lg font-extrabold font-display text-[var(--color-text-primary)] text-balance",
       className,
     )}
     {...props}
