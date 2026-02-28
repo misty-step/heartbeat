@@ -24,7 +24,7 @@ const statusMessages: Record<MonitorStatus, string> = {
   down: "Service outage in progress",
 };
 
-/** Ambient backlight - soft colored glow behind card using Kyoto Moss tokens */
+/** Ambient backlight - soft colored glow behind card */
 const ambientStyles: Record<MonitorStatus, string> = {
   up: "bg-up-muted",
   degraded: "bg-degraded-muted",
@@ -40,13 +40,10 @@ const glassStyles: Record<MonitorStatus, string> = {
 };
 
 /**
- * ZenStatusHero - Kyoto Moss Design System
+ * ZenStatusHero
  *
- * Full-viewport hero for status pages with wabi-sabi aesthetic.
- * Visual differentiation per status:
- * - up: Serene deer drinking, moss-tinted glass
- * - degraded: Alert deer, storm clouds, clay/amber border
- * - down: Thunder storm, fleeing deer, brick red border
+ * Full-viewport hero for status pages.
+ * Visual differentiation per status via background image and border color.
  */
 export function ZenStatusHero({ status, monitorName }: ZenStatusHeroProps) {
   const handleScrollToDetails = () => {

@@ -61,7 +61,7 @@ export default function BillingPage() {
         </Link>
 
         {/* Header */}
-        <h1 className="font-serif text-3xl sm:text-4xl text-foreground mb-6">
+        <h1 className="font-display text-3xl sm:text-4xl text-foreground mb-6">
           Settings
         </h1>
 
@@ -92,10 +92,10 @@ export default function BillingPage() {
         {subscription ? (
           <div className="space-y-8">
             {/* Current plan */}
-            <section className="p-6 bg-[var(--color-bg-secondary)] border border-foreground/10">
+            <section className="p-6 bg-[var(--color-bg-secondary)] rounded-xl border border-[var(--color-border-subtle)]">
               <div className="flex items-start justify-between mb-6">
                 <div>
-                  <h2 className="font-serif text-xl text-foreground mb-1">
+                  <h2 className="font-display text-xl text-foreground mb-1">
                     {tier?.name} Plan
                   </h2>
                   <p className="text-sm text-[var(--color-text-muted)]">
@@ -113,7 +113,7 @@ export default function BillingPage() {
                     used={usage.monitors}
                     limit={usage.monitorLimit}
                   />
-                  <div className="p-4 bg-[var(--color-bg-primary)]">
+                  <div className="p-4 bg-[var(--color-bg-primary)] rounded-lg">
                     <p className="text-sm text-[var(--color-text-muted)] mb-1">
                       Min. interval
                     </p>
@@ -153,7 +153,7 @@ export default function BillingPage() {
               {/* Manage button */}
               <button
                 onClick={handleManageBilling}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-foreground text-background font-medium hover:opacity-80 transition-opacity"
+                className="inline-flex items-center gap-2 px-6 py-2.5 bg-[var(--color-accent-primary)] text-white font-medium rounded-full hover:opacity-90 transition-opacity"
               >
                 <CreditCard className="h-4 w-4" />
                 Manage Billing
@@ -162,8 +162,8 @@ export default function BillingPage() {
             </section>
 
             {/* Billing period */}
-            <section className="p-6 bg-[var(--color-bg-secondary)] border border-foreground/10">
-              <h2 className="font-serif text-lg text-foreground mb-4">
+            <section className="p-6 bg-[var(--color-bg-secondary)] rounded-xl border border-[var(--color-border-subtle)]">
+              <h2 className="font-display text-lg text-foreground mb-4">
                 Billing Period
               </h2>
               <div className="grid sm:grid-cols-2 gap-4 text-sm">
@@ -196,8 +196,8 @@ export default function BillingPage() {
 
             {/* Upgrade section */}
             {subscription.tier === "pulse" && (
-              <section className="p-6 bg-[var(--color-bg-secondary)] border border-foreground/10">
-                <h2 className="font-serif text-lg text-foreground mb-2">
+              <section className="p-6 bg-[var(--color-bg-secondary)] rounded-xl border border-[var(--color-border-subtle)]">
+                <h2 className="font-display text-lg text-foreground mb-2">
                   Need more?
                 </h2>
                 <p className="text-sm text-[var(--color-text-muted)] mb-4">
@@ -215,8 +215,8 @@ export default function BillingPage() {
             )}
           </div>
         ) : (
-          <div className="p-8 bg-[var(--color-bg-secondary)] border border-foreground/10 text-center">
-            <h2 className="font-serif text-xl text-foreground mb-2">
+          <div className="p-8 bg-[var(--color-bg-secondary)] rounded-xl border border-[var(--color-border-subtle)] text-center">
+            <h2 className="font-display text-xl text-foreground mb-2">
               No active subscription
             </h2>
             <p className="text-[var(--color-text-muted)] mb-6">
@@ -224,7 +224,7 @@ export default function BillingPage() {
             </p>
             <Link
               href="/pricing"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-foreground text-background font-medium hover:opacity-80 transition-opacity"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-[var(--color-accent-primary)] text-white font-bold rounded-full hover:opacity-90 transition-opacity"
             >
               View Plans
             </Link>
@@ -244,33 +244,34 @@ function StatusBadge({
     trialing: {
       label: "Trial",
       className:
-        "bg-blue-100 dark:bg-blue-500/10 text-blue-800 dark:text-blue-300",
+        "bg-[var(--color-accent-primary)]/10 text-[var(--color-accent-primary)]",
     },
     active: {
       label: "Active",
       className:
-        "bg-emerald-100 dark:bg-emerald-500/10 text-emerald-800 dark:text-emerald-300",
+        "bg-[var(--color-status-up-muted)] text-[var(--color-status-up)]",
     },
     past_due: {
       label: "Past Due",
       className:
-        "bg-amber-100 dark:bg-amber-500/10 text-amber-800 dark:text-amber-300",
+        "bg-[var(--color-status-degraded-muted)] text-[var(--color-status-degraded)]",
     },
     canceled: {
       label: "Canceled",
-      className: "bg-red-100 dark:bg-red-500/10 text-red-800 dark:text-red-300",
+      className:
+        "bg-[var(--color-status-down-muted)] text-[var(--color-status-down)]",
     },
     expired: {
       label: "Expired",
       className:
-        "bg-gray-100 dark:bg-gray-500/10 text-gray-800 dark:text-gray-300",
+        "bg-[var(--color-bg-tertiary)] text-[var(--color-text-muted)]",
     },
   };
 
   const { label, className } = config[status];
 
   return (
-    <span className={`px-2 py-1 text-xs font-medium ${className}`}>
+    <span className={`px-3 py-1 text-xs font-bold rounded-full ${className}`}>
       {label}
     </span>
   );
@@ -297,7 +298,7 @@ function UsageStat({
       <div className="h-1.5 bg-foreground/10 rounded-full overflow-hidden">
         <div
           className={`h-full transition-all ${
-            isNearLimit ? "bg-amber-500" : "bg-emerald-500 dark:bg-emerald-400"
+            isNearLimit ? "bg-[var(--color-status-degraded)]" : "bg-[var(--color-status-up)]"
           }`}
           style={{ width: `${percentage}%` }}
         />

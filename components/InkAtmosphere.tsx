@@ -1,11 +1,8 @@
 /**
- * InkAtmosphere - Kyoto Moss Design System
+ * BackgroundAmbience
  *
- * Organic sumi-ink blur shapes for atmospheric depth.
- * Inspired by Japanese ink wash paintings (sumi-e).
- *
- * NO gradients, NO glow effects - just soft blurred shapes
- * that create subtle depth and visual interest.
+ * Soft blurred shapes for atmospheric depth.
+ * NO gradients, NO glow effects — just subtle background interest.
  */
 export function InkAtmosphere() {
   return (

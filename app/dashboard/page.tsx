@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { useQuery, useConvexAuth } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { DashboardMonitorCard } from "../../components/DashboardMonitorCard";
@@ -36,6 +37,7 @@ export default function DashboardPage() {
     useState<Id<"monitors"> | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
 
+  const [monitorListRef] = useAutoAnimate<HTMLDivElement>();
   const editingMonitor = monitors?.find((m) => m._id === editingMonitorId);
 
   // Calculate aggregate status using domain logic
@@ -75,7 +77,7 @@ export default function DashboardPage() {
       <div className="flex-1 flex items-center px-6 sm:px-12 lg:px-24 py-16 sm:py-24">
         <div className="w-full max-w-xl">
           {/* Editorial headline */}
-          <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl leading-[1.1] tracking-tight text-foreground text-balance mb-12">
+          <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl leading-[1.1] tracking-tight text-foreground text-balance mb-12">
             What are you
             <br />
             <span className="italic">monitoring?</span>
@@ -105,7 +107,7 @@ export default function DashboardPage() {
                 <StatusIndicator status={aggregateStatus} size="xl" cinematic />
               </div>
             )}
-            <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl tracking-tight text-foreground text-balance leading-none">
+            <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl tracking-tight text-foreground text-balance leading-none">
               {getStatusHeadline(aggregateStatus)}
             </h1>
           </div>
@@ -138,16 +140,16 @@ export default function DashboardPage() {
         </div>
 
         {/* Actions row */}
-        <div className="flex items-center justify-between border-t border-foreground/10 pt-8">
-          <h2 className="font-serif text-xl text-[var(--color-text-secondary)]">
+        <div className="flex items-center justify-between border-t border-[var(--color-border-subtle)] pt-8">
+          <h2 className="font-display text-xl font-semibold text-[var(--color-text-secondary)]">
             Monitors
           </h2>
           <button
             onClick={() => setShowAddForm(!showAddForm)}
-            className={`flex items-center gap-2 px-4 py-2 font-medium transition-all ${
+            className={`flex items-center gap-2 px-5 py-2 font-semibold text-sm rounded-full transition-all ${
               showAddForm
-                ? "text-foreground/60 hover:text-foreground"
-                : "bg-foreground text-background hover:opacity-80"
+                ? "text-foreground/60 hover:text-foreground border border-[var(--color-border-default)]"
+                : "bg-[var(--color-accent-primary)] text-white shadow-sm shadow-[var(--color-accent-primary)]/20 hover:opacity-90"
             }`}
           >
             {showAddForm ? (
@@ -172,7 +174,7 @@ export default function DashboardPage() {
         )}
 
         {/* Monitor grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div ref={monitorListRef} className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {monitors.map((monitor, index) => (
             <div
               key={monitor._id}
@@ -208,22 +210,19 @@ function SubscriptionBadge({
   const config = {
     trialing: {
       label: "Trial",
-      className:
-        "bg-blue-100 dark:bg-blue-500/10 text-blue-800 dark:text-blue-400",
+      className: "bg-[var(--color-accent-primary)]/10 text-[var(--color-accent-primary)]",
     },
     past_due: {
       label: "Past Due",
-      className:
-        "bg-amber-100 dark:bg-amber-500/10 text-amber-800 dark:text-amber-400",
+      className: "bg-[var(--color-status-degraded-muted)] text-[var(--color-status-degraded)]",
     },
     canceled: {
       label: "Canceled",
-      className: "bg-red-100 dark:bg-red-500/10 text-red-800 dark:text-red-400",
+      className: "bg-[var(--color-status-down-muted)] text-[var(--color-status-down)]",
     },
     expired: {
       label: "Expired",
-      className:
-        "bg-gray-100 dark:bg-gray-500/10 text-gray-800 dark:text-gray-400",
+      className: "bg-[var(--color-bg-tertiary)] text-[var(--color-text-muted)]",
     },
     active: { label: "", className: "" },
   };

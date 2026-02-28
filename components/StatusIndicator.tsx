@@ -1,5 +1,5 @@
 /**
- * StatusIndicator - Kyoto Moss Design System (Cinematic Variant)
+ * StatusIndicator - Cinematic Variant
  *
  * Enhanced status indicator with cinematic mode for dramatic effects.
  * Used on landing pages and hero sections.

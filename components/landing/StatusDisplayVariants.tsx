@@ -248,7 +248,7 @@ export function KintsugiLedgerCard({
 
       {/* Header - editorial style */}
       <div className="mb-8">
-        <p className="font-serif text-2xl text-[var(--color-text-primary)] leading-tight">
+        <p className="font-display text-2xl text-[var(--color-text-primary)] leading-tight">
           System Integrity
         </p>
         <p className="font-mono text-4xl text-[var(--color-text-primary)] tabular-nums mt-1">
@@ -274,7 +274,7 @@ export function KintsugiLedgerCard({
             <div className="flex items-baseline justify-between">
               <span
                 className={cn(
-                  "font-serif italic text-sm",
+                  "font-display italic text-sm",
                   m.status !== "up"
                     ? "text-amber-600 dark:text-amber-400"
                     : "text-[var(--color-text-secondary)]",
@@ -387,7 +387,7 @@ export function TempleRippleCard({
             className={cn("size-6 rounded-full", statusDot[aggregateStatus])}
           />
         </div>
-        <p className="mt-4 font-serif text-lg text-[var(--color-text-primary)]">
+        <p className="mt-4 font-display text-lg text-[var(--color-text-primary)]">
           {aggregateStatus === "up"
             ? "Stillness"
             : aggregateStatus === "degraded"
@@ -469,7 +469,7 @@ export function ShojiLayerCard({
             />
           </div>
           <div>
-            <p className="font-serif text-xl text-[var(--color-text-primary)]">
+            <p className="font-display text-xl text-[var(--color-text-primary)]">
               {aggregateStatus === "up"
                 ? "All Systems Operational"
                 : aggregateStatus === "degraded"
@@ -582,7 +582,7 @@ export function ZenolithCard({
         {/* Status - letterpress style */}
         <div className="text-center mb-8">
           <p
-            className="font-serif text-2xl tracking-wide text-stone-700 dark:text-stone-300"
+            className="font-display text-2xl tracking-wide text-stone-700 dark:text-stone-300"
             style={{
               textShadow:
                 "0 1px 0 rgba(255,255,255,0.3), 0 -1px 0 rgba(0,0,0,0.1)",

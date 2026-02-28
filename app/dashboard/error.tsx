@@ -6,7 +6,7 @@ import { useEffect } from "react";
 import { StatusIndicator } from "@/components/StatusIndicator";
 
 /**
- * Dashboard Error Boundary - Kyoto Moss Design System
+ * Dashboard Error Boundary
  *
  * Isolates crashes within the authenticated dashboard segment.
  */
@@ -48,7 +48,7 @@ export default function Error({
         <div className="flex gap-4">
           <button
             onClick={reset}
-            className="group relative inline-flex items-center justify-center px-6 py-3 border border-[var(--color-border-subtle)] hover:border-[var(--color-border-default)] bg-[var(--color-bg-elevated)] hover:bg-[var(--color-bg-tertiary)] transition-all duration-200 rounded-[var(--radius-md)]"
+            className="group relative inline-flex items-center justify-center px-6 py-3 border border-[var(--color-border-subtle)] hover:border-[var(--color-border-default)] bg-[var(--color-bg-elevated)] hover:bg-[var(--color-bg-tertiary)] transition-all duration-200 rounded-full"
           >
             <span className="font-mono text-sm text-[var(--color-text-primary)]">
               Try again
@@ -57,7 +57,7 @@ export default function Error({
 
           <Link
             href="/"
-            className="group relative inline-flex items-center justify-center px-6 py-3 border border-[var(--color-border-subtle)] hover:border-[var(--color-border-default)] bg-[var(--color-bg-elevated)] hover:bg-[var(--color-bg-tertiary)] transition-all duration-200 rounded-[var(--radius-md)]"
+            className="group relative inline-flex items-center justify-center px-6 py-3 border border-[var(--color-border-subtle)] hover:border-[var(--color-border-default)] bg-[var(--color-bg-elevated)] hover:bg-[var(--color-bg-tertiary)] transition-all duration-200 rounded-full"
           >
             <span className="font-mono text-sm text-[var(--color-text-primary)] group-hover:translate-x-0.5 transition-transform">
               Return home

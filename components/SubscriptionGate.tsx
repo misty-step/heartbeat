@@ -48,7 +48,7 @@ export function SubscriptionGate({ children }: SubscriptionGateProps) {
     return (
       <div className="flex-1 flex items-center justify-center px-6 py-24">
         <div className="max-w-md text-center space-y-6">
-          <h1 className="font-serif text-3xl text-foreground">
+          <h1 className="font-display text-3xl text-foreground">
             Sign in to continue
           </h1>
           <p className="text-[var(--color-text-muted)]">
@@ -76,7 +76,7 @@ export function SubscriptionGate({ children }: SubscriptionGateProps) {
     return (
       <div className="flex-1 flex items-center px-6 sm:px-12 lg:px-24 py-16 sm:py-24">
         <div className="w-full max-w-xl">
-          <h1 className="font-serif text-4xl sm:text-5xl leading-[1.1] tracking-tight text-foreground text-balance mb-6">
+          <h1 className="font-display text-4xl sm:text-5xl leading-[1.1] tracking-tight text-foreground text-balance mb-6">
             Start monitoring
             <br />
             <span className="italic">your sites</span>
