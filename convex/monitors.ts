@@ -366,6 +366,25 @@ export const remove = mutation({
 });
 
 /**
+ * Public query: all status slugs for public monitors.
+ * Used by sitemap generation — no auth required.
+ */
+export const listPublicStatusSlugs = query({
+  args: {},
+  returns: v.array(v.string()),
+  handler: async (ctx) => {
+    const monitors = await ctx.db
+      .query("monitors")
+      .withIndex("by_enabled", (q) => q.eq("enabled", true))
+      .collect();
+
+    return monitors
+      .filter((m) => m.visibility === "public" && m.statusSlug)
+      .map((m) => m.statusSlug as string);
+  },
+});
+
+/**
  * Internal query to get monitor without auth check.
  * Used by monitoring engine actions.
  */

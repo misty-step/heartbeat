@@ -59,6 +59,18 @@ export function ThemedStatusPage({
       {/* Spacer to prevent banner from overlapping content */}
       {showPreviewBanner && <div className="h-12" />}
       <Component {...props} />
+      {!previewMode && (
+        <div className="flex justify-center pb-6 pt-8">
+          <a
+            href={`https://heartbeat.cool?utm_source=status-page&utm_medium=badge&utm_content=${statusSlug ?? "unknown"}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-black/30 transition-colors hover:text-black/50 dark:text-white/30 dark:hover:text-white/50"
+          >
+            Powered by Heartbeat
+          </a>
+        </div>
+      )}
     </>
   );
 }

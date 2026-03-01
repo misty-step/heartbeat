@@ -33,6 +33,19 @@ export const metadata: Metadata = {
   },
 };
 
+const organizationJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "Heartbeat",
+  url: "https://heartbeat.cool",
+  logo: "https://heartbeat.cool/android-chrome-512x512.png",
+  parentOrganization: {
+    "@type": "Organization",
+    name: "Misty Step",
+    url: "https://mistystep.io",
+  },
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -45,6 +58,12 @@ export default function RootLayout({
       className={`${plusJakartaSans.variable} ${geistMono.variable}`}
     >
       <body className="antialiased bg-background text-foreground">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(organizationJsonLd),
+          }}
+        />
         <Providers>{children}</Providers>
         <Analytics />
         <SpeedInsights />

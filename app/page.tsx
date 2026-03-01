@@ -1,69 +1,141 @@
 /**
- * Landing Page - Field Design
+ * Landing Page - Server Component
  *
  * Field direction: warm matte surfaces, sage green accent, Plus Jakarta Sans.
  * - Asymmetric bento grid on warm stone background
  * - Extrabold headings, rounded-full CTAs, white card surfaces
  * - Generous whitespace, scroll-triggered reveals
  *
- * Architecture follows Ousterhout principles:
- * - Deep modules: BentoCard hides styling complexity
- * - Information hiding: Animation config internalized
- * - Minimal interface: Components expose only essential props
+ * SSR architecture: static text renders as real HTML in the initial response.
+ * Interactive islands (Navigation, PricingSection) hydrate on the client.
+ * AnimateOnView wraps static content with framer-motion entrance animations.
  *
  * Truthful copy: 14-day free trial, plans from $9/mo after trial.
  */
 
-"use client";
-
-import { useState } from "react";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { cn } from "@/lib/cn";
-import { motion, useReducedMotion } from "framer-motion";
 import {
   Bell,
-  Check,
   Clock,
   Globe,
   History,
   LayoutDashboard,
-  Loader2,
   Shield,
   Zap,
 } from "lucide-react";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import { useAction, useConvexAuth } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import { TIERS, TRIAL_DAYS, formatPrice, formatInterval } from "@/lib/tiers";
-import { SignInButton } from "@clerk/nextjs";
 
+import { Navigation } from "@/components/landing/Navigation";
+import { PricingSection } from "@/components/landing/PricingSection";
+import { HeroMonitorPanel } from "@/components/landing/HeroMonitorPanel";
+import {
+  AnimateOnView,
+  FadeOnView,
+  StaggerReveal,
+  StaggerChild,
+} from "@/components/landing/AnimateOnView";
 
-// =============================================================================
-// ANIMATION CONFIG
-// =============================================================================
+export const metadata: Metadata = {
+  title: "Heartbeat — Uptime monitoring that simply works",
+  description:
+    "Set-and-forget uptime monitoring with beautiful status pages. Checks every 1-60 minutes, three-strike confirmation, alerts in under 30 seconds. 14-day free trial.",
+  alternates: { canonical: "https://heartbeat.cool" },
+};
 
-const fadeInUp = (shouldReduceMotion: boolean) => ({
-  initial: shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 24 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] as const },
-});
-
-const staggerContainer = {
-  animate: {
-    transition: {
-      staggerChildren: 0.1,
+const softwareAppJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "Heartbeat",
+  applicationCategory: "BusinessApplication",
+  operatingSystem: "Web",
+  url: "https://heartbeat.cool",
+  description:
+    "Set-and-forget uptime monitoring with beautiful status pages and real-time alerts.",
+  offers: [
+    {
+      "@type": "Offer",
+      name: "Pulse",
+      price: "9.00",
+      priceCurrency: "USD",
+      priceSpecification: {
+        "@type": "UnitPriceSpecification",
+        billingDuration: "P1M",
+      },
+      description: "10 monitors, 3-minute intervals, 1 status page, 30-day history",
     },
-  },
+    {
+      "@type": "Offer",
+      name: "Vital",
+      price: "29.00",
+      priceCurrency: "USD",
+      priceSpecification: {
+        "@type": "UnitPriceSpecification",
+        billingDuration: "P1M",
+      },
+      description: "50 monitors, 1-minute intervals, 5 status pages, 90-day history, webhooks",
+    },
+  ],
+};
+
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: [
+    {
+      "@type": "Question",
+      name: "How often does Heartbeat check my site?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Heartbeat checks your URLs at configurable intervals from every 1 minute (Vital plan) to every 60 minutes. The Pulse plan starts at 3-minute intervals.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "How does Heartbeat prevent false alarms?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Heartbeat uses a three-strike confirmation system. An alert is only sent after 3 consecutive failures, eliminating false positives from transient network issues.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "How much does Heartbeat cost?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Heartbeat offers two plans: Pulse at $9/month (10 monitors) and Vital at $29/month (50 monitors). Both include a 14-day free trial with full access. Yearly billing saves 20%.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Can I create a public status page?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Yes. Heartbeat includes beautiful public status pages with 7 distinct themes. Pulse includes 1 status page, Vital includes 5. Status pages show real-time uptime, response times, and incident history.",
+      },
+    },
+  ],
 };
 
 // =============================================================================
-// MAIN PAGE
+// MAIN PAGE (SERVER COMPONENT)
 // =============================================================================
 
 export default function LandingPage() {
   return (
     <main className="min-h-dvh bg-background text-foreground antialiased">
-
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(softwareAppJsonLd),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(faqJsonLd),
+        }}
+      />
       <Navigation />
       <HeroSection />
       <TrustBar />
@@ -77,77 +149,16 @@ export default function LandingPage() {
 }
 
 // =============================================================================
-// NAVIGATION
-// =============================================================================
-
-function Navigation() {
-  const shouldReduceMotion = useReducedMotion() ?? false;
-  return (
-    <motion.nav
-      initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: -8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: "easeOut" }}
-      className="relative z-50 mx-auto flex max-w-7xl items-center justify-between px-6 py-6 lg:px-8"
-    >
-      {/* Logo */}
-      <Link href="/" className="flex items-center gap-3">
-        <div className="size-2.5 rounded-full bg-accent" />
-        <span className="font-display text-lg tracking-tight text-foreground">
-          Heartbeat
-        </span>
-      </Link>
-
-      {/* Right side: links + toggle + sign-in button */}
-      <div className="flex items-center gap-6">
-        <div className="hidden items-center gap-6 md:flex">
-          <a
-            href="#pricing"
-            className="font-body text-sm text-secondary transition-colors hover:text-accent"
-          >
-            Pricing
-          </a>
-          <a
-            href="#features"
-            className="font-body text-sm text-secondary transition-colors hover:text-accent"
-          >
-            Features
-          </a>
-        </div>
-        <ThemeToggle />
-        <Link
-          href="/sign-in"
-          className={cn(
-            "inline-flex h-9 items-center justify-center rounded-full border border-[var(--color-border-default)] px-5",
-            "font-body text-sm text-secondary transition-all",
-            "hover:bg-[var(--color-bg-secondary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
-          )}
-        >
-          Sign in
-        </Link>
-      </div>
-    </motion.nav>
-  );
-}
-
-// =============================================================================
 // HERO SECTION
 // =============================================================================
 
 function HeroSection() {
-  const shouldReduceMotion = useReducedMotion() ?? false;
-  const animationProps = fadeInUp(shouldReduceMotion);
-
   return (
     <section className="relative px-6 pb-8 pt-12 lg:px-8 lg:pb-12 lg:pt-20">
       <div className="mx-auto max-w-7xl">
-        <motion.div
-          initial={shouldReduceMotion ? "animate" : "initial"}
-          animate="animate"
-          variants={staggerContainer}
-          className="grid gap-8 lg:grid-cols-12 lg:gap-6"
-        >
+        <StaggerReveal className="grid gap-8 lg:grid-cols-12 lg:gap-6">
           {/* Main Hero Card - full width */}
-          <motion.div variants={animationProps} className="col-span-full">
+          <StaggerChild className="col-span-full">
             <div
               className={cn(
                 "relative overflow-hidden rounded-2xl p-8 sm:p-12",
@@ -194,14 +205,14 @@ function HeroSection() {
                   </div>
                 </div>
 
-                {/* Right: product preview */}
+                {/* Right: product preview (server component) */}
                 <HeroMonitorPanel />
               </div>
             </div>
-          </motion.div>
+          </StaggerChild>
 
           {/* Key Benefits Bar */}
-          <motion.div variants={animationProps} className="lg:col-span-12">
+          <StaggerChild className="lg:col-span-12">
             <div className="flex flex-col items-center justify-center gap-4 rounded-xl bg-[var(--color-bg-elevated)] border border-[var(--color-border-subtle)] px-6 py-4 sm:flex-row sm:gap-8">
               <div className="flex items-center gap-2">
                 <Shield className="size-4 text-accent" />
@@ -224,8 +235,8 @@ function HeroSection() {
                 </span>
               </div>
             </div>
-          </motion.div>
-        </motion.div>
+          </StaggerChild>
+        </StaggerReveal>
       </div>
     </section>
   );
@@ -236,22 +247,15 @@ function HeroSection() {
 // =============================================================================
 
 function TrustBar() {
-  const shouldReduceMotion = useReducedMotion() ?? false;
   const stats = [
     { value: "3 min", label: "Min check interval" },
     { value: "<30s", label: "Alert delivery" },
-    { value: "3×", label: "Confirm before alert" },
-    { value: "30–90d", label: "Check history" },
+    { value: "3\u00d7", label: "Confirm before alert" },
+    { value: "30\u201390d", label: "Check history" },
   ];
 
   return (
-    <motion.section
-      initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0 }}
-      whileInView={{ opacity: 1 }}
-      viewport={{ once: true, margin: "-100px" }}
-      transition={{ duration: 0.6 }}
-      className="border-y border-border px-6 py-12 lg:px-8"
-    >
+    <FadeOnView className="border-y border-border px-6 py-12 lg:px-8">
       <div className="mx-auto max-w-7xl">
         <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
           {stats.map((stat, i) => (
@@ -266,7 +270,7 @@ function TrustBar() {
           ))}
         </div>
       </div>
-    </motion.section>
+    </FadeOnView>
   );
 }
 
@@ -275,19 +279,11 @@ function TrustBar() {
 // =============================================================================
 
 function BentoFeatures() {
-  const shouldReduceMotion = useReducedMotion() ?? false;
-
   return (
     <section id="features" className="px-6 py-24 lg:px-8">
       <div className="mx-auto max-w-7xl">
         {/* Section Header */}
-        <motion.div
-          initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.5 }}
-          className="mb-16 text-center"
-        >
+        <AnimateOnView className="mb-16 text-center">
           <span className="mb-4 block font-body text-xs uppercase tracking-[0.3em] text-muted">
             How it works
           </span>
@@ -296,20 +292,12 @@ function BentoFeatures() {
             <br />
             <span className="text-muted">Heartbeat watches.</span>
           </h2>
-        </motion.div>
+        </AnimateOnView>
 
         {/* Bento Grid */}
         <div className="grid gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-12">
           {/* Large Feature - Monitoring */}
-          <motion.div
-            initial={
-              shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 24 }
-            }
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-50px" }}
-            transition={{ duration: 0.5, delay: 0 }}
-            className="sm:col-span-2 lg:col-span-7"
-          >
+          <AnimateOnView delay={0} className="sm:col-span-2 lg:col-span-7">
             <BentoCard className="min-h-[400px]">
               <div className="flex h-full flex-col">
                 <div className="mb-6 flex items-center gap-3">
@@ -369,18 +357,10 @@ function BentoFeatures() {
                 </div>
               </div>
             </BentoCard>
-          </motion.div>
+          </AnimateOnView>
 
           {/* Medium Feature - Smart Alerts */}
-          <motion.div
-            initial={
-              shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 24 }
-            }
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-50px" }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="sm:col-span-1 lg:col-span-5"
-          >
+          <AnimateOnView delay={0.1} className="sm:col-span-1 lg:col-span-5">
             <BentoCard className="min-h-[400px]">
               <div className="flex h-full flex-col">
                 <div className="mb-6 flex items-center gap-3">
@@ -402,23 +382,33 @@ function BentoFeatures() {
                   {[
                     { label: "First failure", note: "Logged, not alerted" },
                     { label: "Second failure", note: "Still watching" },
-                    { label: "Third failure", note: "Alert sent · Email · Webhook", final: true },
+                    {
+                      label: "Third failure",
+                      note: "Alert sent \u00b7 Email \u00b7 Webhook",
+                      final: true,
+                    },
                   ].map((step, i, arr) => (
                     <div key={i}>
                       <div className="flex items-center justify-between py-3">
                         <div className="flex items-center gap-3">
-                          <div className={cn(
-                            "size-1.5 shrink-0 rounded-full",
-                            step.final ? "bg-accent" : "bg-[var(--color-border-default)]",
-                          )} />
+                          <div
+                            className={cn(
+                              "size-1.5 shrink-0 rounded-full",
+                              step.final
+                                ? "bg-accent"
+                                : "bg-[var(--color-border-default)]",
+                            )}
+                          />
                           <span className="font-body text-sm text-secondary">
                             {step.label}
                           </span>
                         </div>
-                        <span className={cn(
-                          "font-mono text-xs",
-                          step.final ? "text-accent" : "text-muted",
-                        )}>
+                        <span
+                          className={cn(
+                            "font-mono text-xs",
+                            step.final ? "text-accent" : "text-muted",
+                          )}
+                        >
                           {step.note}
                         </span>
                       </div>
@@ -430,18 +420,10 @@ function BentoFeatures() {
                 </div>
               </div>
             </BentoCard>
-          </motion.div>
+          </AnimateOnView>
 
           {/* Small Feature - Public Status */}
-          <motion.div
-            initial={
-              shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 24 }
-            }
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-50px" }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="sm:col-span-1 lg:col-span-4"
-          >
+          <AnimateOnView delay={0.2} className="sm:col-span-1 lg:col-span-4">
             <BentoCard className="min-h-[280px]">
               <div className="flex h-full flex-col">
                 <div className="mb-4 flex size-10 items-center justify-center rounded-xl bg-accent/10">
@@ -477,18 +459,10 @@ function BentoFeatures() {
                 </div>
               </div>
             </BentoCard>
-          </motion.div>
+          </AnimateOnView>
 
           {/* Small Feature - History */}
-          <motion.div
-            initial={
-              shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 24 }
-            }
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-50px" }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            className="sm:col-span-1 lg:col-span-4"
-          >
+          <AnimateOnView delay={0.3} className="sm:col-span-1 lg:col-span-4">
             <BentoCard className="min-h-[280px]">
               <div className="flex h-full flex-col">
                 <div className="mb-4 flex size-10 items-center justify-center rounded-xl bg-accent/10">
@@ -519,18 +493,10 @@ function BentoFeatures() {
                 </div>
               </div>
             </BentoCard>
-          </motion.div>
+          </AnimateOnView>
 
           {/* Small Feature - Speed */}
-          <motion.div
-            initial={
-              shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 24 }
-            }
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-50px" }}
-            transition={{ duration: 0.5, delay: 0.4 }}
-            className="sm:col-span-1 lg:col-span-4"
-          >
+          <AnimateOnView delay={0.4} className="sm:col-span-1 lg:col-span-4">
             <BentoCard className="min-h-[280px]">
               <div className="flex h-full flex-col">
                 <div className="mb-4 flex size-10 items-center justify-center rounded-xl bg-accent/10">
@@ -563,7 +529,7 @@ function BentoFeatures() {
                 </div>
               </div>
             </BentoCard>
-          </motion.div>
+          </AnimateOnView>
         </div>
       </div>
     </section>
@@ -596,89 +562,10 @@ function BentoCard({
 }
 
 // =============================================================================
-// HERO MONITOR PANEL — product preview placed in hero right column
-// Deterministic tick data (SSR-safe, no Math.random)
-// =============================================================================
-
-function HeroMonitorPanel() {
-  const monitors = [
-    {
-      name: "API",
-      ms: "47ms",
-      uptime: "99.3%",
-      // 45 ticks — positions 8 and 31 are down
-      ticks: Array.from({ length: 45 }, (_, i) => i !== 8 && i !== 31),
-    },
-    {
-      name: "Web app",
-      ms: "83ms",
-      uptime: "100%",
-      ticks: Array.from({ length: 45 }, () => true),
-    },
-    {
-      name: "Checkout",
-      ms: "112ms",
-      uptime: "97.8%",
-      // positions 5, 22, 38 are down
-      ticks: Array.from({ length: 45 }, (_, i) => i !== 5 && i !== 22 && i !== 38),
-    },
-  ];
-
-  return (
-    <div className="rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-bg-secondary)] p-5">
-      {/* URL + operational status */}
-      <div className="mb-5 flex items-center justify-between">
-        <span className="font-mono text-xs text-muted">heartbeat.cool/s/acme</span>
-        <span className="flex items-center gap-1.5 font-mono text-xs text-accent">
-          <span className="size-1.5 rounded-full bg-accent" />
-          All systems up
-        </span>
-      </div>
-
-      {/* Monitor rows */}
-      <div className="space-y-4">
-        {monitors.map((monitor) => (
-          <div key={monitor.name}>
-            <div className="mb-1.5 flex items-center justify-between">
-              <span className="font-body text-sm text-secondary">{monitor.name}</span>
-              <div className="flex items-center gap-3">
-                <span className="font-mono text-xs text-muted">{monitor.ms}</span>
-                <span className="w-10 text-right font-mono text-xs text-accent">
-                  {monitor.uptime}
-                </span>
-              </div>
-            </div>
-            <div className="flex gap-px">
-              {monitor.ticks.map((up, i) => (
-                <div
-                  key={i}
-                  className={cn(
-                    "h-5 flex-1 rounded-[1px]",
-                    up ? "bg-accent" : "bg-[var(--color-border-default)]",
-                  )}
-                  style={{ opacity: up ? 0.3 + (i / monitor.ticks.length) * 0.7 : 0.5 }}
-                />
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Footer */}
-      <div className="mt-4 flex items-center justify-between border-t border-[var(--color-border-subtle)] pt-4">
-        <span className="font-mono text-xs text-muted">45-day history</span>
-        <span className="font-mono text-xs text-muted">checked 43s ago</span>
-      </div>
-    </div>
-  );
-}
-
-// =============================================================================
 // VALUE PROPOSITION SECTION
 // =============================================================================
 
 function ValueSection() {
-  const shouldReduceMotion = useReducedMotion() ?? false;
   const values = [
     {
       icon: Shield,
@@ -705,14 +592,7 @@ function ValueSection() {
       <div className="mx-auto max-w-7xl">
         <div className="grid gap-16 lg:grid-cols-2 lg:gap-24">
           {/* Left: Header */}
-          <motion.div
-            initial={
-              shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 20 }
-            }
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.5 }}
-          >
+          <AnimateOnView>
             <span className="mb-4 block font-body text-xs uppercase tracking-[0.3em] text-muted">
               Why Heartbeat
             </span>
@@ -724,18 +604,10 @@ function ValueSection() {
               Most monitoring tools demand constant attention. Heartbeat is
               designed to disappear until the moment you need it.
             </p>
-          </motion.div>
+          </AnimateOnView>
 
           {/* Right: Values List */}
-          <motion.div
-            initial={
-              shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 20 }
-            }
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="space-y-10"
-          >
+          <AnimateOnView delay={0.1} className="space-y-10">
             {values.map((value, i) => (
               <div key={i} className="flex gap-5">
                 <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-accent/10">
@@ -751,234 +623,10 @@ function ValueSection() {
                 </div>
               </div>
             ))}
-          </motion.div>
+          </AnimateOnView>
         </div>
       </div>
     </section>
-  );
-}
-
-// =============================================================================
-// PRICING SECTION
-// =============================================================================
-
-type BillingInterval = "month" | "year";
-
-interface LandingPricingCardProps {
-  tier: "pulse" | "vital";
-  name: string;
-  description: string;
-  price: number;
-  interval: BillingInterval;
-  features: string[];
-  highlighted?: boolean;
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  onSubscribe: () => void;
-  authLoading: boolean;
-}
-
-function LandingPricingCard({
-  name,
-  description,
-  price,
-  interval,
-  features,
-  highlighted,
-  isAuthenticated,
-  isLoading,
-  onSubscribe,
-  authLoading,
-}: LandingPricingCardProps) {
-  return (
-    <div
-      className={cn(
-        "rounded-xl border p-8",
-        highlighted
-          ? "border-accent bg-accent/5 shadow-[var(--shadow-md)]"
-          : "border-[var(--color-border-subtle)] bg-[var(--color-bg-elevated)] shadow-[var(--shadow-sm)]",
-      )}
-    >
-      <div className="mb-6">
-        <h3 className="mb-2 font-display text-2xl font-extrabold text-foreground">
-          {name}
-        </h3>
-        <p className="font-body text-sm text-muted">{description}</p>
-      </div>
-
-      <div className="mb-8">
-        <span className="font-mono text-4xl font-extrabold tabular-nums text-foreground">
-          {formatPrice(price)}
-        </span>
-        <span className="font-body text-sm text-muted">
-          /{interval === "month" ? "mo" : "yr"}
-        </span>
-      </div>
-
-      <ul className="mb-8 space-y-3">
-        {features.map((feature) => (
-          <li key={feature} className="flex items-start gap-3 font-body text-sm">
-            <Check className="mt-0.5 size-4 shrink-0 text-accent" />
-            <span className="text-secondary">{feature}</span>
-          </li>
-        ))}
-      </ul>
-
-      {authLoading ? (
-        <div className="flex w-full justify-center py-3">
-          <Loader2 className="size-5 animate-spin opacity-50" />
-        </div>
-      ) : isAuthenticated ? (
-        <button
-          onClick={onSubscribe}
-          disabled={isLoading}
-          className={cn(
-            "inline-flex w-full items-center justify-center rounded-full py-3",
-            "font-body text-sm font-bold transition-all disabled:opacity-50",
-            highlighted
-              ? "bg-accent text-white shadow-md shadow-accent/20 hover:opacity-90"
-              : "border border-[var(--color-border-default)] text-secondary hover:bg-[var(--color-bg-secondary)]",
-          )}
-        >
-          {isLoading ? (
-            <Loader2 className="size-5 animate-spin" />
-          ) : (
-            "Start Free Trial"
-          )}
-        </button>
-      ) : (
-        <SignInButton mode="modal">
-          <button
-            className={cn(
-              "inline-flex w-full items-center justify-center rounded-full py-3",
-              "font-body text-sm font-bold transition-all",
-              highlighted
-                ? "bg-accent text-white shadow-md shadow-accent/20 hover:opacity-90"
-                : "border border-[var(--color-border-default)] text-secondary hover:bg-[var(--color-bg-secondary)]",
-            )}
-          >
-            Sign up
-          </button>
-        </SignInButton>
-      )}
-    </div>
-  );
-}
-
-function PricingSection() {
-  const [interval, setInterval] = useState<BillingInterval>("month");
-  const [loadingTier, setLoadingTier] = useState<"pulse" | "vital" | null>(null);
-  const { isAuthenticated, isLoading: authLoading } = useConvexAuth();
-  const createCheckout = useAction(api.stripe.createCheckoutSession);
-  const shouldReduceMotion = useReducedMotion() ?? false;
-
-  const handleSubscribe = async (tier: "pulse" | "vital") => {
-    if (!isAuthenticated) return;
-    setLoadingTier(tier);
-    try {
-      const result = await createCheckout({ tier, interval });
-      if (result.url) window.location.href = result.url;
-    } catch (err) {
-      console.error("[Checkout] Failed to create session:", err);
-      setLoadingTier(null);
-    }
-  };
-
-  return (
-    <motion.section
-      id="pricing"
-      initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-100px" }}
-      transition={{ duration: 0.5 }}
-      className="border-t border-border px-6 py-24 lg:px-8"
-    >
-      <div className="mx-auto max-w-7xl">
-        {/* Section header */}
-        <div className="mb-12 text-center">
-          <span className="mb-4 block font-body text-xs uppercase tracking-[0.3em] text-muted">
-            Pricing
-          </span>
-          <h2 className="text-balance font-display text-3xl font-light tracking-tight text-foreground sm:text-4xl">
-            Simple, honest pricing
-          </h2>
-          <p className="text-pretty mx-auto mt-4 max-w-md font-body text-sm leading-relaxed text-secondary">
-            No free tier. No hidden fees. {TRIAL_DAYS}-day free trial on all plans.
-          </p>
-        </div>
-
-        {/* Billing toggle */}
-        <div className="mb-10 flex items-center justify-center gap-4">
-          <button
-            onClick={() => setInterval("month")}
-            className={cn(
-              "px-4 py-2 font-body text-sm font-medium transition-colors",
-              interval === "month" ? "text-foreground" : "text-muted hover:text-foreground",
-            )}
-          >
-            Monthly
-          </button>
-          <div className="h-4 w-px bg-border" />
-          <button
-            onClick={() => setInterval("year")}
-            className={cn(
-              "px-4 py-2 font-body text-sm font-medium transition-colors",
-              interval === "year" ? "text-foreground" : "text-muted hover:text-foreground",
-            )}
-          >
-            Yearly
-            <span className="ml-2 font-body text-xs text-accent">Save 20%</span>
-          </button>
-        </div>
-
-        {/* Cards */}
-        <div className="mx-auto grid max-w-4xl gap-8 md:grid-cols-2">
-          <LandingPricingCard
-            tier="pulse"
-            name={TIERS.pulse.name}
-            description={TIERS.pulse.description}
-            price={interval === "month" ? TIERS.pulse.monthlyPrice : TIERS.pulse.yearlyPrice}
-            interval={interval}
-            features={[
-              `${TIERS.pulse.monitors} monitors`,
-              `${formatInterval(TIERS.pulse.minInterval)} minimum interval`,
-              `${TIERS.pulse.statusPages} public status page`,
-              `${TIERS.pulse.historyDays} days history`,
-              "Email notifications",
-            ]}
-            isAuthenticated={isAuthenticated}
-            isLoading={loadingTier === "pulse"}
-            onSubscribe={() => handleSubscribe("pulse")}
-            authLoading={authLoading}
-          />
-          <LandingPricingCard
-            tier="vital"
-            name={TIERS.vital.name}
-            description={TIERS.vital.description}
-            price={interval === "month" ? TIERS.vital.monthlyPrice : TIERS.vital.yearlyPrice}
-            interval={interval}
-            features={[
-              `${TIERS.vital.monitors} monitors`,
-              `${formatInterval(TIERS.vital.minInterval)} minimum interval`,
-              `${TIERS.vital.statusPages} public status pages`,
-              `${TIERS.vital.historyDays} days history`,
-              "Email notifications",
-              "Webhook integrations",
-              "API access — coming soon",
-            ]}
-            highlighted
-            isAuthenticated={isAuthenticated}
-            isLoading={loadingTier === "vital"}
-            onSubscribe={() => handleSubscribe("vital")}
-            authLoading={authLoading}
-          />
-        </div>
-
-        <p className="mt-12 text-center font-body text-sm text-muted">
-          All plans include a {TRIAL_DAYS}-day free trial. Cancel anytime.
-        </p>
-      </div>
-    </motion.section>
   );
 }
 
@@ -987,17 +635,9 @@ function PricingSection() {
 // =============================================================================
 
 function CTASection() {
-  const shouldReduceMotion = useReducedMotion() ?? false;
-
   return (
     <section className="relative overflow-hidden bg-[var(--color-bg-secondary)] field-grain px-6 py-24 lg:px-8">
-      <motion.div
-        initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 24 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: "-100px" }}
-        transition={{ duration: 0.6 }}
-        className="relative mx-auto max-w-2xl text-center"
-      >
+      <AnimateOnView className="relative mx-auto max-w-2xl text-center">
         <h2 className="text-balance font-display text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
           Your site should be monitored.
         </h2>
@@ -1019,7 +659,7 @@ function CTASection() {
         <p className="mt-6 font-body text-xs text-muted">
           Plans from $9/mo after trial. Cancel anytime.
         </p>
-      </motion.div>
+      </AnimateOnView>
     </section>
   );
 }
@@ -1060,7 +700,7 @@ function Footer() {
 
         {/* Copyright */}
         <span className="font-mono text-xs text-muted">
-          © 2026{" "}
+          &copy; 2026{" "}
           <a
             href="https://mistystep.io"
             target="_blank"
