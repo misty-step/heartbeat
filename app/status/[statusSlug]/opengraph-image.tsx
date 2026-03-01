@@ -89,20 +89,27 @@ export default async function Image({
   // Satori requires TTF/OTF — not woff2. CSS v1 API with a bare Mozilla/4.0 UA
   // returns TTF with format('truetype'). CSS v2 + MSIE UA returns EOT. CSS v2
   // with no UA returns woff2. v1 + bare UA is the reliable path.
-  const fontCss = await fetch(
-    "https://fonts.googleapis.com/css?family=Plus+Jakarta+Sans:600,700,800",
-    {
-      headers: {
-        "User-Agent": "Mozilla/4.0",
-      },
-    },
-  ).then((res) => res.text());
+  // Wrapped in try-catch: font failure degrades to system sans-serif, not a crash.
+  const fontEntries: { name: string; data: ArrayBuffer; weight: 600 | 700 | 800; style: "normal" }[] = [];
+  try {
+    const fontCss = await fetch(
+      "https://fonts.googleapis.com/css?family=Plus+Jakarta+Sans:600,700,800",
+      { headers: { "User-Agent": "Mozilla/4.0" } },
+    ).then((res) => res.text());
 
-  const fontUrl = fontCss.match(/src:\s*url\(([^)]+\.ttf[^)]*)\)/)?.[1];
-
-  const fontBytes = fontUrl
-    ? await fetch(fontUrl).then((res) => res.arrayBuffer())
-    : null;
+    // Extract all TTF URLs — CSS v1 returns one @font-face block per weight
+    const ttfMatches = [...fontCss.matchAll(/font-weight:\s*(\d+)[^}]*src:\s*url\(([^)]+\.ttf[^)]*)\)/g)];
+    await Promise.all(
+      ttfMatches.map(async ([, weight, url]) => {
+        const w = Number(weight);
+        if (w !== 600 && w !== 700 && w !== 800) return;
+        const data = await fetch(url).then((r) => r.arrayBuffer());
+        fontEntries.push({ name: "Plus Jakarta Sans", data, weight: w as 600 | 700 | 800, style: "normal" });
+      }),
+    );
+  } catch {
+    // Font loading failed; ImageResponse falls back to system sans-serif
+  }
 
   return new ImageResponse(
     (
@@ -306,16 +313,7 @@ export default async function Image({
     ),
     {
       ...size,
-      fonts: fontBytes
-        ? [
-            {
-              name: "Plus Jakarta Sans",
-              data: fontBytes,
-              weight: 700,
-              style: "normal" as const,
-            },
-          ]
-        : [],
+      fonts: fontEntries,
     },
   );
 }

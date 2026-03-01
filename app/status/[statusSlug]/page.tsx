@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { fetchPublicQuery } from "@/lib/convex-public";
+import { safeJsonLd } from "@/lib/json-ld";
 import { api } from "@/convex/_generated/api";
 import { ThemedStatusPage } from "@/components/themes";
 import { THEME_IDS, type ThemeId } from "@/lib/themes";
@@ -157,7 +158,7 @@ export default async function IndividualStatusPage({
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(webPageJsonLd) }}
       />
       <ThemedStatusPage
         theme={effectiveTheme}

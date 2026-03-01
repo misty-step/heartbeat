@@ -15,6 +15,7 @@
 
 import type { Metadata } from "next";
 import Link from "next/link";
+import { safeJsonLd } from "@/lib/json-ld";
 import { cn } from "@/lib/cn";
 import {
   Bell,
@@ -127,13 +128,13 @@ export default function LandingPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(softwareAppJsonLd),
+          __html: safeJsonLd(softwareAppJsonLd),
         }}
       />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(faqJsonLd),
+          __html: safeJsonLd(faqJsonLd),
         }}
       />
       <Navigation />

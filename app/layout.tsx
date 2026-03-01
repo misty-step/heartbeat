@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { safeJsonLd } from "@/lib/json-ld";
 import { Plus_Jakarta_Sans, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -61,7 +62,7 @@ export default function RootLayout({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify(organizationJsonLd),
+            __html: safeJsonLd(organizationJsonLd),
           }}
         />
         <Providers>{children}</Providers>

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { safeJsonLd } from "@/lib/json-ld";
 
 export const metadata: Metadata = {
   title: "Pricing — Heartbeat",
@@ -51,7 +52,7 @@ export default function PricingLayout({
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(pricingJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(pricingJsonLd) }}
       />
       {children}
     </>

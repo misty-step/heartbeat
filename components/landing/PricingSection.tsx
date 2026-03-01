@@ -125,7 +125,12 @@ export function PricingSection() {
     setLoadingTier(tier);
     try {
       const result = await createCheckout({ tier, interval });
-      if (result.url) window.location.href = result.url;
+      if (result.url) {
+        window.location.href = result.url;
+      } else {
+        console.error("[Checkout] No URL returned from session");
+        setLoadingTier(null);
+      }
     } catch (err) {
       console.error("[Checkout] Failed to create session:", err);
       setLoadingTier(null);
