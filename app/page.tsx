@@ -658,7 +658,7 @@ function Footer() {
 
         {/* Copyright */}
         <span className="font-mono text-xs text-muted">
-          &copy; 2026{" "}
+          &copy; {new Date().getFullYear()}{" "}
           <a
             href="https://mistystep.io"
             target="_blank"

@@ -61,7 +61,7 @@ export function ThemedStatusPage({
       {!previewMode && (
         <div className="flex justify-center pb-6 pt-8">
           <a
-            href={`https://heartbeat.cool?utm_source=status-page&utm_medium=badge&utm_content=${statusSlug ?? "unknown"}`}
+            href={`https://heartbeat.cool?utm_source=status-page&utm_medium=badge&utm_content=${encodeURIComponent(statusSlug ?? "unknown")}`}
             target="_blank"
             rel="noopener noreferrer"
             className="text-xs text-black/30 transition-colors hover:text-black/50 dark:text-white/30 dark:hover:text-white/50"

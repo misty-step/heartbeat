@@ -187,6 +187,7 @@ export function PricingSection() {
           <div className="mb-10 flex items-center justify-center gap-4">
             <button
               onClick={() => setInterval("month")}
+              aria-pressed={interval === "month"}
               className={cn(
                 "px-4 py-2 font-body text-sm font-medium transition-colors",
                 interval === "month"
@@ -199,6 +200,7 @@ export function PricingSection() {
             <div className="h-4 w-px bg-border" />
             <button
               onClick={() => setInterval("year")}
+              aria-pressed={interval === "year"}
               className={cn(
                 "px-4 py-2 font-body text-sm font-medium transition-colors",
                 interval === "year"

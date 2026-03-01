@@ -28,10 +28,15 @@ export default async function Image({
 }) {
   const { statusSlug } = await params;
 
-  const monitor = await fetchPublicQuery(
-    api.monitors.getPublicMonitorByStatusSlug,
-    { statusSlug },
-  );
+  let monitor;
+  try {
+    monitor = await fetchPublicQuery(
+      api.monitors.getPublicMonitorByStatusSlug,
+      { statusSlug },
+    );
+  } catch {
+    // Convex unavailable — degrade to placeholder rather than 500
+  }
 
   if (!monitor) {
     return new ImageResponse(
