@@ -437,3 +437,44 @@ describe("list", () => {
     await expect(t.query(api.monitors.list)).rejects.toThrow("Unauthorized");
   });
 });
+
+describe("listPublicStatusSlugs", () => {
+  test("returns slugs for enabled public monitors only", async () => {
+    const t = setupBackend();
+
+    // Create two monitors: one public (default), one explicitly private
+    await createMonitor(t, user, {
+      name: "Public Monitor",
+    });
+    await createMonitor(t, user, {
+      name: "Private Monitor",
+      visibility: "private",
+    });
+
+    // No auth needed — this is a public query
+    const slugs = await t.query(api.monitors.listPublicStatusSlugs, {});
+    expect(slugs).toHaveLength(1);
+    expect(slugs[0]).toMatch(/^[a-z]+-[a-z]+-[a-z]+$/);
+  });
+
+  test("excludes disabled monitors", async () => {
+    const t = setupBackend();
+
+    const monitorId = await createMonitor(t, user, { name: "Disabled" });
+    await t.withIdentity(user).mutation(api.monitors.update, {
+      id: monitorId,
+      visibility: "public",
+      enabled: false,
+    });
+
+    const slugs = await t.query(api.monitors.listPublicStatusSlugs, {});
+    expect(slugs).toHaveLength(0);
+  });
+
+  test("returns empty array when no public monitors exist", async () => {
+    const t = setupBackend();
+
+    const slugs = await t.query(api.monitors.listPublicStatusSlugs, {});
+    expect(slugs).toHaveLength(0);
+  });
+});

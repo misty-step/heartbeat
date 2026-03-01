@@ -41,8 +41,7 @@ export function ThemedStatusPage({
   statusSlug,
   ...props
 }: ThemedStatusPageProps) {
-  const ThemeComponent = theme ? THEME_COMPONENTS[theme] : GlassStatusPage;
-  const Component = ThemeComponent ?? GlassStatusPage;
+  const Component = (theme && THEME_COMPONENTS[theme]) ?? GlassStatusPage;
 
   const showPreviewBanner =
     previewMode && previewThemeId && monitorId && statusSlug;

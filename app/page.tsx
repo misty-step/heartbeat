@@ -16,7 +16,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { safeJsonLd } from "@/lib/json-ld";
+import { BASE_URL } from "@/lib/constants";
 import { cn } from "@/lib/cn";
+import { TIERS } from "@/lib/tiers";
 import {
   Bell,
   Clock,
@@ -41,7 +43,7 @@ export const metadata: Metadata = {
   title: "Heartbeat — Uptime monitoring that simply works",
   description:
     "Set-and-forget uptime monitoring with beautiful status pages. Checks every 1-60 minutes, three-strike confirmation, alerts in under 30 seconds. 14-day free trial.",
-  alternates: { canonical: "https://heartbeat.cool" },
+  alternates: { canonical: BASE_URL },
 };
 
 const softwareAppJsonLd = {
@@ -50,33 +52,20 @@ const softwareAppJsonLd = {
   name: "Heartbeat",
   applicationCategory: "BusinessApplication",
   operatingSystem: "Web",
-  url: "https://heartbeat.cool",
+  url: BASE_URL,
   description:
     "Set-and-forget uptime monitoring with beautiful status pages and real-time alerts.",
-  offers: [
-    {
-      "@type": "Offer",
-      name: "Pulse",
-      price: "9.00",
-      priceCurrency: "USD",
-      priceSpecification: {
-        "@type": "UnitPriceSpecification",
-        billingDuration: "P1M",
-      },
-      description: "10 monitors, 3-minute intervals, 1 status page, 30-day history",
+  offers: Object.values(TIERS).map((tier) => ({
+    "@type": "Offer",
+    name: tier.name,
+    price: (tier.monthlyPrice / 100).toFixed(2),
+    priceCurrency: "USD",
+    priceSpecification: {
+      "@type": "UnitPriceSpecification",
+      billingDuration: "P1M",
     },
-    {
-      "@type": "Offer",
-      name: "Vital",
-      price: "29.00",
-      priceCurrency: "USD",
-      priceSpecification: {
-        "@type": "UnitPriceSpecification",
-        billingDuration: "P1M",
-      },
-      description: "50 monitors, 1-minute intervals, 5 status pages, 90-day history, webhooks",
-    },
-  ],
+    description: `${tier.monitors} monitors, ${Math.floor(tier.minInterval / 60)}-minute intervals, ${tier.statusPages} status page${tier.statusPages > 1 ? "s" : ""}, ${tier.historyDays}-day history${tier.webhooks ? ", webhooks" : ""}`,
+  })),
 };
 
 const faqJsonLd = {
@@ -118,10 +107,6 @@ const faqJsonLd = {
   ],
 };
 
-// =============================================================================
-// MAIN PAGE (SERVER COMPONENT)
-// =============================================================================
-
 export default function LandingPage() {
   return (
     <main className="min-h-dvh bg-background text-foreground antialiased">
@@ -148,10 +133,6 @@ export default function LandingPage() {
     </main>
   );
 }
-
-// =============================================================================
-// HERO SECTION
-// =============================================================================
 
 function HeroSection() {
   return (
@@ -243,10 +224,6 @@ function HeroSection() {
   );
 }
 
-// =============================================================================
-// TRUST BAR
-// =============================================================================
-
 function TrustBar() {
   const stats = [
     { value: "3 min", label: "Min check interval" },
@@ -274,10 +251,6 @@ function TrustBar() {
     </FadeOnView>
   );
 }
-
-// =============================================================================
-// BENTO FEATURES GRID
-// =============================================================================
 
 function BentoFeatures() {
   return (
@@ -537,10 +510,6 @@ function BentoFeatures() {
   );
 }
 
-// =============================================================================
-// BENTO CARD - Deep module hiding styling complexity
-// =============================================================================
-
 function BentoCard({
   children,
   className,
@@ -561,10 +530,6 @@ function BentoCard({
     </div>
   );
 }
-
-// =============================================================================
-// VALUE PROPOSITION SECTION
-// =============================================================================
 
 function ValueSection() {
   const values = [
@@ -631,10 +596,6 @@ function ValueSection() {
   );
 }
 
-// =============================================================================
-// CTA SECTION
-// =============================================================================
-
 function CTASection() {
   return (
     <section className="relative overflow-hidden bg-[var(--color-bg-secondary)] field-grain px-6 py-24 lg:px-8">
@@ -664,10 +625,6 @@ function CTASection() {
     </section>
   );
 }
-
-// =============================================================================
-// FOOTER
-// =============================================================================
 
 function Footer() {
   const links = [

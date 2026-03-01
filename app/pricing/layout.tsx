@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import { safeJsonLd } from "@/lib/json-ld";
+import { BASE_URL } from "@/lib/constants";
+import { TIERS } from "@/lib/tiers";
 
 export const metadata: Metadata = {
   title: "Pricing — Heartbeat",
   description:
     "Simple, honest pricing for uptime monitoring. Pulse $9/mo (10 monitors), Vital $29/mo (50 monitors). 14-day free trial, no credit card required.",
-  alternates: { canonical: "https://heartbeat.cool/pricing" },
+  alternates: { canonical: `${BASE_URL}/pricing` },
 };
 
 const pricingJsonLd = {
@@ -15,32 +17,17 @@ const pricingJsonLd = {
   description:
     "Set-and-forget uptime monitoring with beautiful status pages and real-time alerts.",
   brand: { "@type": "Organization", name: "Heartbeat" },
-  offers: [
-    {
-      "@type": "Offer",
-      name: "Pulse",
-      price: "9.00",
-      priceCurrency: "USD",
-      priceSpecification: {
-        "@type": "UnitPriceSpecification",
-        billingDuration: "P1M",
-      },
-      description:
-        "10 monitors, 3-minute minimum interval, 1 status page, 30 days history, email notifications",
+  offers: Object.values(TIERS).map((tier) => ({
+    "@type": "Offer",
+    name: tier.name,
+    price: (tier.monthlyPrice / 100).toFixed(2),
+    priceCurrency: "USD",
+    priceSpecification: {
+      "@type": "UnitPriceSpecification",
+      billingDuration: "P1M",
     },
-    {
-      "@type": "Offer",
-      name: "Vital",
-      price: "29.00",
-      priceCurrency: "USD",
-      priceSpecification: {
-        "@type": "UnitPriceSpecification",
-        billingDuration: "P1M",
-      },
-      description:
-        "50 monitors, 1-minute minimum interval, 5 status pages, 90 days history, webhooks + email",
-    },
-  ],
+    description: `${tier.monitors} monitors, ${Math.floor(tier.minInterval / 60)}-minute intervals, ${tier.statusPages} status page${tier.statusPages > 1 ? "s" : ""}, ${tier.historyDays}-day history${tier.webhooks ? ", webhooks" : ""}`,
+  })),
 };
 
 export default function PricingLayout({

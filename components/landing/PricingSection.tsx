@@ -12,7 +12,6 @@ import { AnimateOnView } from "./AnimateOnView";
 type BillingInterval = "month" | "year";
 
 interface LandingPricingCardProps {
-  tier: "pulse" | "vital";
   name: string;
   description: string;
   price: number;
@@ -23,6 +22,59 @@ interface LandingPricingCardProps {
   isLoading: boolean;
   onSubscribe: () => void;
   authLoading: boolean;
+}
+
+const ctaButtonClass = (highlighted?: boolean) =>
+  cn(
+    "inline-flex w-full items-center justify-center rounded-full py-3",
+    "font-body text-sm font-bold transition-all",
+    highlighted
+      ? "bg-accent text-white shadow-md shadow-accent/20 hover:opacity-90"
+      : "border border-[var(--color-border-default)] text-secondary hover:bg-[var(--color-bg-secondary)]",
+  );
+
+function PricingCardAction({
+  authLoading,
+  isAuthenticated,
+  isLoading,
+  highlighted,
+  onSubscribe,
+}: {
+  authLoading: boolean;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  highlighted?: boolean;
+  onSubscribe: () => void;
+}) {
+  if (authLoading) {
+    return (
+      <div className="flex w-full justify-center py-3">
+        <Loader2 className="size-5 animate-spin opacity-50" />
+      </div>
+    );
+  }
+
+  if (isAuthenticated) {
+    return (
+      <button
+        onClick={onSubscribe}
+        disabled={isLoading}
+        className={cn(ctaButtonClass(highlighted), "disabled:opacity-50")}
+      >
+        {isLoading ? (
+          <Loader2 className="size-5 animate-spin" />
+        ) : (
+          "Start Free Trial"
+        )}
+      </button>
+    );
+  }
+
+  return (
+    <SignInButton mode="modal">
+      <button className={ctaButtonClass(highlighted)}>Sign up</button>
+    </SignInButton>
+  );
 }
 
 function LandingPricingCard({
@@ -64,50 +116,23 @@ function LandingPricingCard({
 
       <ul className="mb-8 space-y-3">
         {features.map((feature) => (
-          <li key={feature} className="flex items-start gap-3 font-body text-sm">
+          <li
+            key={feature}
+            className="flex items-start gap-3 font-body text-sm"
+          >
             <Check className="mt-0.5 size-4 shrink-0 text-accent" />
             <span className="text-secondary">{feature}</span>
           </li>
         ))}
       </ul>
 
-      {authLoading ? (
-        <div className="flex w-full justify-center py-3">
-          <Loader2 className="size-5 animate-spin opacity-50" />
-        </div>
-      ) : isAuthenticated ? (
-        <button
-          onClick={onSubscribe}
-          disabled={isLoading}
-          className={cn(
-            "inline-flex w-full items-center justify-center rounded-full py-3",
-            "font-body text-sm font-bold transition-all disabled:opacity-50",
-            highlighted
-              ? "bg-accent text-white shadow-md shadow-accent/20 hover:opacity-90"
-              : "border border-[var(--color-border-default)] text-secondary hover:bg-[var(--color-bg-secondary)]",
-          )}
-        >
-          {isLoading ? (
-            <Loader2 className="size-5 animate-spin" />
-          ) : (
-            "Start Free Trial"
-          )}
-        </button>
-      ) : (
-        <SignInButton mode="modal">
-          <button
-            className={cn(
-              "inline-flex w-full items-center justify-center rounded-full py-3",
-              "font-body text-sm font-bold transition-all",
-              highlighted
-                ? "bg-accent text-white shadow-md shadow-accent/20 hover:opacity-90"
-                : "border border-[var(--color-border-default)] text-secondary hover:bg-[var(--color-bg-secondary)]",
-            )}
-          >
-            Sign up
-          </button>
-        </SignInButton>
-      )}
+      <PricingCardAction
+        authLoading={authLoading}
+        isAuthenticated={isAuthenticated}
+        isLoading={isLoading}
+        highlighted={highlighted}
+        onSubscribe={onSubscribe}
+      />
     </div>
   );
 }
@@ -191,7 +216,6 @@ export function PricingSection() {
           {/* Cards */}
           <div className="mx-auto grid max-w-4xl gap-8 md:grid-cols-2">
             <LandingPricingCard
-              tier="pulse"
               name={TIERS.pulse.name}
               description={TIERS.pulse.description}
               price={
@@ -213,7 +237,6 @@ export function PricingSection() {
               authLoading={authLoading}
             />
             <LandingPricingCard
-              tier="vital"
               name={TIERS.vital.name}
               description={TIERS.vital.description}
               price={

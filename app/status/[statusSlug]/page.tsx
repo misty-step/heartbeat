@@ -1,10 +1,18 @@
 import type { Metadata } from "next";
+import { cache } from "react";
 import { notFound } from "next/navigation";
 import { fetchPublicQuery } from "@/lib/convex-public";
 import { safeJsonLd } from "@/lib/json-ld";
+import { BASE_URL } from "@/lib/constants";
 import { api } from "@/convex/_generated/api";
 import { ThemedStatusPage } from "@/components/themes";
 import { THEME_IDS, type ThemeId } from "@/lib/themes";
+
+// React cache() deduplicates within a single render — generateMetadata and the
+// page component share a single Convex round-trip instead of hitting it twice.
+const getMonitor = cache((statusSlug: string) =>
+  fetchPublicQuery(api.monitors.getPublicMonitorByStatusSlug, { statusSlug }),
+);
 
 // ISR Configuration
 export const revalidate = 60; // Revalidate every 60 seconds
@@ -21,10 +29,7 @@ export async function generateMetadata({
   params: Promise<{ statusSlug: string }>;
 }): Promise<Metadata> {
   const { statusSlug } = await params;
-  const monitor = await fetchPublicQuery(
-    api.monitors.getPublicMonitorByStatusSlug,
-    { statusSlug },
-  );
+  const monitor = await getMonitor(statusSlug);
 
   if (!monitor) {
     return { title: "Status Page Not Found — Heartbeat" };
@@ -34,7 +39,7 @@ export async function generateMetadata({
     title: `${monitor.name} Status — Heartbeat`,
     description: `Live status and uptime for ${monitor.name}. Powered by Heartbeat uptime monitoring.`,
     alternates: {
-      canonical: `https://heartbeat.cool/status/${statusSlug}`,
+      canonical: `${BASE_URL}/status/${statusSlug}`,
     },
   };
 }
@@ -51,12 +56,7 @@ export default async function IndividualStatusPage({
   const { statusSlug } = await params;
   const { preview } = await searchParams;
 
-  const monitor = await fetchPublicQuery(
-    api.monitors.getPublicMonitorByStatusSlug,
-    {
-      statusSlug,
-    },
-  );
+  const monitor = await getMonitor(statusSlug);
 
   if (!monitor) {
     notFound();
@@ -140,17 +140,21 @@ export default async function IndividualStatusPage({
   // Use preview theme if owner is previewing, otherwise use saved theme
   const effectiveTheme = previewTheme ?? (monitor.theme as ThemeId | undefined);
 
-  const statusLabels = { up: "Operational", degraded: "Degraded Performance", down: "Major Outage" } as const;
+  const statusLabels = {
+    up: "Operational",
+    degraded: "Degraded Performance",
+    down: "Major Outage",
+  } as const;
   const webPageJsonLd = {
     "@context": "https://schema.org",
     "@type": "WebPage",
     name: `${monitor.name} Status`,
     description: `Live status and uptime for ${monitor.name}. Currently ${statusLabels[monitor.status]}.`,
-    url: `https://heartbeat.cool/status/${statusSlug}`,
+    url: `${BASE_URL}/status/${statusSlug}`,
     provider: {
       "@type": "Organization",
       name: "Heartbeat",
-      url: "https://heartbeat.cool",
+      url: BASE_URL,
     },
   };
 

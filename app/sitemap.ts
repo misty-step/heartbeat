@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 import { fetchPublicQuery } from "@/lib/convex-public";
 import { api } from "@/convex/_generated/api";
 
-const BASE_URL = "https://heartbeat.cool";
+import { BASE_URL } from "@/lib/constants";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPages: MetadataRoute.Sitemap = [

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { safeJsonLd } from "@/lib/json-ld";
+import { BASE_URL } from "@/lib/constants";
 import { Plus_Jakarta_Sans, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -38,8 +39,8 @@ const organizationJsonLd = {
   "@context": "https://schema.org",
   "@type": "Organization",
   name: "Heartbeat",
-  url: "https://heartbeat.cool",
-  logo: "https://heartbeat.cool/android-chrome-512x512.png",
+  url: BASE_URL,
+  logo: `${BASE_URL}/android-chrome-512x512.png`,
   parentOrganization: {
     "@type": "Organization",
     name: "Misty Step",

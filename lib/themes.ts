@@ -15,6 +15,8 @@ export interface ThemeDefinition {
   name: string;
   description: string;
   minTier: "pulse" | "vital";
+  /** Whether the theme uses a dark background */
+  isDark: boolean;
   /** Representative colors for visual preview (4 colors) */
   colors: [string, string, string, string];
 }
@@ -25,6 +27,7 @@ export const THEMES: Record<ThemeId, ThemeDefinition> = {
     name: "Kyoto Moss",
     description: "Clean glass dashboard with bento grid layout",
     minTier: "pulse",
+    isDark: true,
     colors: ["#2d4a3e", "#22c55e", "#f59e0b", "#ef4444"],
   },
   ukiyo: {
@@ -32,6 +35,7 @@ export const THEMES: Record<ThemeId, ThemeDefinition> = {
     name: "Ukiyo Refined",
     description: "Bold outlines, flat colors, woodblock editorial aesthetic",
     minTier: "vital",
+    isDark: false,
     colors: ["#2d4a3e", "#a94442", "#fdfcfa", "#1a1a1a"],
   },
   memphis: {
@@ -39,6 +43,7 @@ export const THEMES: Record<ThemeId, ThemeDefinition> = {
     name: "Memphis Pop",
     description: "Playful, colorful 80s Memphis design movement",
     minTier: "vital",
+    isDark: false,
     colors: ["#ff6b9d", "#00d4ff", "#ffd93d", "#a855f7"],
   },
   blueprint: {
@@ -46,6 +51,7 @@ export const THEMES: Record<ThemeId, ThemeDefinition> = {
     name: "Blueprint",
     description: "Technical engineering drawing aesthetic",
     minTier: "vital",
+    isDark: true,
     colors: ["#1e3a5f", "#60a5fa", "#fbbf24", "#f87171"],
   },
   swiss: {
@@ -53,6 +59,7 @@ export const THEMES: Record<ThemeId, ThemeDefinition> = {
     name: "Swiss Precision",
     description: "Minimalist International Typographic Style",
     minTier: "vital",
+    isDark: false,
     colors: ["#e30613", "#1a1a1a", "#f5f5f5", "#ffffff"],
   },
   broadsheet: {
@@ -60,6 +67,7 @@ export const THEMES: Record<ThemeId, ThemeDefinition> = {
     name: "Broadsheet",
     description: "Classic newspaper editorial layout",
     minTier: "vital",
+    isDark: false,
     colors: ["#1a1a1a", "#f5f2eb", "#c41e3a", "#1e3a5f"],
   },
   "mission-control": {
@@ -67,6 +75,7 @@ export const THEMES: Record<ThemeId, ThemeDefinition> = {
     name: "Mission Control",
     description: "Retro NASA telemetry terminal aesthetic",
     minTier: "vital",
+    isDark: true,
     colors: ["#0a0f0a", "#33ff00", "#ffb000", "#ff3300"],
   },
 };
