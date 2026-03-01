@@ -86,14 +86,19 @@ export default async function Image({
     ? "rgba(245,242,235,0.5)"
     : "rgba(26,26,23,0.5)";
 
-  // Load font
-  const fontData = await fetch(
-    "https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&display=swap",
+  // Satori requires TTF/OTF — not woff2. CSS v1 API with a bare Mozilla/4.0 UA
+  // returns TTF with format('truetype'). CSS v2 + MSIE UA returns EOT. CSS v2
+  // with no UA returns woff2. v1 + bare UA is the reliable path.
+  const fontCss = await fetch(
+    "https://fonts.googleapis.com/css?family=Plus+Jakarta+Sans:600,700,800",
+    {
+      headers: {
+        "User-Agent": "Mozilla/4.0",
+      },
+    },
   ).then((res) => res.text());
 
-  const fontUrl = fontData.match(
-    /src:\s*url\(([^)]+)\)\s*format\('woff2'\)/,
-  )?.[1];
+  const fontUrl = fontCss.match(/src:\s*url\(([^)]+\.ttf[^)]*)\)/)?.[1];
 
   const fontBytes = fontUrl
     ? await fetch(fontUrl).then((res) => res.arrayBuffer())

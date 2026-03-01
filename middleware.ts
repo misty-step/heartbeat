@@ -16,6 +16,8 @@ const isPublicRoute = createRouteMatcher([
   "/explore(.*)", // Design exploration catalogue
   "/sitemap.xml",
   "/robots.txt",
+  "/llms.txt",
+  "/opengraph-image",
   // Note: Stripe webhooks now go directly to Convex HTTP action
 ]);
 
