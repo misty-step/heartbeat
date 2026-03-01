@@ -1,8 +1,9 @@
 /**
- * Button - Kyoto Moss Design System
+ * Button - Field Design System
  *
  * CVA-based button with type-safe variants.
- * Follows the wabi-sabi philosophy: understated, purposeful, no excess.
+ * Primary: rounded-full pill with sage green accent.
+ * Secondary: rounded-xl, softer.
  */
 
 import { cva, type VariantProps } from "class-variance-authority";
@@ -21,13 +22,14 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        // Primary - Moss green, the default action
+        // Primary - Sage green, pill-shaped, the default action
         primary: [
-          "bg-[var(--color-accent-primary)] text-[var(--color-text-inverse)]",
-          "hover:bg-[var(--color-accent-primary-hover)]",
+          "bg-[var(--color-accent-primary)] text-white",
+          "shadow-sm shadow-[var(--color-accent-primary)]/20",
+          "hover:bg-[var(--color-accent-primary-hover)] hover:opacity-95",
           "focus-visible:outline-[var(--color-accent-primary)]",
         ],
-        // Secondary - Outlined, subtle
+        // Secondary - Outlined, warm border
         secondary: [
           "bg-transparent text-[var(--color-text-primary)]",
           "border border-[var(--color-border-default)]",
@@ -40,7 +42,7 @@ const buttonVariants = cva(
           "hover:bg-[var(--color-bg-tertiary)] hover:text-[var(--color-text-primary)]",
           "focus-visible:outline-[var(--color-accent-primary)]",
         ],
-        // Danger - Brick red for destructive actions
+        // Danger - Red for destructive actions
         danger: [
           "bg-[var(--color-status-down)] text-white",
           "hover:opacity-90",
@@ -54,9 +56,9 @@ const buttonVariants = cva(
         ],
       },
       size: {
-        sm: "h-8 px-3 text-xs rounded-[var(--radius-sm)]",
-        md: "h-10 px-4 text-sm rounded-[var(--radius-md)]",
-        lg: "h-12 px-6 text-base rounded-[var(--radius-md)]",
+        sm: "h-8 px-4 text-xs rounded-full",
+        md: "h-10 px-5 text-sm rounded-full",
+        lg: "h-12 px-8 text-base font-bold rounded-full",
         icon: "size-10 rounded-[var(--radius-md)]",
         "icon-sm": "size-8 rounded-[var(--radius-sm)]",
       },

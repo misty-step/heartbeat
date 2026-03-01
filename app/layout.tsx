@@ -1,30 +1,22 @@
 import type { Metadata } from "next";
-import { Manrope, Noto_Serif_JP, IBM_Plex_Mono } from "next/font/google";
+import { Plus_Jakarta_Sans, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Providers } from "./providers";
 import "./globals.css";
 
-// Kyoto Moss Design System - Typography
-// Display: Noto Serif JP - Japanese elegance with wabi-sabi character
-const notoSerifJP = Noto_Serif_JP({
+// Field Design System - Typography
+// Body + Display: Plus Jakarta Sans - warm, editorial, extrabold-capable
+const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  variable: "--font-display",
-  display: "swap",
-});
-
-// Body: Manrope - Clean, humanist sans-serif
-const manrope = Manrope({
-  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
   variable: "--font-body",
   display: "swap",
 });
 
-// Mono: IBM Plex Mono - Technical precision
-const ibmPlexMono = IBM_Plex_Mono({
+// Mono: Geist Mono - technical values, URLs, response times
+const geistMono = Geist_Mono({
   subsets: ["latin"],
-  weight: ["400", "500"],
   variable: "--font-mono",
   display: "swap",
 });
@@ -50,7 +42,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${notoSerifJP.variable} ${manrope.variable} ${ibmPlexMono.variable}`}
+      className={`${plusJakartaSans.variable} ${geistMono.variable}`}
     >
       <body className="antialiased bg-background text-foreground">
         <Providers>{children}</Providers>

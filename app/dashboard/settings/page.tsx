@@ -152,7 +152,7 @@ export default function SettingsPage() {
             <ArrowLeft className="h-4 w-4" />
             Back to Dashboard
           </Link>
-          <h1 className="font-serif text-3xl sm:text-4xl tracking-tight text-foreground">
+          <h1 className="font-display text-3xl sm:text-4xl tracking-tight text-foreground">
             Settings
           </h1>
         </div>
@@ -178,7 +178,7 @@ export default function SettingsPage() {
 
         {/* Section header */}
         <div className="space-y-2">
-          <h2 className="font-serif text-xl text-foreground">
+          <h2 className="font-display text-xl text-foreground">
             Notification Preferences
           </h2>
           <p className="text-foreground/60">
@@ -191,7 +191,7 @@ export default function SettingsPage() {
         <section className="space-y-6 pt-6 border-t border-foreground/10">
           <div className="flex items-center gap-3">
             <Mail className="h-5 w-5 text-foreground/60" />
-            <h2 className="font-serif text-xl text-foreground">
+            <h2 className="font-display text-xl text-foreground">
               Email Notifications
             </h2>
           </div>
@@ -202,14 +202,14 @@ export default function SettingsPage() {
               Email Address
             </label>
             <div className="flex gap-3">
-              <div className="flex-1 px-4 py-3 bg-foreground/5 border border-foreground/10 text-foreground/70">
+              <div className="flex-1 px-4 py-3 bg-[var(--color-bg-secondary)] border border-[var(--color-border-subtle)] rounded-xl text-[var(--color-text-secondary)]">
                 {settings.email || "No email on file"}
               </div>
               <button
                 type="button"
                 onClick={handleTestEmail}
                 disabled={isSendingTestEmail || !settings.email}
-                className="px-4 py-2 border border-foreground/20 text-foreground/70 hover:bg-foreground/5 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                className="px-4 py-2 rounded-full border border-[var(--color-border-default)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-secondary)] font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               >
                 <Send className="h-4 w-4" />
                 {isSendingTestEmail ? "Sending..." : "Test"}
@@ -297,7 +297,7 @@ export default function SettingsPage() {
                       Number(e.target.value) as ThrottleMinutes,
                     )
                   }
-                  className="w-full max-w-xs px-4 py-2 bg-transparent border border-foreground/20 text-foreground focus:outline-none focus:border-foreground/50 transition-colors"
+                  className="w-full max-w-xs px-4 py-2 rounded-xl bg-[var(--color-bg-secondary)] border border-[var(--color-border-subtle)] text-foreground focus:outline-none focus:border-[var(--color-accent-primary)] transition-colors"
                 >
                   <option value={5}>5 minutes</option>
                   <option value={15}>15 minutes</option>
@@ -316,7 +316,7 @@ export default function SettingsPage() {
         <section className="space-y-6 pt-6 border-t border-foreground/10">
           <div className="flex items-center gap-3">
             <Webhook className="h-5 w-5 text-foreground/60" />
-            <h2 className="font-serif text-xl text-foreground">Webhook</h2>
+            <h2 className="font-display text-xl text-foreground">Webhook</h2>
           </div>
 
           <div className="space-y-2">
@@ -332,13 +332,13 @@ export default function SettingsPage() {
                 value={webhookUrl}
                 onChange={(e) => setWebhookUrl(e.target.value)}
                 placeholder="https://your-server.com/webhook"
-                className="flex-1 px-4 py-3 bg-transparent border border-foreground/20 text-foreground placeholder:text-foreground/30 focus:outline-none focus:border-foreground/50 transition-colors"
+                className="flex-1 px-4 py-3 bg-[var(--color-bg-secondary)] border border-[var(--color-border-subtle)] rounded-xl text-foreground placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-accent-primary)] transition-colors"
               />
               <button
                 type="button"
                 onClick={handleTestWebhook}
                 disabled={isSendingTestWebhook || !settings.webhookUrl}
-                className="px-4 py-2 border border-foreground/20 text-foreground/70 hover:bg-foreground/5 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                className="px-4 py-2 rounded-full border border-[var(--color-border-default)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-secondary)] font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               >
                 <Send className="h-4 w-4" />
                 {isSendingTestWebhook ? "Sending..." : "Test"}
@@ -356,7 +356,7 @@ export default function SettingsPage() {
           <button
             onClick={handleSave}
             disabled={isSaving || !hasChanges}
-            className="px-6 py-2 bg-foreground text-background font-medium hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
+            className="px-6 py-2 rounded-full bg-[var(--color-accent-primary)] text-white font-semibold text-sm hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity shadow-sm shadow-[var(--color-accent-primary)]/20"
           >
             {isSaving ? "Saving..." : "Save Changes"}
           </button>
@@ -409,7 +409,7 @@ function UnsavedChangesModal({
         <div className="px-6 py-6">
           <h2
             id="unsaved-changes-title"
-            className="font-serif text-xl text-[var(--color-text-primary)] mb-3"
+            className="font-display text-xl text-[var(--color-text-primary)] mb-3"
           >
             Unsaved Changes
           </h2>

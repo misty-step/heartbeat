@@ -8,7 +8,7 @@ interface StatCardProps {
   className?: string;
 }
 
-/** Status border colors using Kyoto Moss semantic tokens */
+/** Status border colors using semantic tokens */
 const statusAccent: Record<string, string> = {
   good: "border-[var(--color-status-up)]",
   warn: "border-[var(--color-status-degraded)]",
@@ -23,7 +23,7 @@ const statusValueColor: Record<string, string> = {
 };
 
 /**
- * StatCard - Kyoto Moss Design System
+ * StatCard - Glass Design System
  *
  * Individual stat display card with optional status coloring.
  * Used in the bento grid for uptime, response time, and last check metrics.
@@ -44,21 +44,17 @@ export function StatCard({
   return (
     <div
       className={cn(
-        "relative overflow-hidden rounded-[var(--radius-lg)]",
-        "bg-[var(--color-bg-elevated)]",
+        "rounded-xl bg-[var(--color-bg-elevated)]",
         "border shadow-[var(--shadow-sm)]",
-        status ? statusAccent[status] : "border-[var(--color-border-default)]",
-        isLarge ? "p-6 sm:p-8" : "p-4",
+        status ? statusAccent[status] : "border-[var(--color-border-subtle)]",
+        isLarge ? "p-8" : "p-6",
         "text-center",
         className,
       )}
     >
-      {/* Top edge highlight - increased visibility */}
-      <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent" />
-
       <p
         className={cn(
-          "font-medium tracking-[0.15em] uppercase text-[var(--color-text-muted)]",
+          "font-semibold tracking-wider uppercase text-[var(--color-text-muted)]",
           isLarge ? "text-xs mb-2" : "text-[10px] mb-1",
         )}
       >
@@ -66,10 +62,10 @@ export function StatCard({
       </p>
       <p
         className={cn(
-          "font-mono font-medium tabular-nums",
+          "font-extrabold tabular-nums",
           isLarge
             ? cn(
-                "text-4xl sm:text-5xl",
+                "text-3xl sm:text-4xl",
                 status
                   ? statusValueColor[status]
                   : "text-[var(--color-text-primary)]",

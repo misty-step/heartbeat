@@ -1,5 +1,5 @@
 /**
- * Kyoto Moss Design System - Theme Application
+ * Field Design System - Theme Application
  *
  * Runtime utilities for applying theme tokens to the DOM.
  * Works with next-themes for dark mode switching.
@@ -7,13 +7,12 @@
 
 import type { ThemePreset, ThemeMode } from "./schema";
 import type { DesignTokens, TokenKey } from "./tokens";
-import { kyotoMossTheme } from "./presets/kyoto-moss";
+import { fieldTheme } from "./presets/field";
 
 /**
- * The active theme preset (currently only Kyoto Moss)
- * Future: Could support multiple themes via registry
+ * The active theme preset — Field
  */
-export const activeTheme: ThemePreset = kyotoMossTheme;
+export const activeTheme: ThemePreset = fieldTheme;
 
 /**
  * Applies a complete token set to the document root

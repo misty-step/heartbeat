@@ -2,8 +2,6 @@ import Link from "next/link";
 import { StatusIndicator } from "@/components/StatusIndicator";
 
 /**
- * NotFound Page - Kyoto Moss Design System
- *
  * 404 page with cinematic down status indicator.
  */
 export default function NotFound() {
@@ -28,7 +26,7 @@ export default function NotFound() {
         {/* Row 2: Action */}
         <Link
           href="/"
-          className="group relative inline-flex items-center justify-center px-6 py-3 border border-[var(--color-border-subtle)] hover:border-[var(--color-border-default)] bg-[var(--color-bg-elevated)] hover:bg-[var(--color-bg-tertiary)] transition-all duration-200 rounded-[var(--radius-md)]"
+          className="group relative inline-flex items-center justify-center px-6 py-3 border border-[var(--color-border-subtle)] hover:border-[var(--color-border-default)] bg-[var(--color-bg-elevated)] hover:bg-[var(--color-bg-tertiary)] transition-all duration-200 rounded-full"
         >
           <span className="font-mono text-sm text-[var(--color-text-primary)] group-hover:translate-x-0.5 transition-transform">
             Return Home

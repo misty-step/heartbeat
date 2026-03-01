@@ -29,8 +29,10 @@ describe("Footer", () => {
     );
   });
 
-  test("shows attribution", () => {
+  test("shows attribution with correct year and linked company name", () => {
     render(<Footer />);
-    expect(screen.getByText("© 2025 Misty Step")).toBeInTheDocument();
+    expect(screen.getByText(/© 2026/)).toBeInTheDocument();
+    const link = screen.getByRole("link", { name: "Misty Step" });
+    expect(link).toHaveAttribute("href", "https://mistystep.io");
   });
 });

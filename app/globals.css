@@ -3,22 +3,22 @@
 /* Configure dark mode to use .dark class (for next-themes) instead of prefers-color-scheme */
 @variant dark (&:where(.dark, .dark *));
 
-/* ===== KYOTO MOSS DESIGN SYSTEM =====
- * Japanese minimalism meets wabi-sabi.
- * Technology in harmony with nature.
+/* ===== FIELD DESIGN SYSTEM =====
+ * Warm matte surfaces, sage green accent, Plus Jakarta Sans.
  *
  * Philosophy:
- * - Uptime is spring growth (moss green vitality)
- * - Degraded is autumn warning (clay/amber transition)
- * - Downtime is winter stillness (brick red, managed with composure)
+ * - Warm stone backgrounds (#fbfaf9), white elevated cards
+ * - Sage green (#5a9680) accent — calm, alive, trustworthy
+ * - Rounded-full pills, generous padding, extrabold headings
+ * - Matte only — no frosted glass on main surfaces (sticky header exempt)
  */
 
 /* ===== DESIGN TOKENS ===== */
 @theme {
-  /* Typography - Editorial, refined */
-  --font-display: "Noto Serif JP", "Noto Serif", Georgia, serif;
-  --font-body: "Manrope", system-ui, -apple-system, sans-serif;
-  --font-mono: "IBM Plex Mono", "SF Mono", Consolas, monospace;
+  /* Typography - Warm, editorial */
+  --font-display: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+  --font-body: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+  --font-mono: "Geist Mono", "SF Mono", Consolas, monospace;
 
   /* Backgrounds */
   --color-background: var(--color-bg-primary);
@@ -48,37 +48,37 @@
 
 /* ===== LIGHT MODE (Default) ===== */
 :root {
-  /* Backgrounds - Warm, natural paper tones (SOLID - no opacity) */
-  --color-bg-primary: #f5f2eb;
-  --color-bg-secondary: #ebe8e1;
-  --color-bg-tertiary: #e0ddd6;
-  --color-bg-elevated: #fdfcfa;
-  --color-bg-inverse: #2d4a3e;
+  /* Backgrounds - Warm stone */
+  --color-bg-primary: #fbfaf9;
+  --color-bg-secondary: #f7f5f2;
+  --color-bg-tertiary: #ede8e2;
+  --color-bg-elevated: #ffffff;
+  --color-bg-inverse: #1c2320;
 
-  /* Text - Moss-tinted hierarchy (WCAG AA compliant) */
-  --color-text-primary: #21362e;
-  --color-text-secondary: #46544c;
-  --color-text-tertiary: #705d45;
-  --color-text-muted: #766555;
-  --color-text-inverse: #f5f2eb;
+  /* Text - Warm hierarchy (WCAG AA compliant) */
+  --color-text-primary: #1c2320;
+  --color-text-secondary: #4a5550;
+  --color-text-tertiary: #6b7570;
+  --color-text-muted: #948677;
+  --color-text-inverse: #f0eeeb;
 
-  /* Status - The heartbeat of the system */
-  --color-status-up: #2d4a3e;
-  --color-status-up-muted: rgba(45, 74, 62, 0.12);
-  --color-status-degraded: #b08d57;
-  --color-status-degraded-muted: rgba(176, 141, 87, 0.12);
-  --color-status-down: #a94442;
-  --color-status-down-muted: rgba(169, 68, 66, 0.12);
+  /* Status - Sage green / amber / brick */
+  --color-status-up: #5a9680;
+  --color-status-up-muted: rgba(90, 150, 128, 0.12);
+  --color-status-degraded: #d9a441;
+  --color-status-degraded-muted: rgba(217, 164, 65, 0.12);
+  --color-status-down: #b35a4d;
+  --color-status-down-muted: rgba(179, 90, 77, 0.12);
 
-  /* Accents */
-  --color-accent-primary: #2d4a3e;
-  --color-accent-primary-hover: #3d5a4e;
-  --color-accent-secondary: #8b7355;
+  /* Accents - Sage green */
+  --color-accent-primary: #5a9680;
+  --color-accent-primary-hover: #4a8068;
+  --color-accent-secondary: #d9a441;
 
-  /* Borders - SOLID colors, no opacity */
-  --color-border-subtle: #d5d2cb;
-  --color-border-default: #c0bdb6;
-  --color-border-strong: #a5a29b;
+  /* Borders - warm translucent */
+  --color-border-subtle: rgba(28, 35, 32, 0.06);
+  --color-border-default: rgba(28, 35, 32, 0.12);
+  --color-border-strong: rgba(28, 35, 32, 0.2);
 
   /* Spacing (8px base) */
   --spacing-xs: 4px;
@@ -89,18 +89,18 @@
   --spacing-2xl: 48px;
   --spacing-3xl: 64px;
 
-  /* Radii - Soft but not bubbly */
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
+  /* Radii - Field: generous, pill-friendly */
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
   --radius-full: 9999px;
 
-  /* Shadows - subtle but visible */
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.15);
-  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.2);
-  --shadow-glow: 0 0 20px rgba(45, 74, 62, 0.25);
+  /* Shadows - warm, subtle */
+  --shadow-sm: 0 1px 2px rgba(28, 35, 32, 0.06), 0 1px 4px rgba(28, 35, 32, 0.04);
+  --shadow-md: 0 4px 12px rgba(28, 35, 32, 0.08), 0 2px 4px rgba(28, 35, 32, 0.04);
+  --shadow-lg: 0 8px 24px rgba(28, 35, 32, 0.1), 0 4px 8px rgba(28, 35, 32, 0.06);
+  --shadow-glow: 0 0 20px rgba(90, 150, 128, 0.2);
 
   /* Motion */
   --duration-instant: 0ms;
@@ -115,43 +115,43 @@
 
 /* ===== DARK MODE ===== */
 .dark {
-  /* Backgrounds - Deep forest night (SOLID - no opacity) */
-  --color-bg-primary: #1a1f1c;
-  --color-bg-secondary: #242a26;
-  --color-bg-tertiary: #2e3630;
-  --color-bg-elevated: #2a302c;
-  --color-bg-inverse: #f5f2eb;
+  /* Backgrounds - Deep warm forest */
+  --color-bg-primary: #161c1a;
+  --color-bg-secondary: #1e2623;
+  --color-bg-tertiary: #263028;
+  --color-bg-elevated: #1a2220;
+  --color-bg-inverse: #f0eeeb;
 
-  /* Text - Muted, restful hierarchy */
-  --color-text-primary: #e8e5de;
-  --color-text-secondary: #b5b0a5;
-  --color-text-tertiary: #8b8578;
-  --color-text-muted: #6b665c;
-  --color-text-inverse: #1a1f1c;
+  /* Text - Warm muted hierarchy */
+  --color-text-primary: #f0eeeb;
+  --color-text-secondary: #b8b0a8;
+  --color-text-tertiary: #8a8278;
+  --color-text-muted: #6b6358;
+  --color-text-inverse: #1c2320;
 
-  /* Status - Adjusted for dark backgrounds */
-  --color-status-up: #5a8a6f;
-  --color-status-up-muted: rgba(90, 138, 111, 0.15);
-  --color-status-degraded: #c9a86c;
-  --color-status-degraded-muted: rgba(201, 168, 108, 0.15);
-  --color-status-down: #c75a58;
-  --color-status-down-muted: rgba(199, 90, 88, 0.15);
+  /* Status - lighter for dark bg */
+  --color-status-up: #6aaa92;
+  --color-status-up-muted: rgba(106, 170, 146, 0.15);
+  --color-status-degraded: #e8b86d;
+  --color-status-degraded-muted: rgba(232, 184, 109, 0.15);
+  --color-status-down: #c97068;
+  --color-status-down-muted: rgba(201, 112, 104, 0.15);
 
   /* Accents */
-  --color-accent-primary: #5a8a6f;
-  --color-accent-primary-hover: #6a9a7f;
-  --color-accent-secondary: #c9a86c;
+  --color-accent-primary: #6aaa92;
+  --color-accent-primary-hover: #7abaa2;
+  --color-accent-secondary: #e8b86d;
 
-  /* Borders - SOLID colors, no opacity */
-  --color-border-subtle: #3a403c;
-  --color-border-default: #4a504c;
-  --color-border-strong: #5a605c;
+  /* Borders */
+  --color-border-subtle: rgba(240, 238, 235, 0.06);
+  --color-border-default: rgba(240, 238, 235, 0.1);
+  --color-border-strong: rgba(240, 238, 235, 0.18);
 
-  /* Shadows - Darker, more dramatic */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.4);
-  --shadow-glow: 0 0 20px rgba(90, 138, 111, 0.2);
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.25);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.45);
+  --shadow-glow: 0 0 20px rgba(106, 170, 146, 0.2);
 }
 
 /* ===== LAYOUT UTILITIES =====
@@ -241,16 +241,6 @@ body {
     color var(--duration-normal) var(--ease-out);
 }
 
-/* Paper texture overlay - wabi-sabi */
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-  opacity: 0.035;
-  z-index: 1;
-}
 
 /* DEPRECATED: .hero-grid never used in codebase, marked for removal in next cleanup */
 /* ===== HERO GRID (Shoji-inspired) ===== */
@@ -367,9 +357,9 @@ body::before {
   color: var(--color-status-down);
 }
 
-/* ===== KYOTO MOSS ANIMATIONS ===== */
-/* Meditative breathing - like watching moss grow */
-@keyframes km-breathe {
+/* ===== FIELD ANIMATIONS ===== */
+/* Gentle breathing - status alive indicator */
+@keyframes field-breathe {
   0%,
   100% {
     opacity: 0.6;
@@ -381,7 +371,7 @@ body::before {
   }
 }
 
-@keyframes km-breathe-subtle {
+@keyframes field-breathe-subtle {
   0%,
   100% {
     opacity: 0.7;
@@ -393,7 +383,7 @@ body::before {
   }
 }
 
-@keyframes km-fade-in {
+@keyframes field-fade-in {
   from {
     opacity: 0;
   }
@@ -402,7 +392,7 @@ body::before {
   }
 }
 
-@keyframes km-fade-in-up {
+@keyframes field-fade-in-up {
   from {
     opacity: 0;
     transform: translateY(8px);
@@ -413,7 +403,7 @@ body::before {
   }
 }
 
-@keyframes km-hint-bob {
+@keyframes field-hint-bob {
   0%,
   100% {
     transform: translateY(0);
@@ -424,48 +414,48 @@ body::before {
 }
 
 .animate-km-breathe {
-  animation: km-breathe var(--duration-breathe) var(--ease-breathe) infinite;
+  animation: field-breathe var(--duration-breathe) var(--ease-breathe) infinite;
 }
 
 .animate-km-breathe-subtle {
-  animation: km-breathe-subtle var(--duration-breathe) var(--ease-breathe)
+  animation: field-breathe-subtle var(--duration-breathe) var(--ease-breathe)
     infinite;
 }
 
 .animate-km-fade-in {
-  animation: km-fade-in var(--duration-slow) var(--ease-out) forwards;
+  animation: field-fade-in var(--duration-slow) var(--ease-out) forwards;
 }
 
 .animate-km-fade-in-up {
-  animation: km-fade-in-up var(--duration-slow) var(--ease-out) forwards;
+  animation: field-fade-in-up var(--duration-slow) var(--ease-out) forwards;
 }
 
 .animate-km-hint {
   animation:
-    km-fade-in 0.5s var(--ease-out) 2s forwards,
-    km-hint-bob 2s var(--ease-default) 2.5s infinite;
+    field-fade-in 0.5s var(--ease-out) 2s forwards,
+    field-hint-bob 2s var(--ease-default) 2.5s infinite;
   opacity: 0;
 }
 
 /* Legacy animation support (for existing components) */
 .animate-zen-breathe {
-  animation: km-breathe var(--duration-breathe) var(--ease-breathe) infinite;
+  animation: field-breathe var(--duration-breathe) var(--ease-breathe) infinite;
 }
 
 .animate-zen-breathe-fast {
-  animation: km-breathe-subtle 3s var(--ease-breathe) infinite;
+  animation: field-breathe-subtle 3s var(--ease-breathe) infinite;
 }
 
 .animate-zen-fade-in {
-  animation: km-fade-in var(--duration-slow) var(--ease-out) forwards;
+  animation: field-fade-in var(--duration-slow) var(--ease-out) forwards;
 }
 
 .animate-fade-in-up {
-  animation: km-fade-in-up var(--duration-slow) var(--ease-out) forwards;
+  animation: field-fade-in-up var(--duration-slow) var(--ease-out) forwards;
 }
 
 .animate-in {
-  animation: km-fade-in-up var(--duration-normal) var(--ease-out) forwards;
+  animation: field-fade-in-up var(--duration-normal) var(--ease-out) forwards;
 }
 
 /* Staggered animation delays for cards */
@@ -552,8 +542,33 @@ body::before {
   position: absolute;
   inset: 0;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  opacity: 0.05;
+  pointer-events: none;
+}
+
+.dark .washi-texture::before {
+  opacity: 0.07;
+}
+
+/* Field grain — diagonal micro-hatch */
+.field-grain {
+  position: relative;
+}
+
+.field-grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg width='6' height='6' viewBox='0 0 6 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 6 L6 0' stroke='%231c2320' stroke-width='0.5' fill='none'/%3E%3C/svg%3E");
   opacity: 0.03;
   pointer-events: none;
+  border-radius: inherit;
+  z-index: 0;
+}
+
+.dark .field-grain::after {
+  background-image: url("data:image/svg+xml,%3Csvg width='6' height='6' viewBox='0 0 6 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 6 L6 0' stroke='%23f0eeeb' stroke-width='0.5' fill='none'/%3E%3C/svg%3E");
+  opacity: 0.04;
 }
 
 /* ===== INTERACTIVE ELEMENTS ===== */
@@ -570,10 +585,20 @@ body::before {
   box-shadow: var(--shadow-md);
 }
 
-/* Glass panel effect */
-.glass-panel {
-  background: var(--color-bg-elevated);
+/* Sticky header glass — only use on sticky/fixed headers */
+.header-glass {
+  background: rgba(251, 250, 249, 0.85);
   backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.dark .header-glass {
+  background: rgba(22, 28, 26, 0.85);
+}
+
+/* Surface panel — matte, warm card surface (replaces glass-panel) */
+.surface-panel {
+  background: var(--color-bg-elevated);
   border: 1px solid var(--color-border-subtle);
 }
 
@@ -656,8 +681,4 @@ body::before {
     opacity: 1 !important;
   }
 
-  /* Disable body paper texture animation */
-  body::before {
-    animation: none !important;
-  }
 }

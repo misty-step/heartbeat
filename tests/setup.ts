@@ -77,6 +77,18 @@ vi.mock("next-themes", () => ({
 
 // Mock next/font/google for theme components that use custom fonts
 vi.mock("next/font/google", () => ({
+  // Field design system fonts
+  Plus_Jakarta_Sans: () => ({
+    className: "mock-plus-jakarta-sans",
+    variable: "--font-body",
+    style: { fontFamily: "mock-plus-jakarta-sans" },
+  }),
+  Geist_Mono: () => ({
+    className: "mock-geist-mono",
+    variable: "--font-mono",
+    style: { fontFamily: "mock-geist-mono" },
+  }),
+  // Legacy / subscriber theme fonts
   Fraunces: () => ({
     className: "mock-fraunces",
     variable: "--font-display",

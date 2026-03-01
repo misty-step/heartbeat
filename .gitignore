@@ -58,3 +58,7 @@ node_modules/
 
 # pnpm (migrated to bun)
 pnpm-lock.yaml
+
+# Design working artifacts
+scratch.md
+design-catalog.html

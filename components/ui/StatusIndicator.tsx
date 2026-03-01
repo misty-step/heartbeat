@@ -1,13 +1,12 @@
 /**
- * StatusIndicator - Kyoto Moss Design System
+ * StatusIndicator - Glass Design System
  *
  * The visual heartbeat of the system. Shows monitor status with
- * meditative breathing animation for "up" state.
+ * breathing animation for "up" state.
  *
- * Philosophy:
- * - Up = moss green, gently breathing (spring growth)
- * - Degraded = clay amber, subtle pulse (autumn warning)
- * - Down = brick red, still (winter stillness, managed with composure)
+ * - Up = green, gently breathing
+ * - Degraded = amber, subtle pulse
+ * - Down = red, still
  */
 
 import { cva, type VariantProps } from "class-variance-authority";

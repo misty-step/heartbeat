@@ -17,7 +17,7 @@ import {
 /**
  * Design Lab - Card Layout Variations
  *
- * Kyoto Moss Design System explorations:
+ * Field Design System explorations:
  * 1. Bento Grid - Asymmetric dashboard (down-the-middle)
  * 2. Stone Garden - Karesansui, monitors as stones
  * 3. Kintsugi Ledger - Editorial, gold incident lines
@@ -119,7 +119,7 @@ function GrainOverlay() {
 function HeroContent() {
   return (
     <div className="text-center lg:text-left lg:flex-[1_1_auto]">
-      <h1 className="font-serif text-7xl sm:text-8xl lg:text-9xl leading-[0.9] text-[var(--color-text-primary)] tracking-tight">
+      <h1 className="font-display text-7xl sm:text-8xl lg:text-9xl leading-[0.9] text-[var(--color-text-primary)] tracking-tight">
         Heartbeat
       </h1>
       <p className="mt-6 text-xl sm:text-2xl text-[var(--color-text-secondary)] text-pretty">

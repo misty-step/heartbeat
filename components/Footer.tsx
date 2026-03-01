@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 /**
- * Footer - Kyoto Moss Design System
+ * Footer - Field Design System
  *
  * Site footer with brand, copyright, and navigation links.
  */
@@ -18,7 +18,15 @@ export function Footer() {
               </span>
               <span className="text-[var(--color-border-default)]">/</span>
               <span className="text-xs text-[var(--color-text-muted)] font-mono">
-                © 2025 Misty Step
+                © 2026{" "}
+                <a
+                  href="https://mistystep.io"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-[var(--color-text-primary)] transition-colors"
+                >
+                  Misty Step
+                </a>
               </span>
             </div>
           </div>

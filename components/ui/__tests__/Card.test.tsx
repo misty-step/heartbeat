@@ -39,14 +39,15 @@ describe("Card", () => {
       expect(card).toHaveClass("bg-[var(--color-bg-secondary)]");
     });
 
-    it("renders glass variant", () => {
+    it("renders elevated variant", () => {
       render(
-        <Card variant="glass" data-testid="card">
+        <Card variant="elevated" data-testid="card">
           Content
         </Card>,
       );
       const card = screen.getByTestId("card");
-      expect(card).toHaveClass("glass-panel");
+      expect(card).toHaveClass("bg-[var(--color-bg-elevated)]");
+      expect(card).toHaveClass("shadow-[var(--shadow-md)]");
     });
 
     it("renders ghost variant", () => {
@@ -161,7 +162,7 @@ describe("CardTitle", () => {
     render(<CardTitle data-testid="title">Title</CardTitle>);
     const title = screen.getByTestId("title");
     expect(title).toHaveClass("text-lg");
-    expect(title).toHaveClass("font-medium");
+    expect(title).toHaveClass("font-extrabold");
   });
 });
 
