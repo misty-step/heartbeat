@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { safeJsonLd } from "@/lib/json-ld";
+import { BASE_URL } from "@/lib/constants";
 import { Plus_Jakarta_Sans, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -33,6 +35,19 @@ export const metadata: Metadata = {
   },
 };
 
+const organizationJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "Heartbeat",
+  url: BASE_URL,
+  logo: `${BASE_URL}/android-chrome-512x512.png`,
+  parentOrganization: {
+    "@type": "Organization",
+    name: "Misty Step",
+    url: "https://mistystep.io",
+  },
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -45,6 +60,12 @@ export default function RootLayout({
       className={`${plusJakartaSans.variable} ${geistMono.variable}`}
     >
       <body className="antialiased bg-background text-foreground">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: safeJsonLd(organizationJsonLd),
+          }}
+        />
         <Providers>{children}</Providers>
         <Analytics />
         <SpeedInsights />

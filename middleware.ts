@@ -14,6 +14,10 @@ const isPublicRoute = createRouteMatcher([
   "/api/health", // Health check for uptime monitoring
   "/design-lab(.*)", // Design lab for reviewing variations
   "/explore(.*)", // Design exploration catalogue
+  "/sitemap.xml",
+  "/robots.txt",
+  "/llms.txt",
+  "/opengraph-image",
   // Note: Stripe webhooks now go directly to Convex HTTP action
 ]);
 

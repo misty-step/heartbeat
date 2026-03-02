@@ -1,0 +1,44 @@
+# Heartbeat - Uptime Monitoring Service
+
+**Name:** Heartbeat
+**Website:** https://heartbeat.cool
+**Company:** Misty Step (https://mistystep.io)
+
+## What is Heartbeat?
+
+Heartbeat is a "set and forget" uptime monitoring service. Create monitors for URLs that are automatically checked on configurable intervals, from 1 minute to 1 hour. The system detects outages using a three-strike confirmation (3 consecutive failures trigger an incident), maintains incident history, and provides real-time visibility through beautiful status pages.
+
+## Key Features
+
+- **Interval Options:** 1min, 2min, 5min, 10min, 30min, 1hr
+- **Incident Detection:** 3 consecutive failures = incident open
+- **Real-time Alerts:** Email and webhook notifications
+- **Status Pages:** 7 themes available (Glass, Ukiyo, Memphis, Blueprint, Swiss, Broadsheet, Mission Control)
+- **Response Time Tracking:** Monitor latency and detect performance degradation
+- **14-day Free Trial:** All plans include full access
+
+## Pricing
+
+**Pulse - $9/month**
+- 10 monitors
+- 3-minute minimum interval
+- 1 status page
+- 30-day history
+- Email alerts
+
+**Vital - $29/month**
+- 50 monitors
+- 1-minute minimum interval
+- 5 status pages
+- 90-day history
+- Webhooks + email alerts
+
+Both plans include 14-day free trial with full features.
+
+## Use Cases
+
+- Monitor API endpoints and web services
+- Track e-commerce website availability
+- Monitor SaaS application uptime
+- Compliance monitoring with incident history
+- Multi-region health checks
