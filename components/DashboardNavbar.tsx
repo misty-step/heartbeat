@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { UserButton } from "@clerk/nextjs";
 import { ThemeToggle } from "./ThemeToggle";
-import { Settings, CreditCard } from "lucide-react";
+import { Gear, CreditCard } from "@phosphor-icons/react";
 
 /**
  * DashboardNavbar - Kyoto Moss Design System
@@ -36,7 +36,7 @@ export function DashboardNavbar() {
             className="p-2 text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-tertiary)] transition-colors rounded-[var(--radius-md)]"
             title="Settings"
           >
-            <Settings className="size-5" />
+            <Gear className="size-5" />
           </Link>
           <ThemeToggle />
           <UserButton

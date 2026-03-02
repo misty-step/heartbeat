@@ -6,10 +6,10 @@ import { TIERS, formatPrice, formatInterval } from "@/lib/tiers";
 import {
   ArrowLeft,
   CreditCard,
-  Loader2,
-  ExternalLink,
+  CircleNotch,
+  ArrowSquareOut,
   Bell,
-} from "lucide-react";
+} from "@phosphor-icons/react";
 import Link from "next/link";
 
 export default function BillingPage() {
@@ -39,7 +39,7 @@ export default function BillingPage() {
     return (
       <div className="flex-1 flex items-center justify-center py-24">
         <div className="text-center space-y-4">
-          <Loader2 className="w-8 h-8 animate-spin mx-auto text-foreground/40" />
+          <CircleNotch className="w-8 h-8 animate-spin mx-auto text-foreground/40" />
           <p className="text-sm text-[var(--color-text-muted)]">Loading...</p>
         </div>
       </div>
@@ -157,7 +157,7 @@ export default function BillingPage() {
               >
                 <CreditCard className="h-4 w-4" />
                 Manage Billing
-                <ExternalLink className="h-3 w-3 opacity-60" />
+                <ArrowSquareOut className="h-3 w-3 opacity-60" />
               </button>
             </section>
 
@@ -209,7 +209,7 @@ export default function BillingPage() {
                   className="inline-flex items-center gap-2 text-sm font-medium text-foreground hover:opacity-80 transition-opacity"
                 >
                   View Plans
-                  <ExternalLink className="h-3 w-3" />
+                  <ArrowSquareOut className="h-3 w-3" />
                 </Link>
               </section>
             )}
@@ -263,8 +263,7 @@ function StatusBadge({
     },
     expired: {
       label: "Expired",
-      className:
-        "bg-[var(--color-bg-tertiary)] text-[var(--color-text-muted)]",
+      className: "bg-[var(--color-bg-tertiary)] text-[var(--color-text-muted)]",
     },
   };
 
@@ -298,7 +297,9 @@ function UsageStat({
       <div className="h-1.5 bg-foreground/10 rounded-full overflow-hidden">
         <div
           className={`h-full transition-all ${
-            isNearLimit ? "bg-[var(--color-status-degraded)]" : "bg-[var(--color-status-up)]"
+            isNearLimit
+              ? "bg-[var(--color-status-degraded)]"
+              : "bg-[var(--color-status-up)]"
           }`}
           style={{ width: `${percentage}%` }}
         />

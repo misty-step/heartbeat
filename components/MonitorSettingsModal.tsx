@@ -4,14 +4,13 @@ import { useState, FormEvent, useEffect } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../convex/_generated/api";
 import { Id } from "../convex/_generated/dataModel";
-import { X } from "lucide-react";
+import { X, ArrowSquareOut } from "@phosphor-icons/react";
 import { cn } from "@/lib/cn";
 import { validateMonitorForm, type ValidationErrors } from "@/lib/domain";
 import { THEMES, type ThemeId, canUseTheme } from "@/lib/themes";
 import { ThemeSelector } from "./ThemeSelector";
 import { ThemeUpgradePrompt } from "./ThemeUpgradePrompt";
 import { DeleteConfirmModal } from "./DeleteConfirmModal";
-import { ExternalLink } from "lucide-react";
 import { usePostHog } from "posthog-js/react";
 
 /**
@@ -384,7 +383,7 @@ export function MonitorSettingsModal({
                   )}
                 >
                   Preview
-                  <ExternalLink className="size-3.5" />
+                  <ArrowSquareOut className="size-3.5" />
                 </a>
               )}
             </div>

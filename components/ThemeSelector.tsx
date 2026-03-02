@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { ChevronDown, Check } from "lucide-react";
+import { CaretDown, Check } from "@phosphor-icons/react";
 import { cn } from "@/lib/cn";
 import { THEMES, THEME_IDS, type ThemeId } from "@/lib/themes";
 
@@ -99,7 +99,7 @@ export function ThemeSelector({
             </span>
           )}
         </div>
-        <ChevronDown
+        <CaretDown
           className={cn(
             "size-4 text-[var(--color-text-muted)] transition-transform",
             isOpen && "rotate-180",

@@ -23,11 +23,11 @@ import {
   Bell,
   Clock,
   Globe,
-  History,
-  LayoutDashboard,
+  ClockCounterClockwise,
+  SquaresFour,
   Shield,
-  Zap,
-} from "lucide-react";
+  Lightning,
+} from "@phosphor-icons/react/dist/ssr";
 
 import { Navigation } from "@/components/landing/Navigation";
 import { PricingSection } from "@/components/landing/PricingSection";
@@ -211,7 +211,7 @@ function HeroSection() {
               </div>
               <div className="hidden h-4 w-px bg-border sm:block" />
               <div className="flex items-center gap-2">
-                <Zap className="size-4 text-accent" />
+                <Lightning className="size-4 text-accent" />
                 <span className="font-body text-sm text-secondary">
                   Alerts in under 30 seconds
                 </span>
@@ -401,7 +401,7 @@ function BentoFeatures() {
             <BentoCard className="min-h-[280px]">
               <div className="flex h-full flex-col">
                 <div className="mb-4 flex size-10 items-center justify-center rounded-xl bg-accent/10">
-                  <LayoutDashboard className="size-5 text-accent" />
+                  <SquaresFour className="size-5 text-accent" />
                 </div>
                 <h3 className="mb-2 font-display text-lg font-medium text-foreground">
                   Keep users informed
@@ -440,7 +440,7 @@ function BentoFeatures() {
             <BentoCard className="min-h-[280px]">
               <div className="flex h-full flex-col">
                 <div className="mb-4 flex size-10 items-center justify-center rounded-xl bg-accent/10">
-                  <History className="size-5 text-accent" />
+                  <ClockCounterClockwise className="size-5 text-accent" />
                 </div>
                 <h3 className="mb-2 font-display text-lg font-medium text-foreground">
                   Full check history
@@ -474,7 +474,7 @@ function BentoFeatures() {
             <BentoCard className="min-h-[280px]">
               <div className="flex h-full flex-col">
                 <div className="mb-4 flex size-10 items-center justify-center rounded-xl bg-accent/10">
-                  <Zap className="size-5 text-accent" />
+                  <Lightning className="size-5 text-accent" />
                 </div>
                 <h3 className="mb-2 font-display text-lg font-medium text-foreground">
                   Down in seconds
@@ -540,13 +540,13 @@ function ValueSection() {
         "We only notify you after three consecutive failures. Your sleep is sacred.",
     },
     {
-      icon: History,
+      icon: ClockCounterClockwise,
       title: "Full check history",
       description:
         "Every check, response time, and incident — up to 90 days on Vital, 30 days on Pulse.",
     },
     {
-      icon: Zap,
+      icon: Lightning,
       title: "Set-and-forget simplicity",
       description:
         "Configure once. Heartbeat runs quietly in the background for years.",

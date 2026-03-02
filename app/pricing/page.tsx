@@ -5,7 +5,7 @@ import { useAction, useConvexAuth } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { TIERS, TRIAL_DAYS, formatPrice, formatInterval } from "@/lib/tiers";
 import { Footer } from "@/components/Footer";
-import { Check, Loader2 } from "lucide-react";
+import { Check, CircleNotch } from "@phosphor-icons/react";
 import { SignInButton } from "@clerk/nextjs";
 import Link from "next/link";
 
@@ -204,7 +204,9 @@ function PricingCard({
       </div>
 
       <div className="mb-8">
-        <span className={`font-mono text-4xl font-extrabold tabular-nums ${highlighted ? "text-white" : ""}`}>
+        <span
+          className={`font-mono text-4xl font-extrabold tabular-nums ${highlighted ? "text-white" : ""}`}
+        >
           {formatPrice(price)}
         </span>
         <span
@@ -220,14 +222,16 @@ function PricingCard({
             <Check
               className={`h-4 w-4 mt-0.5 flex-shrink-0 ${highlighted ? "text-white/80" : "text-[var(--color-status-up)]"}`}
             />
-            <span className={highlighted ? "text-white/90" : ""}>{feature}</span>
+            <span className={highlighted ? "text-white/90" : ""}>
+              {feature}
+            </span>
           </li>
         ))}
       </ul>
 
       {authLoading ? (
         <div className="w-full py-3 flex justify-center">
-          <Loader2 className="h-5 w-5 animate-spin opacity-50" />
+          <CircleNotch className="h-5 w-5 animate-spin opacity-50" />
         </div>
       ) : isAuthenticated ? (
         <button
@@ -240,7 +244,7 @@ function PricingCard({
           }`}
         >
           {isLoading ? (
-            <Loader2 className="h-5 w-5 animate-spin mx-auto" />
+            <CircleNotch className="h-5 w-5 animate-spin mx-auto" />
           ) : (
             "Start Free Trial"
           )}

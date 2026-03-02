@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { cn } from "@/lib/cn";
-import { Check, Loader2 } from "lucide-react";
+import { Check, CircleNotch } from "@phosphor-icons/react";
 import { useAction, useConvexAuth } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { TIERS, TRIAL_DAYS, formatPrice, formatInterval } from "@/lib/tiers";
@@ -49,7 +49,7 @@ function PricingCardAction({
   if (authLoading) {
     return (
       <div className="flex w-full justify-center py-3">
-        <Loader2 className="size-5 animate-spin opacity-50" />
+        <CircleNotch className="size-5 animate-spin opacity-50" />
       </div>
     );
   }
@@ -62,7 +62,7 @@ function PricingCardAction({
         className={cn(ctaButtonClass(highlighted), "disabled:opacity-50")}
       >
         {isLoading ? (
-          <Loader2 className="size-5 animate-spin" />
+          <CircleNotch className="size-5 animate-spin" />
         ) : (
           "Start Free Trial"
         )}
