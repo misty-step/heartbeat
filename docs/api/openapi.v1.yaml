@@ -363,7 +363,7 @@ components:
   schemas:
     ProblemDetails:
       type: object
-      required: [type, title, status, detail, instance]
+      required: [type, title, status, instance]
       properties:
         type:
           type: string
@@ -567,11 +567,9 @@ components:
           items:
             $ref: "#/components/schemas/ApiKeyScope"
         projectSlugs:
-          anyOf:
-            - type: "null"
-            - type: array
-              items:
-                type: string
+          type: [array, "null"]
+          items:
+            type: string
         expiresAt:
           type: [string, "null"]
           format: date-time
@@ -608,11 +606,9 @@ components:
           items:
             $ref: "#/components/schemas/ApiKeyScope"
         projectSlugs:
-          anyOf:
-            - type: "null"
-            - type: array
-              items:
-                type: string
+          type: [array, "null"]
+          items:
+            type: string
         expiresAt:
           type: [string, "null"]
           format: date-time

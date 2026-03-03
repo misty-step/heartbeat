@@ -33,7 +33,7 @@ Required members:
 - `type`
 - `title`
 - `status`
-- `detail` (required unless intentionally omitted for security)
+- `detail` (optional, omit intentionally for security-sensitive errors)
 - `instance`
 
 Extension members are allowed (for example `requestId`, `code`, `retryAfter`).
@@ -70,7 +70,8 @@ Rules:
 Common query conventions:
 
 - `projectSlug=<slug>`
-- `status=<up|degraded|down|investigating|resolved>`
+- Monitor routes: `status=<up|degraded|down>`
+- Incident routes: `status=<investigating|identified|resolved>`
 - `from=<rfc3339>` / `to=<rfc3339>`
 - `sort=<field>` and `order=<asc|desc>`
 

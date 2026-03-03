@@ -33,8 +33,8 @@ export function buildProblemDetails(
 ): ProblemDetails {
   const { extensions, ...base } = input;
   return {
-    ...base,
     ...(extensions ?? {}),
+    ...base,
   };
 }
 
