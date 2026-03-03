@@ -31,6 +31,16 @@ export type PaginatedResponse<T> = {
 export function buildProblemDetails(
   input: ProblemDetailsInput,
 ): ProblemDetails {
+  if (
+    !Number.isInteger(input.status) ||
+    input.status < 100 ||
+    input.status > 599
+  ) {
+    throw new Error(
+      "ProblemDetails status must be an integer between 100 and 599",
+    );
+  }
+
   const { extensions, ...base } = input;
   return {
     ...(extensions ?? {}),

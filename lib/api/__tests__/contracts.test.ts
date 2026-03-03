@@ -64,6 +64,18 @@ describe("API contracts", () => {
     expect(problem.status).toBe(409);
   });
 
+  it("rejects non-HTTP status values for problem details", () => {
+    expect(() =>
+      buildProblemDetails({
+        type: "https://heartbeat.dev/problems/internal",
+        title: "Internal error",
+        status: 700,
+        detail: "Unexpected condition",
+        instance: "/api/v1/monitors",
+      }),
+    ).toThrow("ProblemDetails status must be an integer between 100 and 599");
+  });
+
   it("builds paginated responses with deterministic metadata", () => {
     const response = buildPaginatedResponse(["a", "b"], "cursor_2", 2);
     expect(response).toEqual({
