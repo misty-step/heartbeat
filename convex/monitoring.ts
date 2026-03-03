@@ -1,3 +1,4 @@
+import { paginationOptsValidator } from "convex/server";
 import { v } from "convex/values";
 import {
   internalQuery,
@@ -5,6 +6,7 @@ import {
   internalAction,
 } from "./_generated/server";
 import { internal } from "./_generated/api";
+import type { Doc } from "./_generated/dataModel";
 import { isAllowedUrl } from "./lib/urlValidation";
 import { INCIDENT_THRESHOLD } from "../lib/domain/status";
 import { TIERS } from "./constants";
@@ -407,16 +409,31 @@ export const cleanupOldChecks = internalAction({
 
     let totalDeleted = 0;
     let batchNumber = 0;
+    let cursor: string | null = null;
+    let reachedEnd = false;
 
     // Process up to maxBatchesPerRun batches, then reschedule if more remain
     while (batchNumber < maxBatchesPerRun) {
-      const oldChecks = await ctx.runQuery(internal.monitoring.getOldChecks, {
+      const oldChecksPage: {
+        page: Doc<"checks">[];
+        continueCursor: string;
+        isDone: boolean;
+      } = await ctx.runQuery(internal.monitoring.getOldChecksPage, {
         beforeTimestamp: pulseCutoffTimestamp,
+        paginationOpts: {
+          numItems: 1000,
+          cursor,
+        },
       });
+      const oldChecks = oldChecksPage.page;
+      cursor = oldChecksPage.continueCursor;
+      reachedEnd = oldChecksPage.isDone;
 
       if (oldChecks.length === 0) {
-        console.log(`[Cleanup] Complete: deleted ${totalDeleted} checks total`);
-        return;
+        if (reachedEnd) {
+          break;
+        }
+        continue;
       }
 
       batchNumber++;
@@ -424,39 +441,40 @@ export const cleanupOldChecks = internalAction({
       const monitorIds = Array.from(
         new Set(oldChecks.map((check) => check.monitorId)),
       );
-      const monitors = await ctx.runQuery(
+      const monitors = (await ctx.runQuery(
         internal.monitoring.getMonitorsByIds,
-        {
-          monitorIds,
-        },
-      );
+        { monitorIds },
+      )) as Doc<"monitors">[];
       const monitorsById = new Map(
         monitors.map((monitor) => [monitor._id, monitor]),
       );
 
-      const retentionDaysByUser = new Map<string, number>();
-      for (const monitor of monitors) {
-        if (retentionDaysByUser.has(monitor.userId)) {
-          continue;
-        }
-
-        const subscription = await ctx.runQuery(
-          internal.subscriptions.getByUserId,
-          {
-            userId: monitor.userId,
-          },
-        );
-        retentionDaysByUser.set(
-          monitor.userId,
-          getCheckRetentionDays(subscription),
-        );
-      }
+      const userIds = Array.from(
+        new Set(monitors.map((monitor) => monitor.userId)),
+      );
+      const subscriptionsByUser = (await ctx.runQuery(
+        internal.subscriptions.getByUserIds,
+        { userIds },
+      )) as Array<{
+        userId: string;
+        subscription: {
+          tier: "pulse" | "vital";
+          status: "trialing" | "active" | "past_due" | "canceled" | "expired";
+        } | null;
+      }>;
+      const retentionDaysByUser = new Map(
+        subscriptionsByUser.map((entry) => [
+          entry.userId,
+          getCheckRetentionDays(entry.subscription),
+        ]),
+      );
 
       const now = Date.now();
       const checksToDelete = oldChecks.filter((check) => {
         const monitor = monitorsById.get(check.monitorId);
         if (!monitor) {
-          return false;
+          // Monitor was removed; this check is orphaned and should be cleaned up.
+          return true;
         }
 
         const retentionDays =
@@ -470,10 +488,10 @@ export const cleanupOldChecks = internalAction({
       );
 
       if (checksToDelete.length === 0) {
-        console.log(
-          `[Cleanup] Complete: no checks eligible for deletion in current window (${totalDeleted} deleted total)`,
-        );
-        return;
+        if (reachedEnd) {
+          break;
+        }
+        continue;
       }
 
       // Delete in sub-batches to avoid mutation size limits
@@ -488,11 +506,34 @@ export const cleanupOldChecks = internalAction({
       totalDeleted += checksToDelete.length;
     }
 
+    if (reachedEnd) {
+      console.log(`[Cleanup] Complete: deleted ${totalDeleted} checks total`);
+      return;
+    }
+
     // More work remains - reschedule to continue
     await ctx.scheduler.runAfter(0, internal.monitoring.cleanupOldChecks, {});
     console.log(
       `[Cleanup] Paused after ${batchNumber} batches (${totalDeleted} deleted); rescheduled to continue`,
     );
+  },
+});
+
+/**
+ * Helper query to get old checks for cleanup with pagination.
+ */
+export const getOldChecksPage = internalQuery({
+  args: {
+    beforeTimestamp: v.number(),
+    paginationOpts: paginationOptsValidator,
+  },
+  handler: async (ctx, args) => {
+    return ctx.db
+      .query("checks")
+      .withIndex("by_checked_at", (q) =>
+        q.lt("checkedAt", args.beforeTimestamp),
+      )
+      .paginate(args.paginationOpts);
   },
 });
 

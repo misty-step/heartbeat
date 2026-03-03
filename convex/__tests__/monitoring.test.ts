@@ -455,4 +455,85 @@ describe("cleanupOldChecks", () => {
       .query(api.checks.getRecentForMonitor, { monitorId });
     expect(checks).toHaveLength(0);
   });
+
+  test("continues past non-deletable page to delete eligible pulse checks", async () => {
+    const t = setupBackend();
+    const vitalUser = {
+      name: "Vital User",
+      subject: "user_vital_paging",
+      issuer: "clerk",
+    };
+    const pulseUser = {
+      name: "Pulse User",
+      subject: "user_pulse_paging",
+      issuer: "clerk",
+    };
+
+    const vitalMonitorId = await createMonitorForUser(t, vitalUser, {
+      tier: "vital",
+    });
+    const pulseMonitorId = await createMonitorForUser(t, pulseUser, {
+      tier: "pulse",
+    });
+
+    const baseCheckedAt = Date.now() - 45 * dayMs;
+
+    // Fill the first cleanup page with non-deletable Vital checks.
+    for (let i = 0; i < 1001; i++) {
+      await t.mutation(internal.monitoring.recordCheck, {
+        monitorId: vitalMonitorId,
+        status: "up",
+        statusCode: 200,
+        responseTime: 120,
+        checkedAt: baseCheckedAt + i,
+      });
+    }
+
+    // Pulse check should still be deleted even if it is after the first page.
+    await t.mutation(internal.monitoring.recordCheck, {
+      monitorId: pulseMonitorId,
+      status: "up",
+      statusCode: 200,
+      responseTime: 130,
+      checkedAt: baseCheckedAt + 5_000,
+    });
+
+    await t.action(internal.monitoring.cleanupOldChecks, {});
+
+    const pulseChecks = await t
+      .withIdentity(pulseUser)
+      .query(api.checks.getRecentForMonitor, { monitorId: pulseMonitorId });
+    expect(pulseChecks).toHaveLength(0);
+  });
+
+  test("deletes orphaned checks when monitor was removed", async () => {
+    const t = setupBackend();
+    const pulseUser = {
+      name: "Pulse User",
+      subject: "user_orphan",
+      issuer: "clerk",
+    };
+    const monitorId = await createMonitorForUser(t, pulseUser, {
+      tier: "pulse",
+    });
+
+    await t.mutation(internal.monitoring.recordCheck, {
+      monitorId,
+      status: "up",
+      statusCode: 200,
+      responseTime: 100,
+      checkedAt: Date.now() - 45 * dayMs,
+    });
+
+    await t
+      .withIdentity(pulseUser)
+      .mutation(api.monitors.remove, { id: monitorId });
+    await t.action(internal.monitoring.cleanupOldChecks, {});
+
+    const oldChecks = await t.query(internal.monitoring.getOldChecks, {
+      beforeTimestamp: Date.now(),
+    });
+    const hasOrphan = oldChecks.some((check) => check.monitorId === monitorId);
+    expect(hasOrphan).toBe(false);
+  });
 });
