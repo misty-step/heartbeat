@@ -10,7 +10,6 @@ const TIER_DETAILS = {
   pulse: {
     name: "Pulse",
     description: "Essential monitoring for side projects and small sites",
-    historyDays: 30,
     webhooks: false,
     apiAccess: false,
     monthlyPrice: 900, // cents
@@ -19,7 +18,6 @@ const TIER_DETAILS = {
   vital: {
     name: "Vital",
     description: "Professional monitoring for growing applications",
-    historyDays: 90,
     webhooks: true,
     apiAccess: true,
     monthlyPrice: 2900, // cents

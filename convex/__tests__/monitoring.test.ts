@@ -341,3 +341,258 @@ describe("getDueMonitors", () => {
     expect(dueMonitors).toHaveLength(0);
   });
 });
+
+describe("cleanupOldChecks", () => {
+  const dayMs = 24 * 60 * 60 * 1000;
+
+  async function createMonitorForUser(
+    t: ReturnType<typeof setupBackend>,
+    identity: { name: string; subject: string; issuer: string },
+    subscription: {
+      tier: "pulse" | "vital";
+      status?: "trialing" | "active" | "past_due" | "canceled" | "expired";
+    },
+  ) {
+    await createTestSubscription(t, identity.subject, {
+      tier: subscription.tier,
+      status: subscription.status ?? "active",
+    });
+
+    const monitor = await t
+      .withIdentity(identity)
+      .mutation(api.monitors.create, {
+        name: `${identity.subject} monitor`,
+        url: "https://example.com",
+        method: "GET",
+        interval: subscription.tier === "pulse" ? 300 : 60,
+        timeout: 10000,
+        projectSlug: `${identity.subject}-project`,
+      });
+
+    return monitor!._id;
+  }
+
+  test("keeps 45-day checks for active Vital subscriptions", async () => {
+    const t = setupBackend();
+    const vitalUser = {
+      name: "Vital User",
+      subject: "user_vital",
+      issuer: "clerk",
+    };
+    const monitorId = await createMonitorForUser(t, vitalUser, {
+      tier: "vital",
+    });
+    const checkedAt = Date.now() - 45 * dayMs;
+
+    await t.mutation(internal.monitoring.recordCheck, {
+      monitorId,
+      status: "up",
+      statusCode: 200,
+      responseTime: 120,
+      checkedAt,
+    });
+
+    await t.action(internal.monitoring.cleanupOldChecks, {});
+
+    const checks = await t
+      .withIdentity(vitalUser)
+      .query(api.checks.getRecentForMonitor, { monitorId });
+    expect(checks).toHaveLength(1);
+    expect(checks[0].checkedAt).toBe(checkedAt);
+  });
+
+  test("deletes 45-day checks for Pulse subscriptions", async () => {
+    const t = setupBackend();
+    const pulseUser = {
+      name: "Pulse User",
+      subject: "user_pulse",
+      issuer: "clerk",
+    };
+    const monitorId = await createMonitorForUser(t, pulseUser, {
+      tier: "pulse",
+    });
+
+    await t.mutation(internal.monitoring.recordCheck, {
+      monitorId,
+      status: "up",
+      statusCode: 200,
+      responseTime: 110,
+      checkedAt: Date.now() - 45 * dayMs,
+    });
+
+    await t.action(internal.monitoring.cleanupOldChecks, {});
+
+    const checks = await t
+      .withIdentity(pulseUser)
+      .query(api.checks.getRecentForMonitor, { monitorId });
+    expect(checks).toHaveLength(0);
+  });
+
+  test("defaults to Pulse retention for non-active subscriptions", async () => {
+    const t = setupBackend();
+    const trialUser = {
+      name: "Trial User",
+      subject: "user_trial",
+      issuer: "clerk",
+    };
+    const monitorId = await createMonitorForUser(t, trialUser, {
+      tier: "vital",
+      status: "trialing",
+    });
+
+    await t.mutation(internal.monitoring.recordCheck, {
+      monitorId,
+      status: "up",
+      statusCode: 200,
+      responseTime: 100,
+      checkedAt: Date.now() - 45 * dayMs,
+    });
+
+    await t.action(internal.monitoring.cleanupOldChecks, {});
+
+    const checks = await t
+      .withIdentity(trialUser)
+      .query(api.checks.getRecentForMonitor, { monitorId });
+    expect(checks).toHaveLength(0);
+  });
+
+  test("continues past non-deletable page to delete eligible pulse checks", async () => {
+    const t = setupBackend();
+    const vitalUser = {
+      name: "Vital User",
+      subject: "user_vital_paging",
+      issuer: "clerk",
+    };
+    const pulseUser = {
+      name: "Pulse User",
+      subject: "user_pulse_paging",
+      issuer: "clerk",
+    };
+
+    const vitalMonitorId = await createMonitorForUser(t, vitalUser, {
+      tier: "vital",
+    });
+    const pulseMonitorId = await createMonitorForUser(t, pulseUser, {
+      tier: "pulse",
+    });
+
+    const baseCheckedAt = Date.now() - 45 * dayMs;
+
+    // Fill the first cleanup page with non-deletable Vital checks.
+    for (let i = 0; i < 1001; i++) {
+      await t.mutation(internal.monitoring.recordCheck, {
+        monitorId: vitalMonitorId,
+        status: "up",
+        statusCode: 200,
+        responseTime: 120,
+        checkedAt: baseCheckedAt + i,
+      });
+    }
+
+    // Pulse check should still be deleted even if it is after the first page.
+    await t.mutation(internal.monitoring.recordCheck, {
+      monitorId: pulseMonitorId,
+      status: "up",
+      statusCode: 200,
+      responseTime: 130,
+      checkedAt: baseCheckedAt + 5_000,
+    });
+
+    await t.action(internal.monitoring.cleanupOldChecks, {});
+
+    const pulseChecks = await t
+      .withIdentity(pulseUser)
+      .query(api.checks.getRecentForMonitor, { monitorId: pulseMonitorId });
+    expect(pulseChecks).toHaveLength(0);
+  });
+
+  test("resumes cleanup from provided cursor", async () => {
+    const t = setupBackend();
+    const vitalUser = {
+      name: "Vital User",
+      subject: "user_vital_resume",
+      issuer: "clerk",
+    };
+    const pulseUser = {
+      name: "Pulse User",
+      subject: "user_pulse_resume",
+      issuer: "clerk",
+    };
+
+    const vitalMonitorId = await createMonitorForUser(t, vitalUser, {
+      tier: "vital",
+    });
+    const pulseMonitorId = await createMonitorForUser(t, pulseUser, {
+      tier: "pulse",
+    });
+
+    const baseCheckedAt = Date.now() - 45 * dayMs;
+
+    for (let i = 0; i < 1001; i++) {
+      await t.mutation(internal.monitoring.recordCheck, {
+        monitorId: vitalMonitorId,
+        status: "up",
+        statusCode: 200,
+        responseTime: 120,
+        checkedAt: baseCheckedAt + i,
+      });
+    }
+
+    await t.mutation(internal.monitoring.recordCheck, {
+      monitorId: pulseMonitorId,
+      status: "up",
+      statusCode: 200,
+      responseTime: 130,
+      checkedAt: baseCheckedAt + 5_000,
+    });
+
+    const firstPage = await t.query(internal.monitoring.getOldChecksPage, {
+      beforeTimestamp: Date.now() - 30 * dayMs,
+      paginationOpts: {
+        numItems: 1000,
+        cursor: null,
+      },
+    });
+
+    expect(firstPage.isDone).toBe(false);
+    await t.action(internal.monitoring.cleanupOldChecks, {
+      cursor: firstPage.continueCursor,
+    });
+
+    const pulseChecks = await t
+      .withIdentity(pulseUser)
+      .query(api.checks.getRecentForMonitor, { monitorId: pulseMonitorId });
+    expect(pulseChecks).toHaveLength(0);
+  });
+
+  test("deletes orphaned checks when monitor was removed", async () => {
+    const t = setupBackend();
+    const pulseUser = {
+      name: "Pulse User",
+      subject: "user_orphan",
+      issuer: "clerk",
+    };
+    const monitorId = await createMonitorForUser(t, pulseUser, {
+      tier: "pulse",
+    });
+
+    await t.mutation(internal.monitoring.recordCheck, {
+      monitorId,
+      status: "up",
+      statusCode: 200,
+      responseTime: 100,
+      checkedAt: Date.now() - 45 * dayMs,
+    });
+
+    await t
+      .withIdentity(pulseUser)
+      .mutation(api.monitors.remove, { id: monitorId });
+    await t.action(internal.monitoring.cleanupOldChecks, {});
+
+    const oldChecks = await t.query(internal.monitoring.getOldChecks, {
+      beforeTimestamp: Date.now(),
+    });
+    const hasOrphan = oldChecks.some((check) => check.monitorId === monitorId);
+    expect(hasOrphan).toBe(false);
+  });
+});

@@ -227,6 +227,26 @@ export const getByUserId = internalQuery({
 });
 
 /**
+ * Internal query to get subscriptions by user IDs.
+ */
+export const getByUserIds = internalQuery({
+  args: { userIds: v.array(v.string()) },
+  handler: async (ctx, args) => {
+    const uniqueUserIds = Array.from(new Set(args.userIds));
+    const subscriptions = await Promise.all(
+      uniqueUserIds.map(async (userId) => ({
+        userId,
+        subscription: await ctx.db
+          .query("subscriptions")
+          .withIndex("by_user", (q) => q.eq("userId", userId))
+          .first(),
+      })),
+    );
+    return subscriptions;
+  },
+});
+
+/**
  * Create a subscription from Stripe webhook.
  * Internal only - called by convex/http.ts after signature verification.
  */
