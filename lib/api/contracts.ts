@@ -6,7 +6,7 @@ export type ProblemDetails = {
   title: string;
   status: number;
   detail?: string;
-  instance?: string;
+  instance: string;
 } & Record<string, unknown>;
 
 export type ProblemDetailsInput = {
@@ -14,7 +14,7 @@ export type ProblemDetailsInput = {
   title: string;
   status: number;
   detail?: string;
-  instance?: string;
+  instance: string;
   extensions?: Record<string, unknown>;
 };
 

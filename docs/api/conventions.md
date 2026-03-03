@@ -33,8 +33,11 @@ Required members:
 - `type`
 - `title`
 - `status`
-- `detail` (optional, omit intentionally for security-sensitive errors)
 - `instance`
+
+Optional members:
+
+- `detail` (omit intentionally for security-sensitive errors)
 
 Extension members are allowed (for example `requestId`, `code`, `retryAfter`).
 
