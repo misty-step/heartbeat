@@ -11,6 +11,7 @@ crons.daily(
   "cleanup-old-checks",
   { hourUTC: 2, minuteUTC: 0 },
   internal.monitoring.cleanupOldChecks,
+  {},
 );
 
 // Cleanup old Stripe events daily at 3 AM UTC (idempotency tracking)

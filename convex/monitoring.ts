@@ -400,8 +400,10 @@ export const runHeartbeat = internalAction({
  * more work remains.
  */
 export const cleanupOldChecks = internalAction({
-  args: {},
-  handler: async (ctx) => {
+  args: {
+    cursor: v.optional(v.union(v.string(), v.null())),
+  },
+  handler: async (ctx, args) => {
     const pulseCutoffTimestamp = Date.now() - TIERS.pulse.historyDays * DAY_MS;
     const maxBatchesPerRun = 20; // Cap to stay well under 10-min timeout
 
@@ -409,7 +411,7 @@ export const cleanupOldChecks = internalAction({
 
     let totalDeleted = 0;
     let batchNumber = 0;
-    let cursor: string | null = null;
+    let cursor: string | null = args.cursor ?? null;
     let reachedEnd = false;
 
     // Process up to maxBatchesPerRun batches, then reschedule if more remain
@@ -512,7 +514,9 @@ export const cleanupOldChecks = internalAction({
     }
 
     // More work remains - reschedule to continue
-    await ctx.scheduler.runAfter(0, internal.monitoring.cleanupOldChecks, {});
+    await ctx.scheduler.runAfter(0, internal.monitoring.cleanupOldChecks, {
+      cursor,
+    });
     console.log(
       `[Cleanup] Paused after ${batchNumber} batches (${totalDeleted} deleted); rescheduled to continue`,
     );
