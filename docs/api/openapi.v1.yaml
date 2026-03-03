@@ -1,0 +1,653 @@
+openapi: 3.1.0
+info:
+  title: Heartbeat API
+  version: 1.0.0
+  description: |
+    Agent-first API v1 contract. Runtime rollout may be staged; planned operations
+    are represented here for SDK generation and contract-first development.
+servers:
+  - url: https://heartbeat.dev
+    description: Production
+  - url: http://localhost:3000
+    description: Local development
+security:
+  - bearerApiKey: []
+tags:
+  - name: Me
+  - name: Monitors
+  - name: Checks
+  - name: Incidents
+  - name: API Keys
+paths:
+  /api/v1/me:
+    get:
+      operationId: getCurrentUserContext
+      summary: Get current API principal context
+      tags: [Me]
+      x-internal: planned
+      responses:
+        "200":
+          description: Current user context
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MeResponse"
+        default:
+          $ref: "#/components/responses/ProblemResponse"
+
+  /api/v1/monitors:
+    get:
+      operationId: listMonitorsV1
+      summary: List monitors
+      tags: [Monitors]
+      x-internal: planned
+      parameters:
+        - $ref: "#/components/parameters/LimitParam"
+        - $ref: "#/components/parameters/CursorParam"
+        - $ref: "#/components/parameters/ProjectSlugParam"
+      responses:
+        "200":
+          description: Monitors page
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MonitorsPageResponse"
+        default:
+          $ref: "#/components/responses/ProblemResponse"
+    post:
+      operationId: createMonitorV1
+      summary: Create monitor
+      tags: [Monitors]
+      x-internal: planned
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKeyHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateMonitorRequest"
+      responses:
+        "201":
+          description: Monitor created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MonitorResponse"
+        default:
+          $ref: "#/components/responses/ProblemResponse"
+
+  /api/v1/monitors/{monitorId}:
+    parameters:
+      - $ref: "#/components/parameters/MonitorIdParam"
+    get:
+      operationId: getMonitorV1
+      summary: Get monitor by id
+      tags: [Monitors]
+      x-internal: planned
+      responses:
+        "200":
+          description: Monitor detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MonitorResponse"
+        default:
+          $ref: "#/components/responses/ProblemResponse"
+    patch:
+      operationId: updateMonitorV1
+      summary: Update monitor by id
+      tags: [Monitors]
+      x-internal: planned
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKeyHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateMonitorRequest"
+      responses:
+        "200":
+          description: Monitor updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MonitorResponse"
+        default:
+          $ref: "#/components/responses/ProblemResponse"
+    delete:
+      operationId: deleteMonitorV1
+      summary: Delete monitor by id
+      tags: [Monitors]
+      x-internal: planned
+      responses:
+        "204":
+          description: Monitor deleted
+        default:
+          $ref: "#/components/responses/ProblemResponse"
+
+  /api/v1/monitors/{monitorId}/checks:
+    parameters:
+      - $ref: "#/components/parameters/MonitorIdParam"
+    get:
+      operationId: listMonitorChecksV1
+      summary: List checks for a monitor
+      tags: [Checks]
+      x-internal: planned
+      parameters:
+        - $ref: "#/components/parameters/LimitParam"
+        - $ref: "#/components/parameters/CursorParam"
+        - $ref: "#/components/parameters/FromParam"
+        - $ref: "#/components/parameters/ToParam"
+      responses:
+        "200":
+          description: Checks page
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChecksPageResponse"
+        default:
+          $ref: "#/components/responses/ProblemResponse"
+
+  /api/v1/monitors/{monitorId}/incidents:
+    parameters:
+      - $ref: "#/components/parameters/MonitorIdParam"
+    get:
+      operationId: listMonitorIncidentsV1
+      summary: List incidents for a monitor
+      tags: [Incidents]
+      x-internal: planned
+      parameters:
+        - $ref: "#/components/parameters/LimitParam"
+        - $ref: "#/components/parameters/CursorParam"
+      responses:
+        "200":
+          description: Incidents page
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IncidentsPageResponse"
+        default:
+          $ref: "#/components/responses/ProblemResponse"
+
+  /api/v1/incidents:
+    get:
+      operationId: listIncidentsV1
+      summary: List incidents across monitors
+      tags: [Incidents]
+      x-internal: planned
+      parameters:
+        - $ref: "#/components/parameters/LimitParam"
+        - $ref: "#/components/parameters/CursorParam"
+        - $ref: "#/components/parameters/ProjectSlugParam"
+      responses:
+        "200":
+          description: Incidents page
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IncidentsPageResponse"
+        default:
+          $ref: "#/components/responses/ProblemResponse"
+
+  /api/v1/projects/{slug}/incidents:
+    parameters:
+      - $ref: "#/components/parameters/ProjectSlugPathParam"
+    get:
+      operationId: listProjectIncidentsV1
+      summary: List incidents for a project
+      tags: [Incidents]
+      x-internal: planned
+      parameters:
+        - $ref: "#/components/parameters/LimitParam"
+        - $ref: "#/components/parameters/CursorParam"
+      responses:
+        "200":
+          description: Project incidents page
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IncidentsPageResponse"
+        default:
+          $ref: "#/components/responses/ProblemResponse"
+
+  /api/v1/api-keys:
+    get:
+      operationId: listApiKeysV1
+      summary: List API key metadata
+      tags: [API Keys]
+      x-internal: planned
+      responses:
+        "200":
+          description: API key list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiKeyListResponse"
+        default:
+          $ref: "#/components/responses/ProblemResponse"
+    post:
+      operationId: createApiKeyV1
+      summary: Create API key
+      tags: [API Keys]
+      x-internal: planned
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKeyHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateApiKeyRequest"
+      responses:
+        "201":
+          description: API key created. Secret shown once.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateApiKeyResponse"
+        default:
+          $ref: "#/components/responses/ProblemResponse"
+
+  /api/v1/api-keys/{apiKeyId}/rotate:
+    parameters:
+      - $ref: "#/components/parameters/ApiKeyIdParam"
+    post:
+      operationId: rotateApiKeyV1
+      summary: Rotate API key secret
+      tags: [API Keys]
+      x-internal: planned
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKeyHeader"
+      responses:
+        "200":
+          description: API key rotated. Secret shown once.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateApiKeyResponse"
+        default:
+          $ref: "#/components/responses/ProblemResponse"
+
+  /api/v1/api-keys/{apiKeyId}:
+    parameters:
+      - $ref: "#/components/parameters/ApiKeyIdParam"
+    delete:
+      operationId: revokeApiKeyV1
+      summary: Revoke API key
+      tags: [API Keys]
+      x-internal: planned
+      responses:
+        "204":
+          description: API key revoked
+        default:
+          $ref: "#/components/responses/ProblemResponse"
+
+components:
+  securitySchemes:
+    bearerApiKey:
+      type: http
+      scheme: bearer
+      bearerFormat: hb_live
+      description: Heartbeat API key (`hb_live_<prefix>_<secret>`)
+
+  parameters:
+    LimitParam:
+      in: query
+      name: limit
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 200
+        default: 50
+    CursorParam:
+      in: query
+      name: cursor
+      schema:
+        type: string
+    ProjectSlugParam:
+      in: query
+      name: projectSlug
+      schema:
+        type: string
+    ProjectSlugPathParam:
+      in: path
+      name: slug
+      required: true
+      schema:
+        type: string
+    MonitorIdParam:
+      in: path
+      name: monitorId
+      required: true
+      schema:
+        type: string
+    ApiKeyIdParam:
+      in: path
+      name: apiKeyId
+      required: true
+      schema:
+        type: string
+    FromParam:
+      in: query
+      name: from
+      schema:
+        type: string
+        format: date-time
+    ToParam:
+      in: query
+      name: to
+      schema:
+        type: string
+        format: date-time
+    IdempotencyKeyHeader:
+      in: header
+      name: Idempotency-Key
+      required: false
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 255
+      description: |
+        Idempotency key for POST/PATCH write safety. Replays are honored for 24h.
+
+  responses:
+    ProblemResponse:
+      description: RFC 9457 problem details
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetails"
+
+  schemas:
+    ProblemDetails:
+      type: object
+      required: [type, title, status, instance]
+      properties:
+        type:
+          type: string
+          format: uri
+        title:
+          type: string
+        status:
+          type: integer
+          minimum: 100
+          maximum: 599
+        detail:
+          type: string
+        instance:
+          type: string
+        requestId:
+          type: string
+      additionalProperties: true
+
+    PageInfo:
+      type: object
+      required: [limit, nextCursor]
+      properties:
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 200
+        nextCursor:
+          type: [string, "null"]
+
+    Monitor:
+      type: object
+      required: [id, name, url, intervalSeconds, status, projectSlug, createdAt]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        url:
+          type: string
+          format: uri
+        intervalSeconds:
+          type: integer
+          enum: [60, 120, 300, 600, 1800, 3600]
+        method:
+          type: string
+          enum: [GET, HEAD]
+        status:
+          type: string
+          enum: [up, degraded, down]
+        projectSlug:
+          type: string
+        lastCheckAt:
+          type: [string, "null"]
+          format: date-time
+        lastResponseTimeMs:
+          type: [integer, "null"]
+        createdAt:
+          type: string
+          format: date-time
+
+    MonitorResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/Monitor"
+
+    MonitorsPageResponse:
+      type: object
+      required: [data, page]
+      properties:
+        data:
+          type: array
+          maxItems: 200
+          items:
+            $ref: "#/components/schemas/Monitor"
+        page:
+          $ref: "#/components/schemas/PageInfo"
+
+    CreateMonitorRequest:
+      type: object
+      required: [name, url, intervalSeconds]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        url:
+          type: string
+          format: uri
+        intervalSeconds:
+          type: integer
+          enum: [60, 120, 300, 600, 1800, 3600]
+        method:
+          type: string
+          enum: [GET, HEAD]
+          default: GET
+        projectSlug:
+          type: string
+
+    UpdateMonitorRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        intervalSeconds:
+          type: integer
+          enum: [60, 120, 300, 600, 1800, 3600]
+        method:
+          type: string
+          enum: [GET, HEAD]
+        enabled:
+          type: boolean
+      minProperties: 1
+
+    Check:
+      type: object
+      required: [id, status, responseTimeMs, checkedAt]
+      properties:
+        id:
+          type: string
+        status:
+          type: string
+          enum: [up, degraded, down]
+        responseTimeMs:
+          type: integer
+        statusCode:
+          type: [integer, "null"]
+        error:
+          type: [string, "null"]
+        checkedAt:
+          type: string
+          format: date-time
+
+    ChecksPageResponse:
+      type: object
+      required: [data, page]
+      properties:
+        data:
+          type: array
+          maxItems: 200
+          items:
+            $ref: "#/components/schemas/Check"
+        page:
+          $ref: "#/components/schemas/PageInfo"
+
+    Incident:
+      type: object
+      required: [id, monitorId, startedAt, state]
+      properties:
+        id:
+          type: string
+        monitorId:
+          type: string
+        projectSlug:
+          type: string
+        state:
+          type: string
+          enum: [investigating, identified, resolved]
+        startedAt:
+          type: string
+          format: date-time
+        resolvedAt:
+          type: [string, "null"]
+          format: date-time
+        summary:
+          type: [string, "null"]
+
+    IncidentsPageResponse:
+      type: object
+      required: [data, page]
+      properties:
+        data:
+          type: array
+          maxItems: 200
+          items:
+            $ref: "#/components/schemas/Incident"
+        page:
+          $ref: "#/components/schemas/PageInfo"
+
+    ApiKeyScope:
+      type: string
+      enum:
+        - monitors:read
+        - monitors:write
+        - checks:read
+        - incidents:read
+        - api_keys:write
+
+    ApiKeyMetadata:
+      type: object
+      required: [id, name, prefix, scopes, createdAt]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        prefix:
+          type: string
+        scopes:
+          type: array
+          items:
+            $ref: "#/components/schemas/ApiKeyScope"
+        projectSlugs:
+          type: [array, "null"]
+          items:
+            type: string
+        expiresAt:
+          type: [string, "null"]
+          format: date-time
+        lastUsedAt:
+          type: [string, "null"]
+          format: date-time
+        revokedAt:
+          type: [string, "null"]
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+
+    ApiKeyListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/ApiKeyMetadata"
+
+    CreateApiKeyRequest:
+      type: object
+      required: [name, scopes]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        scopes:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/ApiKeyScope"
+        projectSlugs:
+          type: [array, "null"]
+          items:
+            type: string
+        expiresAt:
+          type: [string, "null"]
+          format: date-time
+
+    CreateApiKeyResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: object
+          required: [apiKey, secret]
+          properties:
+            apiKey:
+              $ref: "#/components/schemas/ApiKeyMetadata"
+            secret:
+              type: string
+              description: One-time token reveal.
+
+    MeResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: object
+          required: [userId, tier, usage]
+          properties:
+            userId:
+              type: string
+            tier:
+              type: string
+              enum: [free, pulse, vital]
+            usage:
+              type: object
+              required: [monitorsUsed, monitorsLimit]
+              properties:
+                monitorsUsed:
+                  type: integer
+                monitorsLimit:
+                  type: integer

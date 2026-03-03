@@ -39,6 +39,9 @@ jobs:
       - name: Type Check
         run: bun type-check
 
+      - name: OpenAPI Lint
+        run: bun run lint:openapi
+
       - name: Validate Convex Schema (Production)
         if: env.CONVEX_DEPLOY_KEY != ''
         run: bunx convex deploy --dry-run
