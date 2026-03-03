@@ -7,6 +7,23 @@ import {
 import { internal } from "./_generated/api";
 import { isAllowedUrl } from "./lib/urlValidation";
 import { INCIDENT_THRESHOLD } from "../lib/domain/status";
+import { TIERS } from "./constants";
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+function getCheckRetentionDays(
+  subscription: {
+    tier: "pulse" | "vital";
+    status: "trialing" | "active" | "past_due" | "canceled" | "expired";
+  } | null,
+) {
+  // 90-day retention is reserved for actively paid Vital subscriptions.
+  if (subscription?.tier === "vital" && subscription.status === "active") {
+    return TIERS.vital.historyDays;
+  }
+
+  return TIERS.pulse.historyDays;
+}
 
 /**
  * Get monitors that are due for checking based on their interval.
@@ -383,10 +400,10 @@ export const runHeartbeat = internalAction({
 export const cleanupOldChecks = internalAction({
   args: {},
   handler: async (ctx) => {
-    const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
+    const pulseCutoffTimestamp = Date.now() - TIERS.pulse.historyDays * DAY_MS;
     const maxBatchesPerRun = 20; // Cap to stay well under 10-min timeout
 
-    console.log("[Cleanup] Starting cleanup of checks older than 30 days...");
+    console.log("[Cleanup] Starting tier-aware check cleanup...");
 
     let totalDeleted = 0;
     let batchNumber = 0;
@@ -394,7 +411,7 @@ export const cleanupOldChecks = internalAction({
     // Process up to maxBatchesPerRun batches, then reschedule if more remain
     while (batchNumber < maxBatchesPerRun) {
       const oldChecks = await ctx.runQuery(internal.monitoring.getOldChecks, {
-        beforeTimestamp: thirtyDaysAgo,
+        beforeTimestamp: pulseCutoffTimestamp,
       });
 
       if (oldChecks.length === 0) {
@@ -403,20 +420,72 @@ export const cleanupOldChecks = internalAction({
       }
 
       batchNumber++;
-      console.log(
-        `[Cleanup] Batch ${batchNumber}: deleting ${oldChecks.length} checks`,
+
+      const monitorIds = Array.from(
+        new Set(oldChecks.map((check) => check.monitorId)),
       );
+      const monitors = await ctx.runQuery(
+        internal.monitoring.getMonitorsByIds,
+        {
+          monitorIds,
+        },
+      );
+      const monitorsById = new Map(
+        monitors.map((monitor) => [monitor._id, monitor]),
+      );
+
+      const retentionDaysByUser = new Map<string, number>();
+      for (const monitor of monitors) {
+        if (retentionDaysByUser.has(monitor.userId)) {
+          continue;
+        }
+
+        const subscription = await ctx.runQuery(
+          internal.subscriptions.getByUserId,
+          {
+            userId: monitor.userId,
+          },
+        );
+        retentionDaysByUser.set(
+          monitor.userId,
+          getCheckRetentionDays(subscription),
+        );
+      }
+
+      const now = Date.now();
+      const checksToDelete = oldChecks.filter((check) => {
+        const monitor = monitorsById.get(check.monitorId);
+        if (!monitor) {
+          return false;
+        }
+
+        const retentionDays =
+          retentionDaysByUser.get(monitor.userId) ?? TIERS.pulse.historyDays;
+        const retentionCutoff = now - retentionDays * DAY_MS;
+        return check.checkedAt < retentionCutoff;
+      });
+
+      console.log(
+        `[Cleanup] Batch ${batchNumber}: deleting ${checksToDelete.length}/${oldChecks.length} eligible checks`,
+      );
+
+      if (checksToDelete.length === 0) {
+        console.log(
+          `[Cleanup] Complete: no checks eligible for deletion in current window (${totalDeleted} deleted total)`,
+        );
+        return;
+      }
 
       // Delete in sub-batches to avoid mutation size limits
       const deleteBatchSize = 100;
-      for (let i = 0; i < oldChecks.length; i += deleteBatchSize) {
-        const batch = oldChecks.slice(i, i + deleteBatchSize);
+      for (let i = 0; i < checksToDelete.length; i += deleteBatchSize) {
+        const batch = checksToDelete.slice(i, i + deleteBatchSize);
         await ctx.runMutation(internal.monitoring.deleteChecks, {
           checkIds: batch.map((c) => c._id),
         });
       }
 
-      totalDeleted += oldChecks.length;
+      totalDeleted += checksToDelete.length;
     }
 
     // More work remains - reschedule to continue
@@ -441,6 +510,20 @@ export const getOldChecks = internalQuery({
         q.lt("checkedAt", args.beforeTimestamp),
       )
       .take(1000);
+  },
+});
+
+export const getMonitorsByIds = internalQuery({
+  args: {
+    monitorIds: v.array(v.id("monitors")),
+  },
+  handler: async (ctx, args) => {
+    const monitors = await Promise.all(
+      args.monitorIds.map((monitorId) => ctx.db.get(monitorId)),
+    );
+    return monitors.filter(
+      (monitor): monitor is NonNullable<typeof monitor> => monitor !== null,
+    );
   },
 });
 
