@@ -364,7 +364,7 @@ describe("cleanupOldChecks", () => {
         name: `${identity.subject} monitor`,
         url: "https://example.com",
         method: "GET",
-        interval: 60,
+        interval: subscription.tier === "pulse" ? 300 : 60,
         timeout: 10000,
         projectSlug: `${identity.subject}-project`,
       });
