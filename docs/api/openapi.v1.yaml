@@ -437,6 +437,7 @@ components:
       properties:
         data:
           type: array
+          maxItems: 200
           items:
             $ref: "#/components/schemas/Monitor"
         page:
@@ -505,6 +506,7 @@ components:
       properties:
         data:
           type: array
+          maxItems: 200
           items:
             $ref: "#/components/schemas/Check"
         page:
@@ -538,6 +540,7 @@ components:
       properties:
         data:
           type: array
+          maxItems: 200
           items:
             $ref: "#/components/schemas/Incident"
         page:

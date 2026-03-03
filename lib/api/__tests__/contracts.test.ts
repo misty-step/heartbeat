@@ -98,6 +98,23 @@ describe("API contracts", () => {
     });
   });
 
+  it("rejects pagination limits outside documented contract bounds", () => {
+    expect(() => buildPaginatedResponse([], null, 0)).toThrow(
+      "Pagination limit must be an integer between 1 and 200",
+    );
+    expect(() => buildPaginatedResponse([], null, 201)).toThrow(
+      "Pagination limit must be an integer between 1 and 200",
+    );
+    expect(() => buildPaginatedResponse([], null, 1.5)).toThrow(
+      "Pagination limit must be an integer between 1 and 200",
+    );
+  });
+
+  it("accepts pagination limit boundary values", () => {
+    expect(buildPaginatedResponse([], null, 1).page.limit).toBe(1);
+    expect(buildPaginatedResponse([], null, 200).page.limit).toBe(200);
+  });
+
   it("publishes idempotency contract constants", () => {
     expect(IDEMPOTENCY_KEY_HEADER).toBe("Idempotency-Key");
     expect(API_IDEMPOTENCY_REPLAY_WINDOW_HOURS).toBe(24);

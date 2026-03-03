@@ -53,6 +53,10 @@ export function buildPaginatedResponse<T>(
   nextCursor: string | null,
   limit: number,
 ): PaginatedResponse<T> {
+  if (!Number.isInteger(limit) || limit < 1 || limit > 200) {
+    throw new Error("Pagination limit must be an integer between 1 and 200");
+  }
+
   return {
     data,
     page: {
