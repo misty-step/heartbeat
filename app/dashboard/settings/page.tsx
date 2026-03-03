@@ -6,13 +6,13 @@ import { api } from "../../../convex/_generated/api";
 import { useUnsavedChangesWarning } from "@/hooks/useUnsavedChangesWarning";
 import {
   ArrowLeft,
-  Mail,
-  Webhook,
+  Envelope,
+  WebhooksLogo,
   Bell,
-  BellOff,
-  Send,
+  BellSlash,
+  PaperPlaneTilt,
   CreditCard,
-} from "lucide-react";
+} from "@phosphor-icons/react";
 import Link from "next/link";
 import { toast } from "sonner";
 
@@ -190,7 +190,7 @@ export default function SettingsPage() {
         {/* Email section */}
         <section className="space-y-6 pt-6 border-t border-foreground/10">
           <div className="flex items-center gap-3">
-            <Mail className="h-5 w-5 text-foreground/60" />
+            <Envelope className="h-5 w-5 text-foreground/60" />
             <h2 className="font-display text-xl text-foreground">
               Email Notifications
             </h2>
@@ -211,7 +211,7 @@ export default function SettingsPage() {
                 disabled={isSendingTestEmail || !settings.email}
                 className="px-4 py-2 rounded-full border border-[var(--color-border-default)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-secondary)] font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               >
-                <Send className="h-4 w-4" />
+                <PaperPlaneTilt className="h-4 w-4" />
                 {isSendingTestEmail ? "Sending..." : "Test"}
               </button>
             </div>
@@ -227,7 +227,7 @@ export default function SettingsPage() {
               {emailNotifications ? (
                 <Bell className="h-5 w-5 text-foreground/60" />
               ) : (
-                <BellOff className="h-5 w-5 text-foreground/40" />
+                <BellSlash className="h-5 w-5 text-foreground/40" />
               )}
               <div>
                 <span className="text-foreground font-medium">
@@ -315,7 +315,7 @@ export default function SettingsPage() {
         {/* Webhook section */}
         <section className="space-y-6 pt-6 border-t border-foreground/10">
           <div className="flex items-center gap-3">
-            <Webhook className="h-5 w-5 text-foreground/60" />
+            <WebhooksLogo className="h-5 w-5 text-foreground/60" />
             <h2 className="font-display text-xl text-foreground">Webhook</h2>
           </div>
 
@@ -340,7 +340,7 @@ export default function SettingsPage() {
                 disabled={isSendingTestWebhook || !settings.webhookUrl}
                 className="px-4 py-2 rounded-full border border-[var(--color-border-default)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-secondary)] font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               >
-                <Send className="h-4 w-4" />
+                <PaperPlaneTilt className="h-4 w-4" />
                 {isSendingTestWebhook ? "Sending..." : "Test"}
               </button>
             </div>

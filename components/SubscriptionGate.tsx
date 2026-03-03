@@ -4,7 +4,7 @@ import { useQuery, useConvexAuth } from "convex/react";
 import { usePathname } from "next/navigation";
 import { api } from "../convex/_generated/api";
 import Link from "next/link";
-import { ArrowRight, Loader2 } from "lucide-react";
+import { ArrowRight, CircleNotch } from "@phosphor-icons/react";
 
 interface SubscriptionGateProps {
   children: React.ReactNode;
@@ -36,7 +36,7 @@ export function SubscriptionGate({ children }: SubscriptionGateProps) {
     return (
       <div className="flex-1 flex items-center justify-center py-24">
         <div className="text-center space-y-4">
-          <Loader2 className="w-8 h-8 animate-spin mx-auto text-foreground/40" />
+          <CircleNotch className="w-8 h-8 animate-spin mx-auto text-foreground/40" />
           <p className="text-sm text-[var(--color-text-muted)]">Loading...</p>
         </div>
       </div>
@@ -64,7 +64,7 @@ export function SubscriptionGate({ children }: SubscriptionGateProps) {
     return (
       <div className="flex-1 flex items-center justify-center py-24">
         <div className="text-center space-y-4">
-          <Loader2 className="w-8 h-8 animate-spin mx-auto text-foreground/40" />
+          <CircleNotch className="w-8 h-8 animate-spin mx-auto text-foreground/40" />
           <p className="text-sm text-[var(--color-text-muted)]">Loading...</p>
         </div>
       </div>

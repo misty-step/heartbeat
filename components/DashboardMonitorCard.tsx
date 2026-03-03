@@ -5,7 +5,12 @@ import { useQuery } from "convex/react";
 import { api } from "../convex/_generated/api";
 import { Id } from "../convex/_generated/dataModel";
 import { UptimeBar } from "./UptimeBar";
-import { Settings, ChevronDown, ChevronUp, ExternalLink } from "lucide-react";
+import {
+  Gear,
+  CaretDown,
+  CaretUp,
+  ArrowSquareOut,
+} from "@phosphor-icons/react";
 import { computeStatus } from "@/lib/domain";
 import { cn } from "@/lib/cn";
 
@@ -106,7 +111,7 @@ export function DashboardMonitorCard({
                   className="p-2 text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-tertiary)] rounded transition-colors"
                   aria-label="View Status Page"
                 >
-                  <ExternalLink className="size-4" />
+                  <ArrowSquareOut className="size-4" />
                 </a>
               )}
               <button
@@ -117,7 +122,7 @@ export function DashboardMonitorCard({
                 className="p-2 text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-tertiary)] rounded transition-colors"
                 aria-label="Settings"
               >
-                <Settings className="size-4" />
+                <Gear className="size-4" />
               </button>
             </div>
           </div>
@@ -189,12 +194,12 @@ export function DashboardMonitorCard({
           >
             {isExpanded ? (
               <>
-                <ChevronUp className="size-3" />
+                <CaretUp className="size-3" />
                 <span>Less</span>
               </>
             ) : (
               <>
-                <ChevronDown className="size-3" />
+                <CaretDown className="size-3" />
                 <span>Details</span>
               </>
             )}

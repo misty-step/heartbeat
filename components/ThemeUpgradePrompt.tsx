@@ -3,7 +3,7 @@
 import { useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { THEMES, type ThemeId } from "@/lib/themes";
-import { Sparkles, X } from "lucide-react";
+import { Sparkle, X } from "@phosphor-icons/react";
 import { usePostHog } from "posthog-js/react";
 
 interface ThemeUpgradePromptProps {
@@ -100,7 +100,7 @@ export function ThemeUpgradePrompt({
 
           {/* Pricing */}
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--color-bg-tertiary)] rounded-full mb-6">
-            <Sparkles className="size-4 text-[var(--color-accent-secondary)]" />
+            <Sparkle className="size-4 text-[var(--color-accent-secondary)]" />
             <span className="text-sm font-medium text-[var(--color-text-primary)]">
               $29/month
             </span>

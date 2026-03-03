@@ -4,7 +4,7 @@ import { useState, FormEvent } from "react";
 import { useMutation } from "convex/react";
 import { api } from "../convex/_generated/api";
 import { validateUrl, generateSlug, extractNameFromUrl } from "@/lib/domain";
-import { Check, Copy, ExternalLink } from "lucide-react";
+import { Check, Copy, ArrowSquareOut } from "@phosphor-icons/react";
 import { toast } from "sonner";
 
 /**
@@ -123,7 +123,7 @@ export function AddMonitorForm({ onSuccess }: { onSuccess?: () => void }) {
               className="p-3 border border-[var(--color-border-default)] hover:bg-[var(--color-bg-tertiary)] transition-colors rounded-[var(--radius-sm)]"
               title="Open status page"
             >
-              <ExternalLink className="size-4 text-[var(--color-text-tertiary)]" />
+              <ArrowSquareOut className="size-4 text-[var(--color-text-tertiary)]" />
             </a>
           </div>
         </div>

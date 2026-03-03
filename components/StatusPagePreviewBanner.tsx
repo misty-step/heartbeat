@@ -6,7 +6,7 @@ import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { THEMES, THEME_IDS, type ThemeId } from "@/lib/themes";
-import { Check, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { Check, X, CaretLeft, CaretRight } from "@phosphor-icons/react";
 import { cn } from "@/lib/cn";
 
 interface StatusPagePreviewBannerProps {
@@ -85,7 +85,7 @@ export function StatusPagePreviewBanner({
             className="p-1.5 text-white/60 hover:text-white hover:bg-white/10 rounded transition-colors"
             aria-label="Previous theme"
           >
-            <ChevronLeft className="size-4" />
+            <CaretLeft className="size-4" />
           </button>
 
           <div className="flex items-center gap-2 px-3 py-1.5 bg-white/10 rounded-full min-w-[180px] justify-center">
@@ -103,7 +103,7 @@ export function StatusPagePreviewBanner({
             className="p-1.5 text-white/60 hover:text-white hover:bg-white/10 rounded transition-colors"
             aria-label="Next theme"
           >
-            <ChevronRight className="size-4" />
+            <CaretRight className="size-4" />
           </button>
         </div>
 

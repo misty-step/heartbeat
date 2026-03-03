@@ -11,12 +11,12 @@ import { StatusIndicator } from "../../components/StatusIndicator";
 import { Id } from "../../convex/_generated/dataModel";
 import {
   Plus,
-  Activity,
+  Pulse,
   Clock,
   X,
   CreditCard,
-  ChevronRight,
-} from "lucide-react";
+  CaretRight,
+} from "@phosphor-icons/react";
 import Link from "next/link";
 import { TIERS } from "@/lib/tiers";
 import {
@@ -113,7 +113,7 @@ export default function DashboardPage() {
           </div>
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-[var(--color-text-muted)]">
             <span className="inline-flex items-center gap-2">
-              <Activity className="h-3.5 w-3.5" />
+              <Pulse className="h-3.5 w-3.5" />
               <span className="tabular-nums">{monitors.length}</span>{" "}
               {monitors.length === 1 ? "monitor" : "monitors"}
             </span>
@@ -133,7 +133,7 @@ export default function DashboardPage() {
                   {TIERS[subscription.tier]?.name} Plan
                   <SubscriptionBadge status={subscription.status} />
                 </span>
-                <ChevronRight className="h-3 w-3 opacity-0 -ml-1 group-hover:opacity-100 transition-opacity" />
+                <CaretRight className="h-3 w-3 opacity-0 -ml-1 group-hover:opacity-100 transition-opacity" />
               </Link>
             )}
           </div>
@@ -174,7 +174,10 @@ export default function DashboardPage() {
         )}
 
         {/* Monitor grid */}
-        <div ref={monitorListRef} className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div
+          ref={monitorListRef}
+          className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"
+        >
           {monitors.map((monitor, index) => (
             <div
               key={monitor._id}
@@ -210,15 +213,18 @@ function SubscriptionBadge({
   const config = {
     trialing: {
       label: "Trial",
-      className: "bg-[var(--color-accent-primary)]/10 text-[var(--color-accent-primary)]",
+      className:
+        "bg-[var(--color-accent-primary)]/10 text-[var(--color-accent-primary)]",
     },
     past_due: {
       label: "Past Due",
-      className: "bg-[var(--color-status-degraded-muted)] text-[var(--color-status-degraded)]",
+      className:
+        "bg-[var(--color-status-degraded-muted)] text-[var(--color-status-degraded)]",
     },
     canceled: {
       label: "Canceled",
-      className: "bg-[var(--color-status-down-muted)] text-[var(--color-status-down)]",
+      className:
+        "bg-[var(--color-status-down-muted)] text-[var(--color-status-down)]",
     },
     expired: {
       label: "Expired",

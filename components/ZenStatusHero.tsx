@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { ChevronDown } from "lucide-react";
+import { CaretDown } from "@phosphor-icons/react";
 import { type MonitorStatus } from "@/lib/domain";
 import { cn } from "@/lib/cn";
 
@@ -82,7 +82,7 @@ export function ZenStatusHero({ status, monitorName }: ZenStatusHeroProps) {
         aria-label="Scroll to details"
       >
         <span className="text-xs tracking-wider uppercase">Details</span>
-        <ChevronDown className="h-4 w-4" />
+        <CaretDown className="h-4 w-4" />
       </button>
     </header>
   );
