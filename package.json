@@ -12,6 +12,7 @@
     "build": "bunx convex deploy --cmd 'next build'",
     "start": "next start",
     "lint": "eslint . --max-warnings 0",
+    "lint:openapi": "bunx @redocly/cli@2.11.1 lint docs/api/openapi.v1.yaml",
     "type-check": "tsc --noEmit",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",

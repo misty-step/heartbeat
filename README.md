@@ -191,6 +191,7 @@ bun type-check        # Run TypeScript compiler
 
 # Linting
 bun lint              # Run ESLint
+bun run lint:openapi  # Validate OpenAPI v1 contract
 
 # Building
 bun build             # Build for production
@@ -200,6 +201,11 @@ bun start             # Start production server
 bunx convex deploy    # Deploy to production
 bunx convex dashboard # Open Convex dashboard
 ```
+
+## API Contract Docs
+
+- [API conventions](docs/api/conventions.md)
+- [OpenAPI v1 scaffold](docs/api/openapi.v1.yaml)
 
 ## Testing the App
 
