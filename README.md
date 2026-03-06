@@ -65,14 +65,15 @@ See `.env.example` for all available options including Stripe, Sentry, and PostH
 ### 5. Run the Development Server
 
 ```bash
-# Runs both Next.js and Convex dev servers concurrently
+# Runs Next.js + Convex + Stripe webhook forwarder concurrently
 bun dev
 ```
 
-Note: This runs both servers in a single terminal with colored output:
+Note: This runs all processes in one terminal with colored output:
 
 - Cyan: Next.js dev server
 - Magenta: Convex dev server
+- Yellow: Stripe webhook forwarder (if configured)
 
 If you prefer to run them separately:
 
@@ -94,6 +95,7 @@ Navigate to [http://localhost:3000](http://localhost:3000)
 
 - ✅ **HTTP Monitoring**: Check any URL every 1-5 minutes
 - ✅ **Status Pages**: Public status pages at `/s/[project-slug]`
+- ✅ **Is It Down Tool**: Public checker at `/is-it-down` with verdict + probe evidence
 - ✅ **Real-time Dashboard**: Live updates via Convex subscriptions
 - ✅ **Incident Tracking**: Automatic incident creation after 3 consecutive failures
 - ✅ **Uptime Stats**: 30-day uptime percentage and response time trends
@@ -104,6 +106,7 @@ Navigate to [http://localhost:3000](http://localhost:3000)
 - **Landing Page**: `/` - Marketing page with feature overview
 - **Dashboard**: `/dashboard` - View and manage all monitors
 - **Status Pages**: `/s/[slug]` - Public status pages (ISR cached, 60s revalidation)
+- **Is It Down**: `/is-it-down` and `/is-it-down/[hostname]` - Public diagnostic pages
 - **Monitor Management**: Create, edit, delete monitors with real-time updates
 
 ### Monitoring Engine
@@ -183,8 +186,9 @@ heartbeat/
 
 ```bash
 # Development
-bun dev               # Start Next.js dev server
-bunx convex dev       # Start Convex dev server
+bun dev               # Start Next.js + Convex (+ Stripe forwarder)
+bun dev:next          # Start Next.js dev server only
+bun dev:convex        # Start Convex dev server only
 
 # Type checking
 bun type-check        # Run TypeScript compiler
@@ -195,7 +199,8 @@ bun run lint:openapi  # Validate OpenAPI v1 contract
 
 # Building
 bun build             # Build for production
-bun start             # Start production server
+bun start             # Start Next.js + Convex concurrently
+bun start:next        # Start Next.js production server only
 
 # Convex
 bunx convex deploy    # Deploy to production
@@ -206,6 +211,11 @@ bunx convex dashboard # Open Convex dashboard
 
 - [API conventions](docs/api/conventions.md)
 - [OpenAPI v1 scaffold](docs/api/openapi.v1.yaml)
+
+## Public Is-It-Down Endpoint
+
+- `GET /api/is-it-down?target=github.com`
+- Returns JSON verdict + probe evidence from Heartbeat's public checker pipeline.
 
 ## Testing the App
 

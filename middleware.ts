@@ -12,6 +12,8 @@ const isPublicRoute = createRouteMatcher([
   "/sign-up(.*)",
   "/api/logs", // Public endpoint for client log batching
   "/api/health", // Health check for uptime monitoring
+  "/is-it-down(.*)", // Public uptime checker tool
+  "/api/is-it-down(.*)", // Public API for uptime checker
   "/design-lab(.*)", // Design lab for reviewing variations
   "/explore(.*)", // Design exploration catalogue
   "/sitemap.xml",

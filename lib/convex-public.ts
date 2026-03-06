@@ -35,3 +35,15 @@ export async function fetchPublicQuery<
 >(query: Query, args: FunctionArgs<Query>): Promise<FunctionReturnType<Query>> {
   return client.query(query, args);
 }
+
+/**
+ * Run a public Convex action without triggering auth-bound cookies() paths.
+ */
+export async function runPublicAction<
+  Action extends FunctionReference<"action">,
+>(
+  action: Action,
+  args: FunctionArgs<Action>,
+): Promise<FunctionReturnType<Action>> {
+  return client.action(action, args);
+}

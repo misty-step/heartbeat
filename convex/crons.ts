@@ -21,4 +21,18 @@ crons.daily(
   internal.subscriptions.cleanupOldEvents,
 );
 
+// Seed and probe tracked "is it down" targets every 5 minutes.
+crons.interval(
+  "probe-is-it-down-targets",
+  { minutes: 5 },
+  internal.isItDown.probeTrackedTargets,
+);
+
+// Cleanup historical "is it down" probe data daily.
+crons.daily(
+  "cleanup-is-it-down-checks",
+  { hourUTC: 4, minuteUTC: 0 },
+  internal.isItDown.cleanupOldServiceChecks,
+);
+
 export default crons;

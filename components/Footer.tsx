@@ -8,7 +8,7 @@ import Link from "next/link";
 export function Footer() {
   return (
     <footer className="w-full border-t border-[var(--color-border-subtle)] bg-[var(--color-bg-secondary)]">
-      <div className="px-6 sm:px-12 lg:px-24 py-8">
+      <div className="page-container py-8">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           {/* Brand & Copyright */}
           <div className="flex flex-col gap-1">

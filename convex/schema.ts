@@ -126,4 +126,30 @@ export default defineSchema({
   })
     .index("by_event_id", ["eventId"])
     .index("by_processed_at", ["processedAt"]),
+
+  serviceTargets: defineTable({
+    hostname: v.string(),
+    url: v.string(),
+    label: v.string(),
+    enabled: v.boolean(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_hostname", ["hostname"])
+    .index("by_enabled", ["enabled"]),
+
+  serviceChecks: defineTable({
+    hostname: v.string(),
+    url: v.string(),
+    status: v.union(v.literal("up"), v.literal("down")),
+    statusCode: v.optional(v.number()),
+    responseTime: v.number(),
+    errorMessage: v.optional(v.string()),
+    source: v.union(v.literal("scheduled"), v.literal("on_demand")),
+    targetId: v.optional(v.id("serviceTargets")),
+    checkedAt: v.number(),
+  })
+    .index("by_hostname", ["hostname", "checkedAt"])
+    .index("by_checked_at", ["checkedAt"])
+    .index("by_target", ["targetId", "checkedAt"]),
 });
