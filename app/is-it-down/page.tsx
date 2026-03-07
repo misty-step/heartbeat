@@ -30,11 +30,6 @@ export default async function IsItDownPage({ searchParams }: PageProps) {
   const { target } = await searchParams;
   const inputTarget = (target ?? "").trim();
 
-  const trackedTargets = await fetchPublicQuery(
-    api.isItDown.listTrackedTargets,
-    {},
-  );
-
   let snapshot: IsItDownSnapshot | null = null;
   let errorMessage: string | null = null;
   let parsedHostname: string | null = null;
@@ -49,6 +44,11 @@ export default async function IsItDownPage({ searchParams }: PageProps) {
         error instanceof TargetInputError ? error.message : "Probe failed";
     }
   }
+
+  const trackedTargets =
+    snapshot === null
+      ? await fetchPublicQuery(api.isItDown.listTrackedTargets, {})
+      : [];
 
   const jsonLd = {
     "@context": "https://schema.org",

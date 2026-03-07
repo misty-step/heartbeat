@@ -120,7 +120,6 @@ describe("app/is-it-down/page", () => {
 
   test("uses cached fresh probe data and renders result card", async () => {
     const snapshot = buildSnapshot("github.com");
-    pageMocks.fetchPublicQuery.mockResolvedValueOnce(trackedTargets);
     pageMocks.getPublicIsItDownSnapshot.mockResolvedValueOnce({
       hostname: "github.com",
       snapshot,
@@ -131,11 +130,7 @@ describe("app/is-it-down/page", () => {
     });
     render(ui);
 
-    expect(pageMocks.fetchPublicQuery).toHaveBeenNthCalledWith(
-      1,
-      apiMocks.api.isItDown.listTrackedTargets,
-      {},
-    );
+    expect(pageMocks.fetchPublicQuery).not.toHaveBeenCalled();
     expect(pageMocks.getPublicIsItDownSnapshot).toHaveBeenCalledWith(
       "GitHub.com",
     );
@@ -154,7 +149,6 @@ describe("app/is-it-down/page", () => {
 
   test("renders result card when snapshot helper resolves", async () => {
     const snapshot = buildSnapshot("openai.com");
-    pageMocks.fetchPublicQuery.mockResolvedValueOnce(trackedTargets);
     pageMocks.getPublicIsItDownSnapshot.mockResolvedValueOnce({
       hostname: "openai.com",
       snapshot,
@@ -168,6 +162,7 @@ describe("app/is-it-down/page", () => {
     expect(pageMocks.getPublicIsItDownSnapshot).toHaveBeenCalledWith(
       "openai.com",
     );
+    expect(pageMocks.fetchPublicQuery).not.toHaveBeenCalled();
     expect(screen.getByTestId("result-card")).toHaveTextContent(
       "Result for openai.com",
     );

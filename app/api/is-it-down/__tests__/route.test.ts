@@ -73,10 +73,10 @@ describe("/api/is-it-down route", () => {
 
   it("returns a generic 500 for probe failures", async () => {
     mockedGetPublicIsItDownSnapshot.mockRejectedValue(
-      new Error("Private IP addresses are not allowed"),
+      new Error("Upstream service error"),
     );
 
-    const response = await GET(createRequest("http://10.0.0.1"));
+    const response = await GET(createRequest("https://example.com"));
 
     expect(response.status).toBe(500);
     await expect(response.json()).resolves.toEqual({ error: "Probe failed" });

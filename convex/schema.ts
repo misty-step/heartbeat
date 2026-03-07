@@ -140,6 +140,11 @@ export default defineSchema({
     .index("by_hostname", ["hostname"])
     .index("by_enabled", ["enabled"]),
 
+  serviceProbeLeases: defineTable({
+    probeUrl: v.string(),
+    claimedAt: v.number(),
+  }).index("by_probe_url", ["probeUrl"]),
+
   serviceChecks: defineTable({
     hostname: v.string(),
     url: v.string(),

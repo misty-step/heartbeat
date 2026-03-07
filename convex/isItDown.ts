@@ -239,28 +239,29 @@ export const getStatusForTarget = query({
       .filter((monitor) => monitor.enabled)
       .filter((monitor) => monitor.visibility === "public");
 
-    const legacyPublicMonitors =
-      indexedPublicMonitors.length === 0
-        ? (
-            await ctx.db
-              .query("monitors")
-              .withIndex("by_enabled", (q) => q.eq("enabled", true))
-              .collect()
-          )
-            .filter((monitor) => !monitor.hostname)
-            .filter((monitor) => monitor.visibility === "public")
-            .filter((monitor) => extractHostname(monitor.url) === hostname)
-        : [];
+    const legacyPublicMonitors = (
+      await ctx.db
+        .query("monitors")
+        .withIndex("by_enabled", (q) => q.eq("enabled", true))
+        .collect()
+    )
+      .filter((monitor) => !monitor.hostname)
+      .filter((monitor) => monitor.visibility === "public")
+      .filter((monitor) => extractHostname(monitor.url) === hostname);
 
-    const matchingPublicMonitors = [
-      ...indexedPublicMonitors,
-      ...legacyPublicMonitors,
-    ].map((monitor) => ({
-      monitorId: monitor._id,
-      name: monitor.name,
-      status: computeStatus(monitor.consecutiveFailures),
-      statusSlug: monitor.statusSlug,
-    }));
+    const matchingPublicMonitors = Array.from(
+      new Map(
+        [...indexedPublicMonitors, ...legacyPublicMonitors].map((monitor) => [
+          monitor._id,
+          {
+            monitorId: monitor._id,
+            name: monitor.name,
+            status: computeStatus(monitor.consecutiveFailures),
+            statusSlug: monitor.statusSlug,
+          },
+        ]),
+      ).values(),
+    );
 
     const incidentPages = await Promise.all(
       matchingPublicMonitors.map((monitor) =>
@@ -333,14 +334,14 @@ export const probePublicTarget = action({
     ok: v.boolean(),
   }),
   handler: async (ctx, args) => {
-    const { hostname } = normalizeTargetInput(args.target);
-    const latest = await ctx.runQuery(
-      internal.isItDown.getLatestProbeForTargetInternal,
+    const { shouldProbe } = await ctx.runMutation(
+      internal.isItDown.claimOnDemandProbeWindow,
       {
         target: args.target,
       },
     );
-    if (latest && Date.now() - latest.checkedAt <= ON_DEMAND_CACHE_WINDOW_MS) {
+
+    if (!shouldProbe) {
       return { ok: true };
     }
 
@@ -350,6 +351,54 @@ export const probePublicTarget = action({
     });
 
     return { ok: true };
+  },
+});
+
+export const claimOnDemandProbeWindow = internalMutation({
+  args: { target: v.string() },
+  returns: v.object({
+    shouldProbe: v.boolean(),
+  }),
+  handler: async (ctx, args) => {
+    const { probeUrl } = normalizeTargetInput(args.target);
+    const allowance = isAllowedUrl(probeUrl);
+    if (!allowance.allowed) {
+      throw new Error(allowance.reason);
+    }
+
+    const now = Date.now();
+    const latest = await ctx.db
+      .query("serviceChecks")
+      .withIndex("by_url", (q) => q.eq("url", probeUrl))
+      .order("desc")
+      .first();
+
+    if (latest && now - latest.checkedAt <= ON_DEMAND_CACHE_WINDOW_MS) {
+      return { shouldProbe: false };
+    }
+
+    const existingLease = await ctx.db
+      .query("serviceProbeLeases")
+      .withIndex("by_probe_url", (q) => q.eq("probeUrl", probeUrl))
+      .first();
+
+    if (
+      existingLease &&
+      now - existingLease.claimedAt <= ON_DEMAND_CACHE_WINDOW_MS
+    ) {
+      return { shouldProbe: false };
+    }
+
+    if (existingLease) {
+      await ctx.db.patch(existingLease._id, { claimedAt: now });
+    } else {
+      await ctx.db.insert("serviceProbeLeases", {
+        probeUrl,
+        claimedAt: now,
+      });
+    }
+
+    return { shouldProbe: true };
   },
 });
 
@@ -444,7 +493,6 @@ export const seedDefaultTargets = internalMutation({
         await ctx.db.patch(existing._id, {
           url: target.url,
           label: target.label,
-          enabled: true,
           updatedAt: now,
         });
       } else {

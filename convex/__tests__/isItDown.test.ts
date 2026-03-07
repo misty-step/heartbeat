@@ -170,4 +170,24 @@ describe("isItDown.probePublicTarget", () => {
     expect(probeResult.ok).toBe(true);
     expect(fetchMock).not.toHaveBeenCalled();
   });
+
+  test("claims the on-demand probe window atomically per normalized target", async () => {
+    const t = setupBackend();
+
+    const firstClaim = await t.mutation(
+      internal.isItDown.claimOnDemandProbeWindow,
+      {
+        target: "https://example.com/path",
+      },
+    );
+    const secondClaim = await t.mutation(
+      internal.isItDown.claimOnDemandProbeWindow,
+      {
+        target: "https://example.com/other",
+      },
+    );
+
+    expect(firstClaim).toEqual({ shouldProbe: true });
+    expect(secondClaim).toEqual({ shouldProbe: false });
+  });
 });
