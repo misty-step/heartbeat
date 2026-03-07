@@ -21,7 +21,8 @@ crons.daily(
   internal.subscriptions.cleanupOldEvents,
 );
 
-// Seed and probe tracked "is it down" targets every 5 minutes.
+// Probe tracked public targets every 5 minutes to reduce external load while
+// keeping the public "is it down" surface fresh enough for its 1-5 minute SLA.
 crons.interval(
   "probe-is-it-down-targets",
   { minutes: 5 },

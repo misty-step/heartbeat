@@ -29,7 +29,11 @@ async function createPublicMonitor(
     projectSlug: "public-project",
     visibility: "public",
   });
-  return monitor!._id;
+  if (!monitor) {
+    throw new Error("Failed to create public monitor for is-it-down tests");
+  }
+
+  return monitor._id;
 }
 
 describe("isItDown.listTrackedTargets", () => {

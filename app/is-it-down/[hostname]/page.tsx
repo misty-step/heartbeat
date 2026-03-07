@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { api } from "@/convex/_generated/api";
 import { BASE_URL } from "@/lib/constants";
 import { fetchPublicQuery } from "@/lib/convex-public";
+import { normalizeTargetInput } from "@/lib/domain";
 import { safeJsonLd } from "@/lib/json-ld";
 import {
   IsItDownResultCard,
@@ -55,16 +56,31 @@ export async function generateStaticParams() {
 
 export default async function IsItDownTargetPage({ params }: PageProps) {
   const { hostname } = await params;
-  const normalized = hostname.toLowerCase().trim();
+  const rawTarget = hostname.toLowerCase().trim();
 
-  if (!normalized) {
+  if (!rawTarget) {
+    notFound();
+  }
+
+  let normalized: string;
+  try {
+    normalized = normalizeTargetInput(rawTarget).hostname;
+  } catch {
     notFound();
   }
 
   let snapshot: IsItDownSnapshot;
   try {
     snapshot = await getSnapshot(normalized);
-  } catch {
+  } catch (error) {
+    if (error instanceof Error && error.name === "TargetInputError") {
+      notFound();
+    }
+
+    throw error;
+  }
+
+  if (!snapshot) {
     notFound();
   }
 
@@ -121,7 +137,11 @@ export default async function IsItDownTargetPage({ params }: PageProps) {
               method="GET"
               className="flex w-full gap-2 sm:w-auto"
             >
+              <label htmlFor="is-it-down-target" className="sr-only">
+                Hostname or URL to check
+              </label>
               <input
+                id="is-it-down-target"
                 name="target"
                 type="text"
                 placeholder="Check another..."

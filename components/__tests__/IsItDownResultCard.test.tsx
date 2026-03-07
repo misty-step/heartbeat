@@ -40,6 +40,7 @@ function buildSnapshot(
         responseTime: 5000,
         checkedAt: BASE_TIME - 1000,
         source: "on_demand",
+        errorMessage: "connection reset",
       },
       {
         status: "up",
@@ -106,7 +107,7 @@ describe("IsItDownResultCard", () => {
 
     expect(screen.getByText("2")).toBeInTheDocument();
     expect(screen.getAllByText("1")).toHaveLength(2);
-    expect(screen.getByText("timeout")).toBeInTheDocument();
+    expect(screen.getByText("connection reset")).toBeInTheDocument();
     expect(screen.getByText("API outage")).toBeInTheDocument();
 
     const statusPageLink = screen.getByRole("link", { name: "GitHub API" });

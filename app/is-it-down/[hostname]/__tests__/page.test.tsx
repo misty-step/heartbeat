@@ -148,7 +148,10 @@ describe("app/is-it-down/[hostname]/page", () => {
       "href",
       "/is-it-down",
     );
-    expect(screen.getByPlaceholderText("Check another...")).toBeInTheDocument();
+    expect(screen.getByLabelText("Hostname or URL to check")).toHaveAttribute(
+      "placeholder",
+      "Check another...",
+    );
 
     const resultCard = screen.getByTestId("result-card");
     expect(resultCard).toHaveTextContent("status.openai.com");
@@ -166,15 +169,15 @@ describe("app/is-it-down/[hostname]/page", () => {
     expect(targetPageMocks.fetchPublicQuery).not.toHaveBeenCalled();
   });
 
-  test("calls notFound when snapshot query fails", async () => {
+  test("rethrows unexpected snapshot query failures", async () => {
     targetPageMocks.fetchPublicQuery.mockRejectedValueOnce(new Error("nope"));
 
     await expect(
       IsItDownTargetPage({
         params: Promise.resolve({ hostname: "missing.example" }),
       }),
-    ).rejects.toThrow("NEXT_NOT_FOUND");
+    ).rejects.toThrow("nope");
 
-    expect(targetPageMocks.notFound).toHaveBeenCalledTimes(1);
+    expect(targetPageMocks.notFound).not.toHaveBeenCalled();
   });
 });

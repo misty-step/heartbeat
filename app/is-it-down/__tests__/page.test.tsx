@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import IsItDownPage, { dynamic, metadata } from "../page";
+import { TargetInputError } from "@/lib/domain";
 
 const pageMocks = vi.hoisted(() => ({
   fetchPublicQuery: vi.fn(),
@@ -175,7 +176,7 @@ describe("app/is-it-down/page", () => {
   test("shows validation errors and preserves popular checks block", async () => {
     pageMocks.fetchPublicQuery.mockResolvedValueOnce(trackedTargets);
     pageMocks.getPublicIsItDownSnapshot.mockImplementationOnce(() => {
-      throw new Error("Only http and https targets are supported");
+      throw new TargetInputError("Only http and https targets are supported");
     });
 
     const ui = await IsItDownPage({
@@ -192,5 +193,20 @@ describe("app/is-it-down/page", () => {
       "ftp://github.com",
     );
     expect(screen.queryByTestId("result-card")).not.toBeInTheDocument();
+  });
+
+  test("masks operational probe failures behind generic copy", async () => {
+    pageMocks.fetchPublicQuery.mockResolvedValueOnce(trackedTargets);
+    pageMocks.getPublicIsItDownSnapshot.mockImplementationOnce(() => {
+      throw new Error("socket hang up");
+    });
+
+    const ui = await IsItDownPage({
+      searchParams: Promise.resolve({ target: "github.com" }),
+    });
+    render(ui);
+
+    expect(screen.getByText("Probe failed")).toBeInTheDocument();
+    expect(screen.queryByText("socket hang up")).not.toBeInTheDocument();
   });
 });

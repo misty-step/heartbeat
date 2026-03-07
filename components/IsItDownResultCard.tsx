@@ -250,7 +250,9 @@ export function IsItDownResultCard({
                 </span>
                 <span className="font-mono text-[11px] text-[var(--color-text-muted)]">
                   {check.statusCode ??
-                    (check.status === "down" ? "timeout" : "")}
+                    (check.status === "down"
+                      ? (check.errorMessage ?? "error")
+                      : "")}
                 </span>
                 <span className="ml-auto font-mono text-[11px] text-[var(--color-text-muted)]">
                   {check.responseTime}ms

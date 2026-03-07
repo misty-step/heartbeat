@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { api } from "@/convex/_generated/api";
 import { BASE_URL } from "@/lib/constants";
 import { fetchPublicQuery } from "@/lib/convex-public";
+import { TargetInputError } from "@/lib/domain";
 import { safeJsonLd } from "@/lib/json-ld";
 import {
   IsItDownResultCard,
@@ -44,8 +45,8 @@ export default async function IsItDownPage({ searchParams }: PageProps) {
       parsedHostname = result.hostname;
       snapshot = result.snapshot;
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Probe failed";
-      errorMessage = message;
+      errorMessage =
+        error instanceof TargetInputError ? error.message : "Probe failed";
     }
   }
 
