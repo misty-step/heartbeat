@@ -133,6 +133,7 @@ jobs:
     steps:
       - name: Check all jobs passed
         run: |
-          if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" ]] || \
-             [[ "${{ contains(needs.*.result, 'cancelled') }}" == "true" ]]; then
+          if [[ "${{ needs.test.result }}" == "failure" ]] || \
+             [[ "${{ needs.test.result }}" == "cancelled" ]]; then
             exit 1
+          fi
