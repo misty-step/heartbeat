@@ -134,6 +134,7 @@ jobs:
       - name: Check all jobs passed
         run: |
           if [[ "${{ needs.test.result }}" == "failure" ]] || \
-             [[ "${{ needs.test.result }}" == "cancelled" ]]; then
+             [[ "${{ needs.test.result }}" == "cancelled" ]] || \
+             [[ "${{ needs.test.result }}" == "skipped" ]]; then
             exit 1
           fi
