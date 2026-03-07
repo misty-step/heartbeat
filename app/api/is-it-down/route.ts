@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { api } from "@/convex/_generated/api";
-import { fetchPublicQuery, runPublicAction } from "@/lib/convex-public";
-import { normalizeTargetInput } from "@/lib/domain";
-
-const ON_DEMAND_CACHE_WINDOW_MS = 30 * 1000;
+import { TargetInputError } from "@/lib/domain";
+import { getPublicIsItDownSnapshot } from "@/lib/public-is-it-down";
 
 export async function GET(request: NextRequest) {
   const target = request.nextUrl.searchParams.get("target")?.trim();
@@ -15,25 +12,13 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const { hostname } = normalizeTargetInput(target);
-    const latest = await fetchPublicQuery(
-      api.isItDown.getLatestProbeForTarget,
-      {
-        hostname,
-      },
-    );
-    if (!latest || Date.now() - latest.checkedAt > ON_DEMAND_CACHE_WINDOW_MS) {
-      await runPublicAction(api.isItDown.probePublicTarget, {
-        target: hostname,
-      });
-    }
-
-    const snapshot = await fetchPublicQuery(api.isItDown.getStatusForTarget, {
-      target: hostname,
-    });
+    const { snapshot } = await getPublicIsItDownSnapshot(target);
     return NextResponse.json(snapshot, { status: 200 });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Probe failed";
-    return NextResponse.json({ error: message }, { status: 500 });
+    if (error instanceof TargetInputError) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+
+    return NextResponse.json({ error: "Probe failed" }, { status: 500 });
   }
 }

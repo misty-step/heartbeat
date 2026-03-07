@@ -56,6 +56,48 @@ describe("isItDown.getStatusForTarget", () => {
     expect(result.recentChecks).toHaveLength(0);
   });
 
+  test("uses the exact normalized target URL for probe evidence", async () => {
+    const t = setupBackend();
+    const checkedAt = Date.now();
+
+    await t.mutation(internal.isItDown.recordServiceCheck, {
+      hostname: "example.com",
+      url: "https://example.com",
+      status: "up",
+      statusCode: 200,
+      responseTime: 120,
+      source: "on_demand",
+      checkedAt,
+    });
+    await t.mutation(internal.isItDown.recordServiceCheck, {
+      hostname: "example.com",
+      url: "https://example.com",
+      status: "up",
+      statusCode: 204,
+      responseTime: 140,
+      source: "on_demand",
+      checkedAt: checkedAt - 1000,
+    });
+    await t.mutation(internal.isItDown.recordServiceCheck, {
+      hostname: "example.com",
+      url: "http://example.com:8080",
+      status: "down",
+      statusCode: 503,
+      responseTime: 900,
+      source: "on_demand",
+      checkedAt: checkedAt - 2000,
+    });
+
+    const result = await t.query(api.isItDown.getStatusForTarget, {
+      target: "http://example.com:8080/health",
+    });
+
+    expect(result.probeUrl).toBe("http://example.com:8080");
+    expect(result.recentChecks).toHaveLength(1);
+    expect(result.recentFailureCount).toBe(1);
+    expect(result.recentSuccessCount).toBe(0);
+  });
+
   test("active incidents override probe success signals", async () => {
     const t = setupBackend();
     const monitorId = await createPublicMonitor(t, {
@@ -100,5 +142,28 @@ describe("isItDown.probePublicTarget", () => {
     expect(snapshot.verdict).toBe("likely_local_issue");
     expect(snapshot.recentChecks.length).toBeGreaterThan(0);
     expect(fetchMock).toHaveBeenCalled();
+  });
+
+  test("reuses a fresh cached probe for the same normalized target URL", async () => {
+    const t = setupBackend();
+    const fetchMock = vi.fn(async () => new Response("ok", { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await t.mutation(internal.isItDown.recordServiceCheck, {
+      hostname: "example.com",
+      url: "http://example.com:8080",
+      status: "up",
+      statusCode: 200,
+      responseTime: 120,
+      source: "on_demand",
+      checkedAt: Date.now(),
+    });
+
+    const probeResult = await t.action(api.isItDown.probePublicTarget, {
+      target: "http://example.com:8080/health",
+    });
+
+    expect(probeResult.ok).toBe(true);
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });

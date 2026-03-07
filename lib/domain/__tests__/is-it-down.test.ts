@@ -20,6 +20,13 @@ describe("normalizeTargetInput", () => {
     });
   });
 
+  test("preserves explicit http scheme and port", () => {
+    expect(normalizeTargetInput("http://service.example:8080/health")).toEqual({
+      hostname: "service.example",
+      probeUrl: "http://service.example:8080",
+    });
+  });
+
   test("rejects unsupported protocols", () => {
     expect(() => normalizeTargetInput("ftp://example.com")).toThrow(
       "Only http and https targets are supported",
@@ -70,12 +77,31 @@ describe("computeIsItDownVerdict", () => {
       }),
     ).toBe("likely_down_for_everyone");
   });
+
+  test("returns unclear_retrying for mixed recent probes", () => {
+    const now = Date.now();
+    expect(
+      computeIsItDownVerdict({
+        now,
+        samples: [
+          { status: "up", checkedAt: now - 1000, responseTime: 120 },
+          { status: "down", checkedAt: now - 2000, responseTime: 900 },
+        ],
+      }),
+    ).toBe("unclear_retrying");
+  });
 });
 
 describe("getIsItDownSummary", () => {
   test("maps verdicts to short summaries", () => {
     expect(getIsItDownSummary("likely_local_issue", "example.com")).toContain(
       "reachable",
+    );
+    expect(
+      getIsItDownSummary("likely_down_for_everyone", "example.com"),
+    ).toContain("looks down");
+    expect(getIsItDownSummary("no_data", "example.com")).toContain(
+      "No probe data yet",
     );
   });
 });

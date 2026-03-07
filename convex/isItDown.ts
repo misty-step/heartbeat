@@ -171,7 +171,7 @@ export const listTrackedTargets = query({
 });
 
 export const getLatestProbeForTarget = query({
-  args: { hostname: v.string() },
+  args: { target: v.string() },
   returns: v.union(
     v.object({
       checkedAt: v.number(),
@@ -179,9 +179,10 @@ export const getLatestProbeForTarget = query({
     v.null(),
   ),
   handler: async (ctx, args) => {
+    const { probeUrl } = normalizeTargetInput(args.target);
     const latest = await ctx.db
       .query("serviceChecks")
-      .withIndex("by_hostname", (q) => q.eq("hostname", args.hostname))
+      .withIndex("by_url", (q) => q.eq("url", probeUrl))
       .order("desc")
       .first();
 
@@ -190,7 +191,7 @@ export const getLatestProbeForTarget = query({
 });
 
 export const getLatestProbeForTargetInternal = internalQuery({
-  args: { hostname: v.string() },
+  args: { target: v.string() },
   returns: v.union(
     v.object({
       checkedAt: v.number(),
@@ -198,9 +199,10 @@ export const getLatestProbeForTargetInternal = internalQuery({
     v.null(),
   ),
   handler: async (ctx, args) => {
+    const { probeUrl } = normalizeTargetInput(args.target);
     const latest = await ctx.db
       .query("serviceChecks")
-      .withIndex("by_hostname", (q) => q.eq("hostname", args.hostname))
+      .withIndex("by_url", (q) => q.eq("url", probeUrl))
       .order("desc")
       .first();
 
@@ -220,7 +222,7 @@ export const getStatusForTarget = query({
 
     const recentChecks = await ctx.db
       .query("serviceChecks")
-      .withIndex("by_hostname", (q) => q.eq("hostname", hostname))
+      .withIndex("by_url", (q) => q.eq("url", probeUrl))
       .order("desc")
       .take(10);
 
@@ -228,20 +230,37 @@ export const getStatusForTarget = query({
       (check) => check.checkedAt >= tenMinutesAgo,
     );
 
-    const enabledMonitors = await ctx.db
-      .query("monitors")
-      .withIndex("by_enabled", (q) => q.eq("enabled", true))
-      .collect();
+    const indexedPublicMonitors = (
+      await ctx.db
+        .query("monitors")
+        .withIndex("by_hostname", (q) => q.eq("hostname", hostname))
+        .collect()
+    )
+      .filter((monitor) => monitor.enabled)
+      .filter((monitor) => monitor.visibility === "public");
 
-    const matchingPublicMonitors = enabledMonitors
-      .filter((monitor) => monitor.visibility === "public")
-      .filter((monitor) => extractHostname(monitor.url) === hostname)
-      .map((monitor) => ({
-        monitorId: monitor._id,
-        name: monitor.name,
-        status: computeStatus(monitor.consecutiveFailures),
-        statusSlug: monitor.statusSlug,
-      }));
+    const legacyPublicMonitors =
+      indexedPublicMonitors.length === 0
+        ? (
+            await ctx.db
+              .query("monitors")
+              .withIndex("by_enabled", (q) => q.eq("enabled", true))
+              .collect()
+          )
+            .filter((monitor) => !monitor.hostname)
+            .filter((monitor) => monitor.visibility === "public")
+            .filter((monitor) => extractHostname(monitor.url) === hostname)
+        : [];
+
+    const matchingPublicMonitors = [
+      ...indexedPublicMonitors,
+      ...legacyPublicMonitors,
+    ].map((monitor) => ({
+      monitorId: monitor._id,
+      name: monitor.name,
+      status: computeStatus(monitor.consecutiveFailures),
+      statusSlug: monitor.statusSlug,
+    }));
 
     const incidentPages = await Promise.all(
       matchingPublicMonitors.map((monitor) =>
@@ -318,7 +337,7 @@ export const probePublicTarget = action({
     const latest = await ctx.runQuery(
       internal.isItDown.getLatestProbeForTargetInternal,
       {
-        hostname,
+        target: args.target,
       },
     );
     if (latest && Date.now() - latest.checkedAt <= ON_DEMAND_CACHE_WINDOW_MS) {
@@ -536,8 +555,6 @@ export const deleteServiceChecks = internalMutation({
     checkIds: v.array(v.id("serviceChecks")),
   },
   handler: async (ctx, args) => {
-    for (const checkId of args.checkIds) {
-      await ctx.db.delete(checkId);
-    }
+    await Promise.all(args.checkIds.map((checkId) => ctx.db.delete(checkId)));
   },
 });

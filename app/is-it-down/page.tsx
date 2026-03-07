@@ -2,15 +2,13 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { api } from "@/convex/_generated/api";
 import { BASE_URL } from "@/lib/constants";
-import { fetchPublicQuery, runPublicAction } from "@/lib/convex-public";
+import { fetchPublicQuery } from "@/lib/convex-public";
 import { safeJsonLd } from "@/lib/json-ld";
 import {
   IsItDownResultCard,
   type IsItDownSnapshot,
 } from "@/components/IsItDownResultCard";
-import { normalizeTargetInput } from "@/lib/domain";
-
-const ON_DEMAND_CACHE_WINDOW_MS = 30 * 1000;
+import { getPublicIsItDownSnapshot } from "@/lib/public-is-it-down";
 
 export const dynamic = "force-dynamic";
 
@@ -42,26 +40,9 @@ export default async function IsItDownPage({ searchParams }: PageProps) {
 
   if (inputTarget) {
     try {
-      const { hostname } = normalizeTargetInput(inputTarget);
-      parsedHostname = hostname;
-      const latest = await fetchPublicQuery(
-        api.isItDown.getLatestProbeForTarget,
-        {
-          hostname,
-        },
-      );
-      if (
-        !latest ||
-        Date.now() - latest.checkedAt > ON_DEMAND_CACHE_WINDOW_MS
-      ) {
-        await runPublicAction(api.isItDown.probePublicTarget, {
-          target: hostname,
-        });
-      }
-
-      snapshot = await fetchPublicQuery(api.isItDown.getStatusForTarget, {
-        target: hostname,
-      });
+      const result = await getPublicIsItDownSnapshot(inputTarget);
+      parsedHostname = result.hostname;
+      snapshot = result.snapshot;
     } catch (error) {
       const message = error instanceof Error ? error.message : "Probe failed";
       errorMessage = message;
@@ -114,8 +95,8 @@ export default async function IsItDownPage({ searchParams }: PageProps) {
               down?
             </h1>
             <p className="mt-4 max-w-xl text-[17px] leading-relaxed text-[var(--color-text-secondary)]">
-              Three independent probes, incident context from the Heartbeat
-              network, deterministic verdict.
+              Three Heartbeat probes, incident context from the network, and a
+              deterministic verdict.
             </p>
 
             <form action="/is-it-down" method="GET" className="mt-7">

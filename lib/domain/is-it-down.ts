@@ -14,13 +14,20 @@ export type ProbeSample = {
 
 const RECENT_WINDOW_MS = 10 * 60 * 1000;
 
+export class TargetInputError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "TargetInputError";
+  }
+}
+
 export function normalizeTargetInput(target: string): {
   hostname: string;
   probeUrl: string;
 } {
   const trimmed = target.trim();
   if (!trimmed) {
-    throw new Error("Target is required");
+    throw new TargetInputError("Target is required");
   }
 
   const candidate = /^[a-zA-Z][a-zA-Z\d+\-.]*:\/\//.test(trimmed)
@@ -29,18 +36,19 @@ export function normalizeTargetInput(target: string): {
   const url = new URL(candidate);
 
   if (url.protocol !== "http:" && url.protocol !== "https:") {
-    throw new Error("Only http and https targets are supported");
+    throw new TargetInputError("Only http and https targets are supported");
   }
 
   if (!url.hostname) {
-    throw new Error("Target hostname is required");
+    throw new TargetInputError("Target hostname is required");
   }
 
   const hostname = url.hostname.toLowerCase().replace(/\.$/, "");
+  const port = url.port ? `:${url.port}` : "";
 
   return {
     hostname,
-    probeUrl: `https://${hostname}`,
+    probeUrl: `${url.protocol}//${hostname}${port}`,
   };
 }
 

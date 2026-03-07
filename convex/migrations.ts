@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { internalMutation, internalQuery } from "./_generated/server";
 import { generateUniqueStatusSlug } from "./slugs";
+import { normalizeTargetInput } from "../lib/domain";
 
 const BATCH_SIZE = 100;
 
@@ -187,5 +188,52 @@ export const listMonitorDiagnostics = internalQuery({
       statusSlug: m.statusSlug,
       visibility: m.visibility,
     }));
+  },
+});
+
+// ============================================================================
+// Monitor Hostname Migration
+// ============================================================================
+
+export const getMonitorsNeedingHostname = internalQuery({
+  args: {},
+  handler: async (ctx) => {
+    const monitors = await ctx.db.query("monitors").collect();
+    return monitors.filter((m) => !m.hostname);
+  },
+});
+
+export const backfillHostnames = internalMutation({
+  args: {
+    batchSize: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const batchSize = args.batchSize ?? BATCH_SIZE;
+    const monitors = await ctx.db.query("monitors").collect();
+    const needsBackfill = monitors.filter((m) => !m.hostname);
+    const batch = needsBackfill.slice(0, batchSize);
+
+    for (const monitor of batch) {
+      const hostname = normalizeTargetInput(monitor.url).hostname;
+      await ctx.db.patch(monitor._id, { hostname });
+    }
+
+    return {
+      processed: batch.length,
+      remaining: needsBackfill.length - batch.length,
+    };
+  },
+});
+
+export const isHostnameMigrationComplete = internalQuery({
+  args: {},
+  handler: async (ctx) => {
+    const monitors = await ctx.db.query("monitors").collect();
+    const needsBackfill = monitors.filter((m) => !m.hostname);
+    return {
+      complete: needsBackfill.length === 0,
+      total: monitors.length,
+      remaining: needsBackfill.length,
+    };
   },
 });
