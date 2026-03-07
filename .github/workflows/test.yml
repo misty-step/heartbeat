@@ -133,8 +133,6 @@ jobs:
     steps:
       - name: Check all jobs passed
         run: |
-          if [[ "${{ needs.test.result }}" == "failure" ]] || \
-             [[ "${{ needs.test.result }}" == "cancelled" ]] || \
-             [[ "${{ needs.test.result }}" == "skipped" ]]; then
+          if [[ "${{ needs.test.result }}" != "success" ]]; then
             exit 1
           fi
