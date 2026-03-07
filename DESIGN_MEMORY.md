@@ -16,4 +16,13 @@
 - Vetoes: **no frosted glass on main card surfaces**, no blue accent, no slate-900/dark-navy bg, no glass-panel class on cards
 - Previous systems: Kyoto Moss (Japanese minimalism) → Glass (Tremor/Vercel, blue) → Field (current)
 - Design preset: `lib/design/presets/field.ts` — `fieldTheme`
-- Last updated: 2026-02-27
+- Is-It-Down direction: **Diagnostic** (D1 from 6-direction catalog)
+  - Probe strip bar visualization (height=response time, color=status)
+  - Evidence panels in 2-col grid (probes left, incidents/status pages right)
+  - Stats in divided cells (border-x separators, not 3 identical cards)
+  - Verdict badge with inline status dot
+  - CTA footer integrated into result card bottom
+  - Feature chips (compact pills) instead of 3-col info boxes
+  - Breathing dot next to "Heartbeat Labs" label
+  - Hero card generous padding (p-8/p-12), 14px radii on inputs/buttons
+- Last updated: 2026-03-05

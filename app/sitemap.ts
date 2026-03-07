@@ -8,6 +8,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPages: MetadataRoute.Sitemap = [
     { url: BASE_URL, changeFrequency: "weekly", priority: 1.0 },
     { url: `${BASE_URL}/pricing`, changeFrequency: "monthly", priority: 0.8 },
+    { url: `${BASE_URL}/is-it-down`, changeFrequency: "daily", priority: 0.9 },
     { url: `${BASE_URL}/terms`, changeFrequency: "yearly", priority: 0.3 },
     { url: `${BASE_URL}/privacy`, changeFrequency: "yearly", priority: 0.3 },
   ];
@@ -18,7 +19,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       api.monitors.listPublicStatusSlugs,
       {},
     );
-    statusPages = slugs.map((slug) => ({
+    statusPages = slugs.map((slug: string) => ({
       url: `${BASE_URL}/status/${slug}`,
       changeFrequency: "always" as const,
       priority: 0.6,
@@ -27,5 +28,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error("sitemap: failed to fetch public status slugs", e);
   }
 
-  return [...staticPages, ...statusPages];
+  let isItDownPages: MetadataRoute.Sitemap = [];
+  try {
+    const targets = await fetchPublicQuery(api.isItDown.listTrackedTargets, {});
+    isItDownPages = targets.map((target: { hostname: string }) => ({
+      url: `${BASE_URL}/is-it-down/${target.hostname}`,
+      changeFrequency: "hourly" as const,
+      priority: 0.7,
+    }));
+  } catch (e) {
+    console.error("sitemap: failed to fetch is-it-down targets", e);
+  }
+
+  return [...staticPages, ...statusPages, ...isItDownPages];
 }

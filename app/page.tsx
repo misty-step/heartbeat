@@ -629,6 +629,7 @@ function CTASection() {
 function Footer() {
   const links = [
     { label: "Dashboard", href: "/dashboard" },
+    { label: "Is It Down", href: "/is-it-down" },
     { label: "Pricing", href: "#pricing" },
     { label: "Terms", href: "/terms" },
     { label: "Privacy", href: "/privacy" },

@@ -13,6 +13,7 @@ import type * as constants from "../constants.js";
 import type * as crons from "../crons.js";
 import type * as http from "../http.js";
 import type * as incidents from "../incidents.js";
+import type * as isItDown from "../isItDown.js";
 import type * as lib_email from "../lib/email.js";
 import type * as lib_urlValidation from "../lib/urlValidation.js";
 import type * as lib_visibility from "../lib/visibility.js";
@@ -38,6 +39,7 @@ declare const fullApi: ApiFromModules<{
   crons: typeof crons;
   http: typeof http;
   incidents: typeof incidents;
+  isItDown: typeof isItDown;
   "lib/email": typeof lib_email;
   "lib/urlValidation": typeof lib_urlValidation;
   "lib/visibility": typeof lib_visibility;

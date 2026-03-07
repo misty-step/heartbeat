@@ -5,6 +5,7 @@ export default defineSchema({
   monitors: defineTable({
     name: v.string(),
     url: v.string(),
+    hostname: v.optional(v.string()),
     method: v.union(
       v.literal("GET"),
       v.literal("POST"),
@@ -54,6 +55,7 @@ export default defineSchema({
     .index("by_project_slug", ["projectSlug"])
     .index("by_project_slug_and_visibility", ["projectSlug", "visibility"])
     .index("by_status_slug", ["statusSlug"])
+    .index("by_hostname", ["hostname"])
     .index("by_enabled", ["enabled"]),
 
   checks: defineTable({
@@ -126,4 +128,36 @@ export default defineSchema({
   })
     .index("by_event_id", ["eventId"])
     .index("by_processed_at", ["processedAt"]),
+
+  serviceTargets: defineTable({
+    hostname: v.string(),
+    url: v.string(),
+    label: v.string(),
+    enabled: v.boolean(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_hostname", ["hostname"])
+    .index("by_enabled", ["enabled"]),
+
+  serviceProbeLeases: defineTable({
+    probeUrl: v.string(),
+    claimedAt: v.number(),
+  }).index("by_probe_url", ["probeUrl"]),
+
+  serviceChecks: defineTable({
+    hostname: v.string(),
+    url: v.string(),
+    status: v.union(v.literal("up"), v.literal("down")),
+    statusCode: v.optional(v.number()),
+    responseTime: v.number(),
+    errorMessage: v.optional(v.string()),
+    source: v.union(v.literal("scheduled"), v.literal("on_demand")),
+    targetId: v.optional(v.id("serviceTargets")),
+    checkedAt: v.number(),
+  })
+    .index("by_hostname", ["hostname", "checkedAt"])
+    .index("by_url", ["url", "checkedAt"])
+    .index("by_checked_at", ["checkedAt"])
+    .index("by_target", ["targetId", "checkedAt"]),
 });

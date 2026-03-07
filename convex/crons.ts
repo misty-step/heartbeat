@@ -21,4 +21,19 @@ crons.daily(
   internal.subscriptions.cleanupOldEvents,
 );
 
+// Probe tracked public targets every 5 minutes to reduce external load while
+// keeping the public "is it down" surface fresh enough for its 1-5 minute SLA.
+crons.interval(
+  "probe-is-it-down-targets",
+  { minutes: 5 },
+  internal.isItDown.probeTrackedTargets,
+);
+
+// Cleanup historical "is it down" probe data daily.
+crons.daily(
+  "cleanup-is-it-down-checks",
+  { hourUTC: 4, minuteUTC: 0 },
+  internal.isItDown.cleanupOldServiceChecks,
+);
+
 export default crons;

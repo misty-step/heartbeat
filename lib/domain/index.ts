@@ -10,3 +10,4 @@
 export * from "./status";
 export * from "./formatting";
 export * from "./validation";
+export * from "./is-it-down";

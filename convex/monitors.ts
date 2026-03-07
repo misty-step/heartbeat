@@ -3,6 +3,7 @@ import { query, mutation, internalQuery } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { toPublicMonitor } from "./publicTypes";
 import { computeStatus } from "../lib/domain/status";
+import { normalizeTargetInput } from "../lib/domain";
 import { generateUniqueStatusSlug } from "./slugs";
 import { isPubliclyVisible } from "./lib/visibility";
 import { isAllowedUrl } from "./lib/urlValidation";
@@ -222,9 +223,11 @@ export const create = mutation({
 
     const now = Date.now();
     const statusSlug = await generateUniqueStatusSlug(ctx);
+    const hostname = normalizeTargetInput(args.url).hostname;
 
     const id = await ctx.db.insert("monitors", {
       ...args,
+      hostname,
       statusSlug,
       visibility: args.visibility ?? "public",
       theme: args.theme ?? "glass",
@@ -341,8 +344,13 @@ export const update = mutation({
       throw new Error("Monitor not found");
     }
 
+    const hostname = args.url
+      ? normalizeTargetInput(args.url).hostname
+      : undefined;
+
     await ctx.db.patch(id, {
       ...updates,
+      ...(hostname ? { hostname } : {}),
       updatedAt: Date.now(),
     });
   },
